@@ -235,27 +235,62 @@ import re
 #       否则 \P 会被误判为带参码, 贪婪匹配到下一个 ; 从而吞掉中间的 \P 和文本
 _MTEXT_CODE = re.compile(
     r'\\('
-    r'[P~LlOo]'                     # 独立码 (无参数): \P \~ \L \l \O \o
-    r'|[AaCcFfHhQqSsTtVvWw][^;]*;'  # 带参数: \C7; \H1.5x; \fFangSong|...|; 等
-    r'|\\'                           # \\ (反斜杠)
+    r'[P~LlOo]'                       # 独立码 (无参数): \P \~ \L \l \O \o
+    r'|[Aa][^;]*;'                     # 对齐码: \A1; 等
+    r'|[Pp][xX][^;]*;'                # 段落格式码: \pxsm0.9224; \pql; 等
+    r'|[CcFfHhQqSsTtVvWw][^;]*;'      # 带参数: \C7; \H1.5x; \fFangSong|...|; 等
+    r'|\\'                             # \\ (反斜杠)
     r')'
 )
 
 # 匹配 \S 堆叠: \S up^lwr;  \S up/lwr;  \S up#lwr;
-_MTEXT_STACK = re.compile(r'\\S([^;]*?)([/^#])([^;]*?);')
+_MTEXT_STACK = re.compile(r'\\[Ss]([^;]*?)([/^#])([^;]*?);')
+
+# Unicode 上标/下标映射
+_SUPER = str.maketrans("0123456789+-=()ni", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿⁱ")
+_SUB = str.maketrans("0123456789+-=()aeiou", "₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑᵢₒᵤ")
+
+
+def _to_superscript(s):
+    """将数字/符号转为 Unicode 上标字符."""
+    return s.translate(_SUPER)
+
+
+def _to_subscript(s):
+    """将数字/符号转为 Unicode 下标字符."""
+    return s.translate(_SUB)
 
 
 def _render_stack(m):
-    """渲染 \\S 堆叠: up^lwr → up/lwr (终端表示)"""
+    """渲染 \\S 堆叠码:
+    \\S2^ ; → ² (空白下标=上标)
+    \\S3^ ; → ³
+    \\S1/2; → ½ (分数用 Unicode 分数或 a/b)
+    \\S+2^-2; → ⁺²⁄₋₂ (有上下标=分数)
+    """
     upr, sep, lwr = m.group(1), m.group(2), m.group(3)
-    # 空白 lwr 视为上标 (如 m³/min 中的 \S3^ ;)
-    if not lwr or not lwr.strip():
-        return upr.rstrip()
+    upr_s, lwr_s = upr.strip(), lwr.strip()
+    # 空白下标 → 上标 (m², m³)
+    if not lwr_s:
+        return _to_superscript(upr_s)
+    # 空白上标 → 下标
+    if not upr_s:
+        return _to_subscript(lwr_s)
+    # 分数 /
     if sep == "/":
-        return f"{upr.strip()}/{lwr.strip()}"
+        # 常见分数用 Unicode 字符
+        frac_map = {"1/2": "½", "1/3": "⅓", "2/3": "⅔",
+                    "1/4": "¼", "3/4": "¾", "1/8": "⅛",
+                    "3/8": "⅜", "5/8": "⅝", "7/8": "⅞"}
+        key = f"{upr_s}/{lwr_s}"
+        if key in frac_map:
+            return frac_map[key]
+        return f"{upr_s}/{lwr_s}"
+    # 其他分隔符 # → 直接拼接
     if sep == "#":
-        return f"{upr.strip()}{lwr.strip()}"
-    return f"{upr.strip()}/{lwr.strip()}"
+        return f"{upr_s}{lwr_s}"
+    # ^ 分隔符且两边都有内容 → 上标/下标
+    return f"{_to_superscript(upr_s)}{_to_subscript(lwr_s)}"
 
 
 def _split_top_level_blocks(text: str):
@@ -416,8 +451,12 @@ def _mtext_line_spacing(mt):
 
 def _wrap_text(text, font, max_width):
     """按最大宽度将文本拆分为多行. 逐字符测量宽度, 超出 max_width 时换行.
-    中文字符无空格, 按字符边界截断; 单字符超宽时强制换行."""
+    若整段文本未超出宽度则直接返回; 拆行结果每行平均字符数过少 (说明
+    宽度不足以有效换行) 时回退为单行, 避免 'CO2' → ['C','O','2'] 式的碎裂."""
     if not text or max_width <= 0:
+        return [text]
+    total_w = sum(font.text_width(ch) for ch in text)
+    if total_w <= max_width:
         return [text]
     lines = []
     current = []
@@ -433,6 +472,11 @@ def _wrap_text(text, font, max_width):
             current_w += ch_w
     if current:
         lines.append(''.join(current))
+    # 换行结果校验: 若平均每行不足 3 字符说明宽度不够换行, 回退单行
+    if len(lines) > 1:
+        avg_chars = sum(len(l) for l in lines) / len(lines)
+        if avg_chars < 3:
+            return [text]
     return lines
 
 
@@ -474,12 +518,23 @@ def _mtext_line_insert(mt, global_line_index, text="", font=None):
     return Vec3(d.insert) + off
 
 
+def _style_width_factor(doc, style_name):
+    """获取文字样式的宽度因子, 无则返回 1.0."""
+    if style_name and doc.styles.has_entry(style_name):
+        st = doc.styles.get(style_name)
+        w = st.dxf.get("width", 1.0) or 1.0
+        if w > 0:
+            return w
+    return 1.0
+
+
 def _make_font(mt, doc):
-    """为 MTEXT 构造字体度量对象, 失败时回退到等宽字体."""
+    """为 MTEXT 构造字体度量对象, 失败时回退到等宽字体.
+    使用文字样式的宽度因子, 确保测量与实际渲染一致."""
     h = mt.dxf.get("char_height", 0.0) or 1.0
-    wf = 1.0
-    ttf = FONT_TTF
     style_name = mt.dxf.get("style", "")
+    wf = _style_width_factor(doc, style_name)
+    ttf = FONT_TTF
     if style_name and doc.styles.has_entry(style_name):
         st = doc.styles.get(style_name)
         ttf = st.dxf.font or FONT_TTF
@@ -513,7 +568,8 @@ def explode_mtext_to_text(msp, doc, stats):
             attribs["style"] = mt.dxf.style
             attribs["rotation"] = mt.dxf.get("rotation", 0.0)
             attribs["height"] = h
-            attribs["width"] = 1.0
+            # 保留文字样式的宽度因子 (如仿宋 0.707), 避免字符被拉宽
+            attribs["width"] = _style_width_factor(doc, mt.dxf.style)
             # 4. 构造字体度量 (换行测量 + 居中对齐水平偏移)
             font = _make_font(mt, doc)
             # 5. 逐段生成 TEXT (每段内按宽度换行)

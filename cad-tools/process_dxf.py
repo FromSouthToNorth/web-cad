@@ -5,8 +5,9 @@ CAD DXF 图纸批量处理脚本 (基于 ezdxf 1.4)
 处理内容:
   1. 图层处理: 清洗删除相同属性/坐标的重复实体; 删除关闭(OFF)/冻结(FROZEN)图层的实体与图层,
      删除锁定(LOCKED)图层的实体与图层; PURGE 清理无用对象减小体积; 删除无法加载的外部参照块
-  2. 文本处理: 多行文本(MTEXT)转单行文本(TEXT, 数字不拆散), 全部左对齐(JUSTIFYTEXT)
-  3. 打散: 填充(HATCH)打散为边界线, 表格(ACAD_TABLE)打散, 块(INSERT)递归打散, 外部参照(XREF)绑定后打散
+  2. 文本处理: 全部左对齐(JUSTIFYTEXT)
+  3. 打散: 填充(HATCH)打散为边界线, 表格(ACAD_TABLE)打散, 块(INSERT)递归打散,
+     外部参照(XREF)绑定后打散, 多行文字(MTEXT)打散为单行文本(TEXT)
   4. 文字处理: 字体统一为宋体(simsun.ttf); 高度 = 原高度 * 宽度因子, 宽度因子归 1
   5. 线段处理: 多段线打断为直线段; 删除长度<=0.1的直线段; 直线/圆弧厚度归 0
 
@@ -68,8 +69,8 @@ class Stats:
 
     def dump(self):
         print(f"    外部参照绑定: {self.xref}  块打散: {self.blocks}  表格打散: {self.tables}  "
-              f"填充打散: {self.hatches}")
-        print(f"    多行文本转单行: {self.mtext}  左对齐: {self.justified}  字体样式: {self.fonts}  "
+              f"填充打散: {self.hatches}  MTEXT打散: {self.mtext}")
+        print(f"    左对齐: {self.justified}  字体样式: {self.fonts}  "
               f"高度按宽度因子换算: {self.heights}")
         print(f"    多段线打断: {self.polylines}  删除短线段(<= {MIN_LINE_LEN}): {self.short_lines}  "
               f"厚度归零: {self.thickness}")
@@ -90,7 +91,7 @@ class Stats:
             "块打散": self.blocks,
             "表格打散": self.tables,
             "填充打散": self.hatches,
-            "多行文本转单行": self.mtext,
+            "MTEXT打散": self.mtext,
             "左对齐": self.justified,
             "字体样式": self.fonts,
             "高度按宽度因子换算": self.heights,
@@ -224,6 +225,328 @@ def explode_tables(msp, stats):
             stats.warn(f"表格打散失败: {ex}")
 
 
+# ---------------------------------------------------------------- MTEXT 纯文本化
+
+import re
+
+# 匹配 MTEXT 控制码: \X...; 或 \X (单个字母的简写)
+# 注意: \P \~ \L \l \O \o 是独立码 (不带 ;), 必须放在参数化分支之前,
+#       且字符 P 不能出现在参数化分支的 [^;]*; 起始字符类中,
+#       否则 \P 会被误判为带参码, 贪婪匹配到下一个 ; 从而吞掉中间的 \P 和文本
+_MTEXT_CODE = re.compile(
+    r'\\('
+    r'[P~LlOo]'                     # 独立码 (无参数): \P \~ \L \l \O \o
+    r'|[AaCcFfHhQqSsTtVvWw][^;]*;'  # 带参数: \C7; \H1.5x; \fFangSong|...|; 等
+    r'|\\'                           # \\ (反斜杠)
+    r')'
+)
+
+# 匹配 \S 堆叠: \S up^lwr;  \S up/lwr;  \S up#lwr;
+_MTEXT_STACK = re.compile(r'\\S([^;]*?)([/^#])([^;]*?);')
+
+
+def _render_stack(m):
+    """渲染 \\S 堆叠: up^lwr → up/lwr (终端表示)"""
+    upr, sep, lwr = m.group(1), m.group(2), m.group(3)
+    # 空白 lwr 视为上标 (如 m³/min 中的 \S3^ ;)
+    if not lwr or not lwr.strip():
+        return upr.rstrip()
+    if sep == "/":
+        return f"{upr.strip()}/{lwr.strip()}"
+    if sep == "#":
+        return f"{upr.strip()}{lwr.strip()}"
+    return f"{upr.strip()}/{lwr.strip()}"
+
+
+def _split_top_level_blocks(text: str):
+    """将 MTEXT 文本拆分为顶层片段列表.
+    每个片段是 ('block', raw_block_content) 或 ('text', raw_text).
+    仅在深度0处的 {...} 被视为独立块.
+    """
+    segments = []
+    depth = 0
+    buf = []
+    i = 0
+    n = len(text)
+
+    while i < n:
+        ch = text[i]
+
+        if ch == '\\' and i + 1 < n:
+            # 跳过转义或控制码
+            if text[i + 1] == '\\':
+                buf.append(ch)
+                buf.append(text[i + 1])
+                i += 2
+                continue
+            j = i + 1
+            while j < n and text[j] != ';':
+                if text[j] in ('{', '}'):
+                    break
+                j += 1
+            if j < n and text[j] == ';':
+                buf.append(text[i:j + 1])
+                i = j + 1
+            else:
+                buf.append(ch)
+                i += 1
+            continue
+
+        if ch == '{' and depth == 0:
+            # 先保存前面积累的文本
+            if buf:
+                segments.append(('text', ''.join(buf)))
+                buf = []
+            # 开始新块, 扫描到匹配的 }
+            depth = 1
+            block = []
+            i += 1
+            while i < n and depth > 0:
+                c = text[i]
+                if c == '\\' and i + 1 < n:
+                    if text[i + 1] == '\\':
+                        block.append(c)
+                        block.append(text[i + 1])
+                        i += 2
+                        continue
+                    j = i + 1
+                    while j < n and text[j] != ';':
+                        if text[j] in ('{', '}'):
+                            break
+                        j += 1
+                    if j < n and text[j] == ';':
+                        block.append(text[i:j + 1])
+                        i = j + 1
+                    else:
+                        block.append(c)
+                        i += 1
+                    continue
+                if c == '{':
+                    depth += 1
+                elif c == '}':
+                    depth -= 1
+                    if depth == 0:
+                        segments.append(('block', ''.join(block)))
+                        i += 1
+                        break
+                block.append(c)
+                i += 1
+            continue
+
+        buf.append(ch)
+        i += 1
+
+    if buf:
+        segments.append(('text', ''.join(buf)))
+    return segments
+
+
+def _strip_codes(s: str) -> str:
+    """剥离单段文本中的 MTEXT 控制码, 保留段落换行和空格."""
+    # 先处理 \S 堆叠
+    s = _MTEXT_STACK.sub(_render_stack, s)
+
+    def _strip_code(m):
+        code = m.group(1)
+        if code == 'P':
+            return '\\P'
+        if code == '~':
+            return ' '
+        if code in ('L', 'l', 'O', 'o'):
+            return ''
+        if code == '\\':
+            return '\\'
+        return ''
+
+    s = _MTEXT_CODE.sub(_strip_code, s)
+    # 清理残留 {}
+    s = s.replace('{', '').replace('}', '')
+    return s
+
+
+def strip_mtext_formatting(text: str) -> str:
+    """剥离 MTEXT 格式化代码, 保留纯文本与段落结构.
+
+    策略:
+    1. 拆分为顶层 {...} 块 和 非块文本片段
+    2. 若整个文本由顶层 {...} 块组成 (无散落文本) → 块间用 \\P 分隔 (段落模式)
+    3. 若 {...} 是内联格式分组 (周围有文本) → 仅剥离代码, 不插入 \\P
+    4. 结果仅含纯文本 + \\P, 可直接赋回 MTEXT.text
+    """
+    if not text:
+        return ""
+
+    segments = _split_top_level_blocks(text)
+    if not segments:
+        return ""
+
+    # 判断是否为 "段落模式": 所有片段都是 block, 且 block 之间无实质文本
+    block_mode = all(kind == 'block' for kind, _ in segments)
+
+    parts = []
+    for kind, content in segments:
+        cleaned = _strip_codes(content)
+        if block_mode:
+            # 段落模式: 每个块成为独立段落
+            if cleaned:
+                parts.append(cleaned)
+        else:
+            # 内联模式: 直接拼接
+            parts.append(cleaned)
+
+    if block_mode:
+        result = '\\P'.join(parts)
+    else:
+        result = ''.join(parts)
+
+    # 合并连续 \P
+    while '\\P\\P\\P' in result:
+        result = result.replace('\\P\\P\\P', '\\P\\P')
+
+    return result
+
+
+def _mtext_line_spacing(mt):
+    """返回 MTEXT 行间距 (drawing units). 使用 AutoCAD 默认公式:
+    char_height * line_spacing_factor * 5/3"""
+    h = mt.dxf.get("char_height", 0.0) or 1.0
+    lsf = mt.dxf.get("line_spacing_factor", 1.0) or 1.0
+    return h * lsf * 5.0 / 3.0
+
+
+def _wrap_text(text, font, max_width):
+    """按最大宽度将文本拆分为多行. 逐字符测量宽度, 超出 max_width 时换行.
+    中文字符无空格, 按字符边界截断; 单字符超宽时强制换行."""
+    if not text or max_width <= 0:
+        return [text]
+    lines = []
+    current = []
+    current_w = 0.0
+    for ch in text:
+        ch_w = font.text_width(ch)
+        if current_w + ch_w > max_width and current:
+            lines.append(''.join(current))
+            current = [ch]
+            current_w = ch_w
+        else:
+            current.append(ch)
+            current_w += ch_w
+    if current:
+        lines.append(''.join(current))
+    return lines
+
+
+def _text_width(text, font):
+    """测量文本渲染宽度 (drawing units)."""
+    if font is not None:
+        return sum(font.text_width(ch) for ch in text)
+    # 回退: 按字符高度估算 (中文全角)
+    return len(text)
+
+
+def _mtext_line_insert(mt, global_line_index, text="", font=None):
+    """由 MTEXT 插入点 + 全局行号反算第 global_line_index 行文本的基线左端点.
+    text/font 用于居中对齐时按实际文本宽度计算水平偏移 (rect_width 可能未设置)."""
+    d = mt.dxf
+    h = d.get("char_height", 0.0) or 1.0
+    ap = d.get("attachment_point", 1)
+    spacing = _mtext_line_spacing(mt)
+    angle = math.radians(d.get("rotation", 0.0))
+
+    col, row = (ap - 1) % 3, (ap - 1) // 3
+
+    # 水平偏移: 优先使用 rect_width (MTEXT 文本框宽度); 未设置时用实际文本宽度
+    box_w = d.get("rect_width", 0.0) or 0.0
+    if box_w <= 0 and col != 0:
+        box_w = _text_width(text, font)
+    if col == 1:
+        dx = -box_w / 2.0
+    elif col == 2:
+        dx = -box_w
+    else:
+        dx = 0.0
+
+    dy = (-h - global_line_index * spacing,
+          -h / 2.0 - global_line_index * spacing,
+          -global_line_index * spacing)[row]
+
+    off = Vec3(dx, dy, 0).rotate(angle)
+    return Vec3(d.insert) + off
+
+
+def _make_font(mt, doc):
+    """为 MTEXT 构造字体度量对象, 失败时回退到等宽字体."""
+    h = mt.dxf.get("char_height", 0.0) or 1.0
+    wf = 1.0
+    ttf = FONT_TTF
+    style_name = mt.dxf.get("style", "")
+    if style_name and doc.styles.has_entry(style_name):
+        st = doc.styles.get(style_name)
+        ttf = st.dxf.font or FONT_TTF
+    try:
+        return ezfonts.make_font(ttf, h, wf)
+    except Exception:
+        return ezfonts.MonospaceFont(h, wf)
+
+
+def explode_mtext_to_text(msp, doc, stats):
+    """MTEXT 打散为单行文本(TEXT): 剥离格式化代码后按 \\P 拆分段落,
+    每段再按 MTEXT 宽度自动换行, 每行生成一个独立 TEXT 实体."""
+    doomed = []
+    for mt in list(msp.query("MTEXT")):
+        try:
+            raw = mt.text
+            if not raw:
+                continue
+            # 1. 剥离格式化代码, 保留 \P 段落分隔
+            clean = strip_mtext_formatting(raw)
+            if not clean:
+                doomed.append(mt)
+                stats.mtext += 1
+                continue
+            # 2. 按 \P 拆分段落
+            paragraphs = clean.split("\\P")
+            # 3. 提取公共属性
+            h = mt.dxf.get("char_height", 0.0) or 1.0
+            mt_width = mt.dxf.get("width", 0.0) or 0.0
+            attribs = common_attribs(mt)
+            attribs["style"] = mt.dxf.style
+            attribs["rotation"] = mt.dxf.get("rotation", 0.0)
+            attribs["height"] = h
+            attribs["width"] = 1.0
+            # 4. 构造字体度量 (换行测量 + 居中对齐水平偏移)
+            font = _make_font(mt, doc)
+            # 5. 逐段生成 TEXT (每段内按宽度换行)
+            created = 0
+            global_line = 0
+            for para in paragraphs:
+                stripped = para.strip()
+                if not stripped:
+                    global_line += 1
+                    continue
+                # 按宽度拆行
+                if mt_width > 0:
+                    sub_lines = _wrap_text(stripped, font, mt_width)
+                else:
+                    sub_lines = [stripped]
+                for sub in sub_lines:
+                    if not sub:
+                        global_line += 1
+                        continue
+                    attribs["insert"] = _mtext_line_insert(
+                        mt, global_line, sub, font)
+                    msp.add_text(sub, dxfattribs=dict(attribs))
+                    created += 1
+                    global_line += 1
+            if created:
+                stats.mtext += created
+            doomed.append(mt)
+        except Exception as ex:
+            stats.warn(f"MTEXT 打散失败 (handle={getattr(mt.dxf, 'handle', '?')}): {ex}")
+    if doomed:
+        batch_delete(doc, msp, doomed)
+
+
 def flatten_path_to_lines(p):
     pts = list(p.flattening(FLATTEN_DIST))
     if p.is_closed and len(pts) > 1 and not pts[0].isclose(pts[-1], abs_tol=EPS):
@@ -283,62 +606,7 @@ def explode_hatches(doc, msp, stats):
         batch_delete(doc, msp, doomed)
 
 
-# ---------------------------------------------------------------- 3. 文本处理
-
-def mtext_to_text(doc, msp, stats):
-    """多行文本转单行文本; 数字等内容不拆散, 始终生成一个 TEXT.
-    MTEXT 插入点是 9 宫格对齐点(默认左上), TEXT 左对齐的锚点是首行基线左端,
-    需按对齐点反算偏移, 否则文字会竖直/水平错位"""
-    doomed = []
-    for m in list(msp.query("MTEXT")):
-        try:
-            lines = m.plain_text().replace("\\P", "\n").split("\n")
-            content = " ".join(lines).strip()
-            attribs = common_attribs(m)
-            attribs["style"] = m.dxf.style
-            attribs["rotation"] = m.dxf.rotation
-            attribs["height"] = m.dxf.char_height
-            attribs["insert"] = _mtext_baseline_insert(m, lines, doc)
-            attribs["width"] = 1.0
-            if content:
-                msp.add_text(content, dxfattribs=attribs)
-                stats.mtext += 1
-            doomed.append(m)
-        except Exception as ex:
-            stats.warn(f"MTEXT 转换失败: {ex}")
-    if doomed:
-        batch_delete(doc, msp, doomed)
-
-
-def _style_font(doc, name):
-    """文字样式对应的 TTF 文件名; 样式不存在时返回空串(走默认字体度量)"""
-    if name and doc.styles.has_entry(name):
-        return doc.styles.get(name).dxf.font or ""
-    return ""
-
-
-def _mtext_baseline_insert(m, lines, doc):
-    """由 MTEXT 9 宫格对齐点反算首行基线左端点.
-    列: 1/4/7 左, 2/5/8 中, 3/6/9 右; 行: 1-3 上, 4-6 中, 7-9 下"""
-    d = m.dxf
-    ap = d.get("attachment_point", 1)
-    h = d.get("char_height", 0.0) or 1.0
-    if ap == 1:  # 左上: 首行基线在对齐点下方一个字高处
-        off = Vec3(0, -h, 0)
-    else:
-        col, row = (ap - 1) % 3, (ap - 1) // 3
-        box_w = d.get("rect_width", 0.0) or 0.0
-        if col and box_w <= EPS:  # 无换行框宽时按最长行实测宽度估算
-            font = _measure_font(_style_font(doc, d.get("style", "")), h, 1.0)
-            box_w = max((font.text_width(ln) for ln in lines), default=0.0)
-        spacing = h * d.get("line_spacing_factor", 1.0) * 5.0 / 3.0
-        box_h = h + (len(lines) - 1) * spacing + 0.2 * h
-        dx = (0.0, -box_w / 2.0, -box_w)[col]
-        dy = (-h, box_h / 2.0 - h, box_h - h)[row]
-        off = Vec3(dx, dy, 0)
-    angle = math.radians(d.get("rotation", 0.0))
-    return Vec3(d.insert) + off.rotate(angle)
-
+# ---------------------------------------------------------------- 3. 文本左对齐
 
 def justify_left(doc, msp, stats):
     """JUSTIFYTEXT: 所有单行文本设置为靠左对齐, 且渲染位置保持不变.
@@ -439,7 +707,7 @@ def fix_text_height(msp, doc, stats):
             stats.warn(f"字高换算失败: {ex}")
 
 
-# ---------------------------------------------------------------- 5. 线段处理
+# ---------------------------------------------------------------- 4. 线段处理
 
 def lwpolyline_straight_segments(e):
     """LWPOLYLINE 无凸度(纯直线)时直接返回线段; 否则返回 None 走 path 慢速路径"""
@@ -537,7 +805,7 @@ def reset_thickness(msp, stats):
             pass
 
 
-# ---------------------------------------------------------------- 6. 清洗
+# ---------------------------------------------------------------- 5. 清洗
 
 def collect_bad_layers(doc):
     """关闭(OFF)/冻结(FROZEN)/锁定(LOCKED)的图层名集合"""
@@ -864,7 +1132,7 @@ def process_file(src: Path, out_dir: Path):
     run("表格打散", explode_tables, msp, stats)
     run("块递归打散", explode_blocks, msp, stats)
     run("填充打散", explode_hatches, doc, msp, stats)
-    run("多行文本转单行", mtext_to_text, doc, msp, stats)
+    run("MTEXT打散", explode_mtext_to_text, msp, doc, stats)
     run("左对齐", justify_left, doc, msp, stats)
     run("字体统一宋体", unify_fonts, doc, stats)
     run("字高换算", fix_text_height, msp, doc, stats)

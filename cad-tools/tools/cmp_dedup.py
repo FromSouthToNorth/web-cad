@@ -5,7 +5,7 @@ sys.path.insert(0, "cad")
 import time
 import ezdxf
 from process_dxf import (collect_bad_layers, explode_tables, explode_blocks,
-                         explode_hatches, mtext_to_text, justify_left, unify_fonts,
+                         explode_hatches, justify_left, unify_fonts,
                          fix_text_height, polylines_to_lines, delete_short_lines,
                          reset_thickness, fast_dedup_key, _norm, Stats)
 
@@ -16,7 +16,6 @@ stats = Stats()
 explode_tables(msp, stats)
 explode_blocks(msp, stats)
 explode_hatches(doc, msp, stats)
-mtext_to_text(doc, msp, stats)
 justify_left(msp, stats)
 unify_fonts(doc, stats)
 fix_text_height(msp, doc, stats)

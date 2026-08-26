@@ -16,7 +16,7 @@
 
 ## 2. 处理流程详解
 
-脚本按固定顺序执行 12 个处理阶段,每个阶段有明确的职责和依赖关系。
+脚本按固定顺序执行 11 个处理阶段,每个阶段有明确的职责和依赖关系。
 
 ### 2.1 阶段 0:文件读取
 
@@ -145,40 +145,7 @@ for hatch in list(msp.query("HATCH")):
 **实现细节**:
 - `flatten_path_to_lines` 对闭合路径会检查首尾点是否已重合,避免重复添加
 
-### 2.7 阶段 6:多行文本转单行文本
-
-**函数**:`mtext_to_text`
-
-**处理逻辑**:
-```python
-for m in list(msp.query("MTEXT")):
-    content = m.plain_text().replace("\\P", "\n").replace("\n", " ").strip()
-    attribs = {
-        "style": m.dxf.style,
-        "rotation": m.dxf.rotation,
-        "height": m.dxf.char_height,
-        "insert": m.dxf.insert,
-        "width": 1.0
-    }
-    msp.add_text(content, dxfattribs=attribs)
-    msp.delete_entity(m)
-```
-
-- `m.plain_text()` 提取纯文本,去除格式控制符(如 `\\f...`, `\\C...`)
-- 将段落分隔符 `\\P` 和换行符替换为空格,合并为单行
-- 创建新的 `TEXT` 实体,保留样式、旋转角、字高、插入点
-- 强制设置 `width = 1.0`(宽度因子,后续会统一处理)
-- 删除原 `MTEXT`
-
-**目的**:
-- `MTEXT` 是富文本,支持多行、格式化,前端解析复杂
-- 转为 `TEXT` 后,前端只需处理单行文本
-
-**注意**:
-- 数字、长文本不会自动拆散,始终生成一个 `TEXT`
-- 若内容为空,不创建新文本
-
-### 2.8 阶段 7:文本左对齐
+### 2.7 阶段 6:文本左对齐
 
 **函数**:`justify_left`
 
@@ -211,11 +178,9 @@ for t in list(msp.query("TEXT")):
 - `align_point` 是 CAD 中用于右对齐、居中对齐等的参考点,非左对齐时组码 10
   通常是无效旧值,渲染器只认组码 11
 - 转换后渲染包围盒与原文逐实体一致(有 `cad-tools/tools/test_justify.py` 回归验证,
-  并已在 viewer 中实测: 居中/右对齐/正中/旋转/MTEXT 各种文字与原图逐像素一致)
-- MTEXT 转 TEXT(阶段 6)同理:MTEXT 插入点是 9 宫格对齐点(默认左上),需按
-  对齐点反算首行基线左端点,否则文字会上移一个字高
+  并已在 viewer 中实测: 居中/右对齐/正中/旋转各种文字与原图逐像素一致)
 
-### 2.9 阶段 8:字体统一
+### 2.8 阶段 7:字体统一
 
 **函数**:`unify_fonts`
 
@@ -245,7 +210,7 @@ for st in doc.styles:
 - 宽度因子 `width` 控制字符宽度(>1 拉宽,<1 压窄)
 - 折算后,字高已包含宽度信息,后续渲染无需再乘宽度因子
 
-### 2.10 阶段 9:字高换算
+### 2.9 阶段 8:字高换算
 
 **函数**:`fix_text_height`
 
@@ -278,7 +243,7 @@ for t in list(msp.query("TEXT")):
 - `TEXT` 实体的 `height` 为 0 时,表示使用样式的固定字高
 - 先处理样式级,再处理实体级,确保不遗漏
 
-### 2.11 阶段 10:多段线打断
+### 2.10 阶段 9:多段线打断
 
 **函数**:`polylines_to_lines`
 
@@ -323,7 +288,7 @@ for e in list(msp.query("LWPOLYLINE POLYLINE")):
 - `flatten_path_to_lines` 会将圆弧、样条曲线离散为直线段,弦高误差控制在 0.05
 - 闭合多段线会补回起点,保证首尾相接
 
-### 2.12 阶段 11:删除短线段
+### 2.11 阶段 10:删除短线段
 
 **函数**:`delete_short_lines`
 
@@ -346,7 +311,7 @@ for ln in list(msp.query("LINE")):
 - 在多段线打断之后执行,确保打散产生的短线段也被清理
 - `EPS = 1e-6` 用于浮点比较,避免精度问题
 
-### 2.13 阶段 12:厚度归零
+### 2.12 阶段 11:厚度归零
 
 **函数**:`reset_thickness`
 
@@ -364,7 +329,7 @@ for e in list(msp.query("LINE ARC")):
 - 厚度用于 3D 拉伸效果(2D 实体沿 Z 轴拉伸),Web 端通常只渲染 2D
 - 归零后避免前端误处理 3D 信息
 
-### 2.14 阶段 13:重复实体删除
+### 2.13 阶段 12:重复实体删除
 
 **函数**:`dedup_entities`
 
@@ -408,14 +373,14 @@ for e in list(msp):
 - 对无法 hash 的值(如复杂对象),使用 `repr` 转为字符串
 - `ok = True` 但从未被置 False,是遗留的废逻辑
 
-### 2.15 阶段 14:坏图层实体清理(第 2 遍)
+### 2.14 阶段 13:坏图层实体清理(第 2 遍)
 
 **函数**:`delete_entities_on_layers`
 
 - 与阶段 1 相同逻辑,再次删除坏图层上的实体
 - **目的**:块打散后,可能有新实体落到坏图层上(块定义内的实体原本属于坏图层)
 
-### 2.16 阶段 15:图层清理
+### 2.15 阶段 14:图层清理
 
 **函数**:`remove_bad_layers` + `purge_empty_layers`
 
@@ -427,7 +392,7 @@ for e in list(msp):
 - 移除无用图层定义,减小文件体积
 - 保留 `0` 和 `Defpoints`(AutoCAD 默认图层,即使为空也不删)
 
-### 2.17 阶段 16:无用块清理
+### 2.16 阶段 15:无用块清理
 
 **函数**:`purge_unused_blocks`
 
@@ -462,7 +427,7 @@ for bl in list(doc.blocks):
 - 删除无用块定义,减小文件体积
 - 保留尺寸标注等使用的匿名块
 
-### 2.18 阶段 17:数据库回收
+### 2.17 阶段 16:数据库回收
 
 **函数**:`purge_entitydb`
 
@@ -477,7 +442,7 @@ doc.entitydb.purge()
 - 前面阶段删除的实体只是逻辑删除(标记),文件体积未减小
 - `purge()` 后物理删除,显著减小输出文件体积
 
-### 2.19 阶段 18:保存文件
+### 2.18 阶段 17:保存文件
 
 ```python
 out_dir.mkdir(parents=True, exist_ok=True)
@@ -573,7 +538,6 @@ class Stats:
     blocks = 0            # 块打散数
     tables = 0            # 表格打散数
     hatches = 0           # 填充打散数
-    mtext = 0             # 多行文本转换数
     justified = 0         # 文本左对齐数
     fonts = 0             # 字体样式统一数
     heights = 0           # 字高换算数
@@ -617,7 +581,6 @@ MAX_EXPLODE_DEPTH = 32           # 块递归打散最大层数
 1. **不支持 DWG**:只能处理 DXF,需先用其他工具(如 ODA File Converter)转为 DXF
 2. **不处理 3D 实体**:如 `3DSOLID`,只透传不解释
 3. **不执行 AutoLISP**:纯数据清洗,不执行图纸内的脚本
-4. **MTEXT 不拆散**:多行文本转为单行时,不会按段落拆散为多个 TEXT
 
 ### 7.2 已知问题
 
@@ -688,7 +651,7 @@ MAX_EXPLODE_DEPTH = 32           # 块递归打散最大层数
 
 1. **实体类型简化**:
    - 仅保留 `LINE`, `ARC`, `CIRCLE`, `TEXT`, `POINT` 等基础图元
-   - 无 `INSERT`, `HATCH`, `MTEXT`, `LWPOLYLINE`, `ACAD_TABLE`
+   - 无 `INSERT`, `HATCH`, `LWPOLYLINE`, `ACAD_TABLE`
 
 2. **属性标准化**:
    - 字体统一为宋体,宽度因子归 1

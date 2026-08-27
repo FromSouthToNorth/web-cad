@@ -29,7 +29,6 @@ export default defineConfig(() => {
     )
   }
 
-  const realdwgRoot = resolve(__dirname, '../../../realdwg-web')
   const libredwgDist = `./node_modules/${LIBREDWG_CONVERTER_PACKAGE}/dist`
   const libredwgWasmSrc = resolve(
     __dirname,
@@ -42,13 +41,8 @@ export default defineConfig(() => {
   return {
     base: './',
     server: {
-      // Local pnpm overrides point at sibling realdwg-web packages.
       fs: {
-        allow: [resolve(__dirname, '../..'), realdwgRoot]
-      },
-      watch: {
-        // Avoid HMR reloads when realdwg-web rebuilds mid OPENPROF run.
-        ignored: ['**/realdwg-web/**']
+        allow: [resolve(__dirname, '../..')]
       }
     },
     build: {

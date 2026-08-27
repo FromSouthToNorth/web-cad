@@ -5,10 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@mlightcad/common': link:../realdwg-web/packages/common
-  '@mlightcad/geometry-engine': link:../realdwg-web/packages/geometry-engine
-  '@mlightcad/graphic-interface': link:../realdwg-web/packages/graphic-interface
-  '@mlightcad/data-model': link:../realdwg-web/packages/data-model
   '@mlightcad/libredwg-converter': ^3.13.0
   '@mlightcad/mtext-input-box': ^0.2.23
   '@mlightcad/mtext-renderer': ^0.12.4
@@ -36,7 +32,7 @@ importers:
         version: 3.2.0(eslint@9.39.4)
       '@nx/js':
         specifier: 20.0.4
-        version: 20.0.4(@babel/traverse@7.29.0)(@types/node@24.12.4)(nx@20.0.4)(typescript@5.9.3)
+        version: 20.0.4(@babel/traverse@7.29.0)(@types/node@24.12.4)(nx@20.0.4)(typescript@5.5.2)
       '@types/jest':
         specifier: ^30.0.0
         version: 30.0.0
@@ -51,7 +47,7 @@ importers:
         version: 2.2.6(rollup@4.60.1)
       '@typescript-eslint/parser':
         specifier: ^8.4.0
-        version: 8.58.0(eslint@9.39.4)(typescript@5.9.3)
+        version: 8.58.0(eslint@9.39.4)(typescript@5.5.2)
       eslint:
         specifier: ^9.9.1
         version: 9.39.4
@@ -72,7 +68,7 @@ importers:
         version: 15.15.0
       jest:
         specifier: ^30.4.2
-        version: 30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3))
+        version: 30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2))
       jest-environment-jsdom:
         specifier: ^30.4.1
         version: 30.4.1
@@ -96,22 +92,25 @@ importers:
         version: 5.14.0(rollup@4.60.1)
       ts-jest:
         specifier: ^29.1.5
-        version: 29.4.9(@babel/core@7.29.0)(@jest/transform@30.4.1)(@jest/types@30.4.1)(babel-jest@30.4.1(@babel/core@7.29.0))(jest-util@30.4.1)(jest@30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3)))(typescript@5.9.3)
+        version: 29.4.9(@babel/core@7.29.0)(@jest/transform@30.4.1)(@jest/types@30.4.1)(babel-jest@30.4.1(@babel/core@7.29.0))(jest-util@30.4.1)(jest@30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2)))(typescript@5.5.2)
       typedoc:
         specifier: ^0.28.18
-        version: 0.28.18(typescript@5.9.3)
+        version: 0.28.18(typescript@5.5.2)
       typescript:
-        specifier: ^5.5.2
-        version: 5.9.3
+        specifier: 5.5.2
+        version: 5.5.2
       typescript-eslint:
         specifier: ^8.4.0
-        version: 8.58.0(eslint@9.39.4)(typescript@5.9.3)
+        version: 8.58.0(eslint@9.39.4)(typescript@5.5.2)
       vite:
         specifier: ^6.4.3
         version: 6.4.3(@types/node@24.12.4)(sass@1.98.0)(yaml@2.8.3)
       vite-plugin-static-copy:
         specifier: ^4.1.1
         version: 4.1.1(vite@6.4.3(@types/node@24.12.4)(sass@1.98.0)(yaml@2.8.3))
+      vite-plugin-strip-comments:
+        specifier: ^0.0.10
+        version: 0.0.10
 
   packages/cad-agent-plugin:
     dependencies:
@@ -124,9 +123,6 @@ importers:
       '@ai-sdk/vue':
         specifier: ^2.0.0
         version: 2.0.208(vue@3.5.31(typescript@5.9.3))(zod@3.25.76)
-      '@mlightcad/data-model':
-        specifier: link:../../../realdwg-web/packages/data-model
-        version: link:../../../realdwg-web/packages/data-model
       ai:
         specifier: ^5.0.0
         version: 5.0.208(zod@3.25.76)
@@ -137,6 +133,9 @@ importers:
       '@mlightcad/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
+      '@mlightcad/data-model':
+        specifier: workspace:*
+        version: link:../data-model
       '@vitejs/plugin-vue':
         specifier: ^6.0.8
         version: 6.0.8(vite@6.4.3(@types/node@24.12.4)(sass@1.98.0)(yaml@2.8.3))(vue@3.5.31(typescript@5.9.3))
@@ -148,14 +147,13 @@ importers:
         version: 2.2.12(typescript@5.9.3)
 
   packages/cad-html-plugin:
-    dependencies:
-      '@mlightcad/data-model':
-        specifier: link:../../../realdwg-web/packages/data-model
-        version: link:../../../realdwg-web/packages/data-model
     devDependencies:
       '@mlightcad/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
+      '@mlightcad/data-model':
+        specifier: workspace:*
+        version: link:../data-model
       '@mlightcad/three-renderer':
         specifier: workspace:*
         version: link:../three-renderer
@@ -178,11 +176,16 @@ importers:
         specifier: ^0.172.0
         version: 0.172.0
 
-  packages/cad-pdf-plugin:
-    dependencies:
+  packages/cad-invertsel-plugin:
+    devDependencies:
+      '@mlightcad/cad-simple-viewer':
+        specifier: workspace:*
+        version: link:../cad-simple-viewer
       '@mlightcad/data-model':
-        specifier: link:../../../realdwg-web/packages/data-model
-        version: link:../../../realdwg-web/packages/data-model
+        specifier: ^1.13.0
+        version: 1.14.3
+
+  packages/cad-pdf-plugin:
     devDependencies:
       '@mlightcad/cad-simple-viewer':
         specifier: workspace:*
@@ -190,6 +193,9 @@ importers:
       '@mlightcad/cad-svg-plugin':
         specifier: workspace:*
         version: link:../cad-svg-plugin
+      '@mlightcad/data-model':
+        specifier: workspace:*
+        version: link:../data-model
       jspdf:
         specifier: ^4.2.1
         version: 4.2.1
@@ -200,22 +206,38 @@ importers:
         specifier: ^2.7.0
         version: 2.7.0(jspdf@4.2.1)
 
-  packages/cad-simple-ui-plugin:
-    dependencies:
-      '@mlightcad/data-model':
-        specifier: link:../../../realdwg-web/packages/data-model
-        version: link:../../../realdwg-web/packages/data-model
+  packages/cad-search-plugin:
     devDependencies:
       '@mlightcad/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
+      '@mlightcad/data-model':
+        specifier: workspace:*
+        version: link:../data-model
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.8
+        version: 6.0.8(vite@6.4.3(@types/node@24.12.4)(sass@1.98.0)(yaml@2.8.3))(vue@3.5.31(typescript@5.9.3))
+      vue:
+        specifier: ^3.4.21
+        version: 3.5.31(typescript@5.9.3)
+      vue-tsc:
+        specifier: ^2.1.6
+        version: 2.2.12(typescript@5.9.3)
+
+  packages/cad-simple-ui-plugin:
+    devDependencies:
+      '@mlightcad/cad-simple-viewer':
+        specifier: workspace:*
+        version: link:../cad-simple-viewer
+      '@mlightcad/data-model':
+        specifier: workspace:*
+        version: link:../data-model
 
   packages/cad-simple-viewer:
-    dependencies:
-      '@mlightcad/data-model':
-        specifier: link:../../../realdwg-web/packages/data-model
-        version: link:../../../realdwg-web/packages/data-model
     devDependencies:
+      '@mlightcad/data-model':
+        specifier: workspace:*
+        version: link:../data-model
       '@mlightcad/mtext-input-box':
         specifier: ^0.2.23
         version: 0.2.23(@mlightcad/mtext-renderer@0.12.4(three@0.172.0))(three@0.172.0)
@@ -265,11 +287,11 @@ importers:
         specifier: workspace:*
         version: link:../cad-svg-plugin
       '@mlightcad/data-model':
-        specifier: link:../../../realdwg-web/packages/data-model
-        version: link:../../../realdwg-web/packages/data-model
+        specifier: workspace:*
+        version: link:../data-model
       '@mlightcad/libredwg-converter':
         specifier: ^3.13.0
-        version: 3.13.0(@mlightcad/data-model@realdwg-web+packages+data-model)
+        version: 3.13.0(@mlightcad/data-model@packages+data-model)
       '@mlightcad/mtext-renderer':
         specifier: ^0.12.4
         version: 0.12.4(three@0.172.0)
@@ -314,11 +336,11 @@ importers:
         specifier: workspace:*
         version: link:../cad-svg-plugin
       '@mlightcad/data-model':
-        specifier: link:../../../realdwg-web/packages/data-model
-        version: link:../../../realdwg-web/packages/data-model
+        specifier: workspace:*
+        version: link:../data-model
       '@mlightcad/libredwg-converter':
         specifier: ^3.13.0
-        version: 3.13.0(@mlightcad/data-model@realdwg-web+packages+data-model)
+        version: 3.13.0(@mlightcad/data-model@packages+data-model)
       '@mlightcad/mtext-renderer':
         specifier: ^0.12.4
         version: 0.12.4(three@0.172.0)
@@ -340,14 +362,13 @@ importers:
         version: 6.0.8(vite@6.4.3(@types/node@24.12.4)(sass@1.98.0)(yaml@2.8.3))(vue@3.5.31(typescript@5.9.3))
 
   packages/cad-svg-plugin:
-    dependencies:
-      '@mlightcad/data-model':
-        specifier: link:../../../realdwg-web/packages/data-model
-        version: link:../../../realdwg-web/packages/data-model
     devDependencies:
       '@mlightcad/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
+      '@mlightcad/data-model':
+        specifier: workspace:*
+        version: link:../data-model
       '@mlightcad/mtext-parser':
         specifier: ^1.4.1
         version: 1.4.1
@@ -356,10 +377,6 @@ importers:
         version: 0.12.4(three@0.172.0)
 
   packages/cad-viewer:
-    dependencies:
-      '@mlightcad/data-model':
-        specifier: link:../../../realdwg-web/packages/data-model
-        version: link:../../../realdwg-web/packages/data-model
     devDependencies:
       '@element-plus/icons-vue':
         specifier: ^2.3.1
@@ -373,12 +390,18 @@ importers:
       '@mlightcad/cad-pdf-plugin':
         specifier: workspace:*
         version: link:../cad-pdf-plugin
+      '@mlightcad/cad-search-plugin':
+        specifier: workspace:*
+        version: link:../cad-search-plugin
       '@mlightcad/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
       '@mlightcad/cad-svg-plugin':
         specifier: workspace:*
         version: link:../cad-svg-plugin
+      '@mlightcad/data-model':
+        specifier: workspace:*
+        version: link:../data-model
       '@mlightcad/ribbon':
         specifier: ^0.1.12
         version: 0.1.12(@element-plus/icons-vue@2.3.2(vue@3.5.31(typescript@5.9.3)))(element-plus@2.13.6(typescript@5.9.3)(vue@3.5.31(typescript@5.9.3)))(vue@3.5.31(typescript@5.9.3))
@@ -442,6 +465,9 @@ importers:
       '@mlightcad/cad-html-plugin':
         specifier: workspace:*
         version: link:../cad-html-plugin
+      '@mlightcad/cad-invertsel-plugin':
+        specifier: workspace:*
+        version: link:../cad-invertsel-plugin
       '@mlightcad/cad-pdf-plugin':
         specifier: workspace:*
         version: link:../cad-pdf-plugin
@@ -452,11 +478,11 @@ importers:
         specifier: workspace:*
         version: link:../cad-viewer
       '@mlightcad/data-model':
-        specifier: link:../../../realdwg-web/packages/data-model
-        version: link:../../../realdwg-web/packages/data-model
+        specifier: workspace:*
+        version: link:../data-model
       '@mlightcad/libredwg-converter':
         specifier: ^3.13.0
-        version: 3.13.0(@mlightcad/data-model@realdwg-web+packages+data-model)
+        version: 3.13.0(@mlightcad/data-model@packages+data-model)
       '@mlightcad/mtext-renderer':
         specifier: ^0.12.4
         version: 0.12.4(three@0.172.0)
@@ -501,6 +527,27 @@ importers:
         specifier: ^2.1.6
         version: 2.2.12(typescript@5.9.3)
 
+  packages/common:
+    dependencies:
+      loglevel:
+        specifier: ^1.9.1
+        version: 1.9.2
+
+  packages/data-model:
+    dependencies:
+      '@mlightcad/common':
+        specifier: workspace:*
+        version: link:../common
+      '@mlightcad/geometry-engine':
+        specifier: workspace:*
+        version: link:../geometry-engine
+      '@mlightcad/graphic-interface':
+        specifier: workspace:*
+        version: link:../graphic-interface
+      uid:
+        specifier: ^2.0.2
+        version: 2.0.2
+
   packages/examples:
     devDependencies:
       '@mlightcad/cad-simple-viewer-example':
@@ -519,15 +566,30 @@ importers:
         specifier: ^14.2.4
         version: 14.2.6
 
+  packages/geometry-engine:
+    dependencies:
+      '@mlightcad/common':
+        specifier: workspace:*
+        version: link:../common
+
+  packages/graphic-interface:
+    dependencies:
+      '@mlightcad/common':
+        specifier: workspace:*
+        version: link:../common
+      '@mlightcad/geometry-engine':
+        specifier: workspace:*
+        version: link:../geometry-engine
+
   packages/three-renderer:
     dependencies:
-      '@mlightcad/data-model':
-        specifier: link:../../../realdwg-web/packages/data-model
-        version: link:../../../realdwg-web/packages/data-model
       '@velipso/polybool':
         specifier: ^1.1.1
         version: 1.1.1
     devDependencies:
+      '@mlightcad/data-model':
+        specifier: workspace:*
+        version: link:../data-model
       '@mlightcad/mtext-renderer':
         specifier: ^0.12.4
         version: 0.12.4(three@0.172.0)
@@ -1759,6 +1821,10 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
+  '@lukeed/csprng@1.1.0':
+    resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
+    engines: {node: '>=8'}
+
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
 
@@ -1777,6 +1843,23 @@ packages:
 
   '@microsoft/tsdoc@0.16.0':
     resolution: {integrity: sha512-xgAyonlVVS+q7Vc7qLW0UrJU7rSFcETRWsqdXZtjzRU8dF+6CkozTK4V4y1LwOX7j8r/vHphjDeMeGI4tNGeGA==}
+
+  '@mlightcad/common@1.14.3':
+    resolution: {integrity: sha512-R6hCZSn5jiLleifMV4ymySaOIjSPb3v6MdxLInpgGmGhH/7xGIAFrXSEfNrFuo/ATN8SAdig5Rkp0wwa6TxVaA==}
+
+  '@mlightcad/data-model@1.14.3':
+    resolution: {integrity: sha512-wB6JfxR4tQ52d3e0K/a+BQrL1ueMSzebKaXcob4JacO5Gw9OpFaGEjMLTbHHArCN6j+SRtHY5PJXgO2VWo1dNQ==}
+
+  '@mlightcad/geometry-engine@3.14.3':
+    resolution: {integrity: sha512-nh//ob7OV8l9J5QwSsrsbbSXavjr8z+QLBDbrkAy5CjfFZbxyWmXcfKIv04A4xFZpde68mlnWSZ2xekUq8KCZw==}
+    peerDependencies:
+      '@mlightcad/common': 1.14.3
+
+  '@mlightcad/graphic-interface@3.14.3':
+    resolution: {integrity: sha512-D6BnKR0pHbBEVrKAGGBHNo9U/EgD8UXft1WLjfBK71H8pJZCK4s1BBRofGZSsUsA5wrPyKyIJC0AchvNPyo1qw==}
+    peerDependencies:
+      '@mlightcad/common': 1.14.3
+      '@mlightcad/geometry-engine': 3.14.3
 
   '@mlightcad/libredwg-converter@3.13.0':
     resolution: {integrity: sha512-cozU8IdH3n6Yz7daQSl21EQrSQuhpVtb89Peqm5Wjl7bMJ5RYW4KKdkMr6xDmzXKq7Bb2TsoS6DRLwLLc4e7nQ==}
@@ -4304,6 +4387,10 @@ packages:
     resolution: {integrity: sha512-9ie8ItPR6tjY5uYJh8K/Zrv/RMZ5VOlOWvtZdEHYSTFKZfIBPQa9tOAEeAWhd+AnIneLJ22w5fjOYtoutpWq5w==}
     engines: {node: '>=18'}
 
+  loglevel@1.9.2:
+    resolution: {integrity: sha512-HgMmCqIJSAKqo68l0rS2AanEWfkxaZ5wNiEFb5ggm08lDs9Xl2KxBlX3PTcaD2chBM1gXAYf491/M2Rv8Jwayg==}
+    engines: {node: '>= 0.6.0'}
+
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
 
@@ -5246,6 +5333,11 @@ packages:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
       typescript: '>=4.8.4 <6.1.0'
 
+  typescript@5.5.2:
+    resolution: {integrity: sha512-NcRtPEOsPFFWjobJEtfihkLCZCXZt/os3zf8nTxjVH3RvTSxjrCamJpbExGvYOF+tFHc3pA65qpdwPbzjohhew==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
@@ -5261,6 +5353,10 @@ packages:
     resolution: {integrity: sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ==}
     engines: {node: '>=0.8.0'}
     hasBin: true
+
+  uid@2.0.2:
+    resolution: {integrity: sha512-u3xV3X7uzvi5b1MncmZo3i2Aw222Zk1keqLA1YkHldREkAhAqi65wuPfe7lHx8H/Wzy+8CE7S7uS3jekIM5s8g==}
+    engines: {node: '>=8'}
 
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
@@ -5386,6 +5482,10 @@ packages:
     engines: {node: ^22.0.0 || >=24.0.0}
     peerDependencies:
       vite: ^6.0.0 || ^7.0.0 || ^8.0.0
+
+  vite-plugin-strip-comments@0.0.10:
+    resolution: {integrity: sha512-LuWP3zfnxIBy67LCvH8qKGey+glLznRv+/oIKr165dPzfNBxleaq9+YwfEP617FPgl6mB5D7d5IUWuZ3OrehsA==}
+    engines: {deno: '>=2.0.4', node: '>=20', pnpm: '>=9.10.0'}
 
   vite-svg-loader@5.1.1:
     resolution: {integrity: sha512-RPzcXA/EpKJA0585x58DBgs7my2VfeJ+j2j1EoHY4Zh82Y7hV4cR1fElgy2aZi85+QSrcLLoTStQ5uZjD68u+Q==}
@@ -6904,7 +7004,7 @@ snapshots:
       jest-util: 30.4.1
       slash: 3.0.0
 
-  '@jest/core@30.4.2(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3))':
+  '@jest/core@30.4.2(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2))':
     dependencies:
       '@jest/console': 30.4.1
       '@jest/pattern': 30.4.0
@@ -6920,7 +7020,7 @@ snapshots:
       fast-json-stable-stringify: 2.1.0
       graceful-fs: 4.2.11
       jest-changed-files: 30.4.1
-      jest-config: 30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3))
+      jest-config: 30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2))
       jest-haste-map: 30.4.1
       jest-message-util: 30.4.1
       jest-regex-util: 30.4.0
@@ -7125,6 +7225,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@lukeed/csprng@1.1.0': {}
+
   '@manypkg/find-root@1.1.0':
     dependencies:
       '@babel/runtime': 7.29.2
@@ -7181,9 +7283,29 @@ snapshots:
   '@microsoft/tsdoc@0.16.0':
     optional: true
 
-  '@mlightcad/libredwg-converter@3.13.0(@mlightcad/data-model@realdwg-web+packages+data-model)':
+  '@mlightcad/common@1.14.3':
     dependencies:
-      '@mlightcad/data-model': link:../realdwg-web/packages/data-model
+      loglevel: 1.9.2
+
+  '@mlightcad/data-model@1.14.3':
+    dependencies:
+      '@mlightcad/common': 1.14.3
+      '@mlightcad/geometry-engine': 3.14.3(@mlightcad/common@1.14.3)
+      '@mlightcad/graphic-interface': 3.14.3(@mlightcad/common@1.14.3)(@mlightcad/geometry-engine@3.14.3(@mlightcad/common@1.14.3))
+      uid: 2.0.2
+
+  '@mlightcad/geometry-engine@3.14.3(@mlightcad/common@1.14.3)':
+    dependencies:
+      '@mlightcad/common': 1.14.3
+
+  '@mlightcad/graphic-interface@3.14.3(@mlightcad/common@1.14.3)(@mlightcad/geometry-engine@3.14.3(@mlightcad/common@1.14.3))':
+    dependencies:
+      '@mlightcad/common': 1.14.3
+      '@mlightcad/geometry-engine': 3.14.3(@mlightcad/common@1.14.3)
+
+  '@mlightcad/libredwg-converter@3.13.0(@mlightcad/data-model@packages+data-model)':
+    dependencies:
+      '@mlightcad/data-model': link:packages/data-model
       '@mlightcad/libredwg-web': 0.7.9
 
   '@mlightcad/libredwg-web@0.7.9': {}
@@ -7313,7 +7435,7 @@ snapshots:
       tslib: 2.8.1
       yargs-parser: 21.1.1
 
-  '@nx/js@20.0.4(@babel/traverse@7.29.0)(@types/node@24.12.4)(nx@20.0.4)(typescript@5.9.3)':
+  '@nx/js@20.0.4(@babel/traverse@7.29.0)(@types/node@24.12.4)(nx@20.0.4)(typescript@5.5.2)':
     dependencies:
       '@babel/core': 7.29.0
       '@babel/plugin-proposal-decorators': 7.29.0(@babel/core@7.29.0)
@@ -7342,7 +7464,7 @@ snapshots:
       ora: 5.3.0
       semver: 7.7.4
       source-map-support: 0.5.19
-      ts-node: 10.9.1(@types/node@24.12.4)(typescript@5.9.3)
+      ts-node: 10.9.1(@types/node@24.12.4)(typescript@5.5.2)
       tsconfig-paths: 4.2.0
       tslib: 2.8.1
     transitivePeerDependencies:
@@ -7780,40 +7902,40 @@ snapshots:
     dependencies:
       '@types/yargs-parser': 21.0.3
 
-  '@typescript-eslint/eslint-plugin@8.58.0(@typescript-eslint/parser@8.58.0(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)':
+  '@typescript-eslint/eslint-plugin@8.58.0(@typescript-eslint/parser@8.58.0(eslint@9.39.4)(typescript@5.5.2))(eslint@9.39.4)(typescript@5.5.2)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
-      '@typescript-eslint/parser': 8.58.0(eslint@9.39.4)(typescript@5.9.3)
+      '@typescript-eslint/parser': 8.58.0(eslint@9.39.4)(typescript@5.5.2)
       '@typescript-eslint/scope-manager': 8.58.0
-      '@typescript-eslint/type-utils': 8.58.0(eslint@9.39.4)(typescript@5.9.3)
-      '@typescript-eslint/utils': 8.58.0(eslint@9.39.4)(typescript@5.9.3)
+      '@typescript-eslint/type-utils': 8.58.0(eslint@9.39.4)(typescript@5.5.2)
+      '@typescript-eslint/utils': 8.58.0(eslint@9.39.4)(typescript@5.5.2)
       '@typescript-eslint/visitor-keys': 8.58.0
       eslint: 9.39.4
       ignore: 7.0.5
       natural-compare: 1.4.0
-      ts-api-utils: 2.5.0(typescript@5.9.3)
-      typescript: 5.9.3
+      ts-api-utils: 2.5.0(typescript@5.5.2)
+      typescript: 5.5.2
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/parser@8.58.0(eslint@9.39.4)(typescript@5.9.3)':
+  '@typescript-eslint/parser@8.58.0(eslint@9.39.4)(typescript@5.5.2)':
     dependencies:
       '@typescript-eslint/scope-manager': 8.58.0
       '@typescript-eslint/types': 8.58.0
-      '@typescript-eslint/typescript-estree': 8.58.0(typescript@5.9.3)
+      '@typescript-eslint/typescript-estree': 8.58.0(typescript@5.5.2)
       '@typescript-eslint/visitor-keys': 8.58.0
       debug: 4.4.3
       eslint: 9.39.4
-      typescript: 5.9.3
+      typescript: 5.5.2
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/project-service@8.58.0(typescript@5.9.3)':
+  '@typescript-eslint/project-service@8.58.0(typescript@5.5.2)':
     dependencies:
-      '@typescript-eslint/tsconfig-utils': 8.58.0(typescript@5.9.3)
+      '@typescript-eslint/tsconfig-utils': 8.58.0(typescript@5.5.2)
       '@typescript-eslint/types': 8.58.0
       debug: 4.4.3
-      typescript: 5.9.3
+      typescript: 5.5.2
     transitivePeerDependencies:
       - supports-color
 
@@ -7822,47 +7944,47 @@ snapshots:
       '@typescript-eslint/types': 8.58.0
       '@typescript-eslint/visitor-keys': 8.58.0
 
-  '@typescript-eslint/tsconfig-utils@8.58.0(typescript@5.9.3)':
+  '@typescript-eslint/tsconfig-utils@8.58.0(typescript@5.5.2)':
     dependencies:
-      typescript: 5.9.3
+      typescript: 5.5.2
 
-  '@typescript-eslint/type-utils@8.58.0(eslint@9.39.4)(typescript@5.9.3)':
+  '@typescript-eslint/type-utils@8.58.0(eslint@9.39.4)(typescript@5.5.2)':
     dependencies:
       '@typescript-eslint/types': 8.58.0
-      '@typescript-eslint/typescript-estree': 8.58.0(typescript@5.9.3)
-      '@typescript-eslint/utils': 8.58.0(eslint@9.39.4)(typescript@5.9.3)
+      '@typescript-eslint/typescript-estree': 8.58.0(typescript@5.5.2)
+      '@typescript-eslint/utils': 8.58.0(eslint@9.39.4)(typescript@5.5.2)
       debug: 4.4.3
       eslint: 9.39.4
-      ts-api-utils: 2.5.0(typescript@5.9.3)
-      typescript: 5.9.3
+      ts-api-utils: 2.5.0(typescript@5.5.2)
+      typescript: 5.5.2
     transitivePeerDependencies:
       - supports-color
 
   '@typescript-eslint/types@8.58.0': {}
 
-  '@typescript-eslint/typescript-estree@8.58.0(typescript@5.9.3)':
+  '@typescript-eslint/typescript-estree@8.58.0(typescript@5.5.2)':
     dependencies:
-      '@typescript-eslint/project-service': 8.58.0(typescript@5.9.3)
-      '@typescript-eslint/tsconfig-utils': 8.58.0(typescript@5.9.3)
+      '@typescript-eslint/project-service': 8.58.0(typescript@5.5.2)
+      '@typescript-eslint/tsconfig-utils': 8.58.0(typescript@5.5.2)
       '@typescript-eslint/types': 8.58.0
       '@typescript-eslint/visitor-keys': 8.58.0
       debug: 4.4.3
       minimatch: 10.2.5
       semver: 7.7.4
       tinyglobby: 0.2.15
-      ts-api-utils: 2.5.0(typescript@5.9.3)
-      typescript: 5.9.3
+      ts-api-utils: 2.5.0(typescript@5.5.2)
+      typescript: 5.5.2
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/utils@8.58.0(eslint@9.39.4)(typescript@5.9.3)':
+  '@typescript-eslint/utils@8.58.0(eslint@9.39.4)(typescript@5.5.2)':
     dependencies:
       '@eslint-community/eslint-utils': 4.9.1(eslint@9.39.4)
       '@typescript-eslint/scope-manager': 8.58.0
       '@typescript-eslint/types': 8.58.0
-      '@typescript-eslint/typescript-estree': 8.58.0(typescript@5.9.3)
+      '@typescript-eslint/typescript-estree': 8.58.0(typescript@5.5.2)
       eslint: 9.39.4
-      typescript: 5.9.3
+      typescript: 5.5.2
     transitivePeerDependencies:
       - supports-color
 
@@ -9408,15 +9530,15 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-cli@30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3)):
+  jest-cli@30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2)):
     dependencies:
-      '@jest/core': 30.4.2(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3))
+      '@jest/core': 30.4.2(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2))
       '@jest/test-result': 30.4.1
       '@jest/types': 30.4.1
       chalk: 4.1.2
       exit-x: 0.2.2
       import-local: 3.2.0
-      jest-config: 30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3))
+      jest-config: 30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2))
       jest-util: 30.4.1
       jest-validate: 30.4.1
       yargs: 17.7.2
@@ -9427,7 +9549,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-config@30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3)):
+  jest-config@30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2)):
     dependencies:
       '@babel/core': 7.29.0
       '@jest/get-type': 30.1.0
@@ -9454,7 +9576,7 @@ snapshots:
       strip-json-comments: 3.1.1
     optionalDependencies:
       '@types/node': 24.12.4
-      ts-node: 10.9.1(@types/node@24.12.4)(typescript@5.9.3)
+      ts-node: 10.9.1(@types/node@24.12.4)(typescript@5.5.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -9722,12 +9844,12 @@ snapshots:
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
-  jest@30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3)):
+  jest@30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2)):
     dependencies:
-      '@jest/core': 30.4.2(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3))
+      '@jest/core': 30.4.2(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2))
       '@jest/types': 30.4.1
       import-local: 3.2.0
-      jest-cli: 30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3))
+      jest-cli: 30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2))
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -9916,6 +10038,8 @@ snapshots:
       slice-ansi: 7.1.2
       strip-ansi: 7.2.0
       wrap-ansi: 9.0.2
+
+  loglevel@1.9.2: {}
 
   lru-cache@10.4.3: {}
 
@@ -10770,22 +10894,22 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  ts-api-utils@2.5.0(typescript@5.9.3):
+  ts-api-utils@2.5.0(typescript@5.5.2):
     dependencies:
-      typescript: 5.9.3
+      typescript: 5.5.2
 
-  ts-jest@29.4.9(@babel/core@7.29.0)(@jest/transform@30.4.1)(@jest/types@30.4.1)(babel-jest@30.4.1(@babel/core@7.29.0))(jest-util@30.4.1)(jest@30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3)))(typescript@5.9.3):
+  ts-jest@29.4.9(@babel/core@7.29.0)(@jest/transform@30.4.1)(@jest/types@30.4.1)(babel-jest@30.4.1(@babel/core@7.29.0))(jest-util@30.4.1)(jest@30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2)))(typescript@5.5.2):
     dependencies:
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
       handlebars: 4.7.9
-      jest: 30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3))
+      jest: 30.4.2(@types/node@24.12.4)(ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2))
       json5: 2.2.3
       lodash.memoize: 4.1.2
       make-error: 1.3.6
       semver: 7.7.4
       type-fest: 4.41.0
-      typescript: 5.9.3
+      typescript: 5.5.2
       yargs-parser: 21.1.1
     optionalDependencies:
       '@babel/core': 7.29.0
@@ -10794,7 +10918,7 @@ snapshots:
       babel-jest: 30.4.1(@babel/core@7.29.0)
       jest-util: 30.4.1
 
-  ts-node@10.9.1(@types/node@24.12.4)(typescript@5.9.3):
+  ts-node@10.9.1(@types/node@24.12.4)(typescript@5.5.2):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.12
@@ -10808,7 +10932,7 @@ snapshots:
       create-require: 1.1.1
       diff: 4.0.4
       make-error: 1.3.6
-      typescript: 5.9.3
+      typescript: 5.5.2
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
 
@@ -10834,25 +10958,27 @@ snapshots:
 
   type-fest@4.41.0: {}
 
-  typedoc@0.28.18(typescript@5.9.3):
+  typedoc@0.28.18(typescript@5.5.2):
     dependencies:
       '@gerrit0/mini-shiki': 3.23.0
       lunr: 2.3.9
       markdown-it: 14.1.1
       minimatch: 10.2.5
-      typescript: 5.9.3
+      typescript: 5.5.2
       yaml: 2.8.3
 
-  typescript-eslint@8.58.0(eslint@9.39.4)(typescript@5.9.3):
+  typescript-eslint@8.58.0(eslint@9.39.4)(typescript@5.5.2):
     dependencies:
-      '@typescript-eslint/eslint-plugin': 8.58.0(@typescript-eslint/parser@8.58.0(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)
-      '@typescript-eslint/parser': 8.58.0(eslint@9.39.4)(typescript@5.9.3)
-      '@typescript-eslint/typescript-estree': 8.58.0(typescript@5.9.3)
-      '@typescript-eslint/utils': 8.58.0(eslint@9.39.4)(typescript@5.9.3)
+      '@typescript-eslint/eslint-plugin': 8.58.0(@typescript-eslint/parser@8.58.0(eslint@9.39.4)(typescript@5.5.2))(eslint@9.39.4)(typescript@5.5.2)
+      '@typescript-eslint/parser': 8.58.0(eslint@9.39.4)(typescript@5.5.2)
+      '@typescript-eslint/typescript-estree': 8.58.0(typescript@5.5.2)
+      '@typescript-eslint/utils': 8.58.0(eslint@9.39.4)(typescript@5.5.2)
       eslint: 9.39.4
-      typescript: 5.9.3
+      typescript: 5.5.2
     transitivePeerDependencies:
       - supports-color
+
+  typescript@5.5.2: {}
 
   typescript@5.9.3: {}
 
@@ -10862,6 +10988,10 @@ snapshots:
 
   uglify-js@3.19.3:
     optional: true
+
+  uid@2.0.2:
+    dependencies:
+      '@lukeed/csprng': 1.1.0
 
   undici-types@6.21.0: {}
 
@@ -10999,6 +11129,8 @@ snapshots:
       picocolors: 1.1.1
       tinyglobby: 0.2.17
       vite: 6.4.3(@types/node@24.12.4)(sass@1.98.0)(yaml@2.8.3)
+
+  vite-plugin-strip-comments@0.0.10: {}
 
   vite-svg-loader@5.1.1(vue@3.5.31(typescript@5.9.3)):
     dependencies:

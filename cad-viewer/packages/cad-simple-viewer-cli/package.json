@@ -55,7 +55,7 @@
     "@mlightcad/cad-pdf-plugin": "workspace:*",
     "@mlightcad/cad-simple-viewer": "workspace:*",
     "@mlightcad/cad-svg-plugin": "workspace:*",
-    "@mlightcad/data-model": "^1.13.0",
+    "@mlightcad/data-model": "workspace:*",
     "@mlightcad/libredwg-converter": "^3.13.0",
     "@mlightcad/mtext-renderer": "^0.12.4",
     "commander": "^12.1.0",

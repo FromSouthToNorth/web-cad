@@ -301,8 +301,6 @@ export default {
       properties: 'Geçerli seçim için Özellikler panelini açın.',
       quickSelect:
         'Ölçütlere göre varlıkları filtrelemek ve seçmek için Hızlı Seçimi açın.',
-      invertSelection:
-        'Geçerli seçim kümesini tersine çevirir: seçili nesnelerin seçimi kaldırılır ve diğerleri seçilir (Ctrl+Shift+I).',
       countList:
         'Blok sayılarını görüntülemek ve yönetmek için Sayım paletini açın.',
       missingResources:
@@ -321,6 +319,8 @@ export default {
         'Bir blokta kullanılacak öznitelik tanımı oluşturun (ATTDEF).',
       agent:
         'Doğal dil kullanarak geometri çizmek için CAD Ajanı panel sekmesini açın.',
+      search:
+        'Çizim metinlerinde bulanık arama yapmak ve varlıklara yakınlaşmak için İçerik Arama panel sekmesini açın (SEARCH).',
       propertyColor:
         'Yeni oluşturulan nesneler veya seçili varlıklar için rengi ayarlayın.',
       propertyLineType:
@@ -417,7 +417,6 @@ export default {
       redo: 'Yinele',
       properties: 'Özellikler',
       quickSelect: 'Hızlı\nSeçim',
-      invertSelection: 'Ters\nSeçim',
       countList: 'Sayım',
       drawingUnits: 'Çizim\nBirimleri',
       attachDwg: 'DWG\nEkle',
@@ -425,7 +424,8 @@ export default {
       insert: 'Ekle',
       editAttributes: 'Öznitelikleri\nDüzenle',
       defineAttribute: 'Öznitelik\nTanımla',
-      agent: 'CAD\nAjanı'
+      agent: 'CAD\nAjanı',
+      search: 'İçerik\nArama'
     }
   },
   verticalToolbar: {

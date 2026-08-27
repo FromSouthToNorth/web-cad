@@ -1,37 +1,28 @@
 #!/usr/bin/env node
 /**
- * 一键初始化 bw-cad-view 联合开发工作区(增量、幂等)。
+ * 一键初始化 bw-cad-view 开发环境(增量、幂等)。
  *
- * 默认行为:检测每一步的完成状态,已完成的步骤自动跳过。
+ * 所有包(common / geometry-engine / graphic-interface / data-model / cad-viewer 等)
+ * 已合并至 cad-viewer 单一 monorepo,无需再跨仓库联动。
  *
  * 用法:
  *   node bootstrap.mjs           # 增量初始化(跳过已完成步骤)
- *   node bootstrap.mjs --fast    # 跳过最终验证构建,直接可用于开发
- *   node bootstrap.mjs --force   # 强制重跑所有步骤(忽略已完成状态)
+ *   node bootstrap.mjs --fast    # 跳过最终验证构建
+ *   node bootstrap.mjs --force   # 强制重跑所有步骤
  *
  * 之后日常开发:
- *   - 改 realdwg-web 代码 → 重新构建对应包即可,无需重装 cad-viewer
- *   - 新环境克隆本仓库 → 只需在仓库根目录运行: node bootstrap.mjs
- *
- * 不再使用本地联动时:
- *   cd cad-viewer && node tools/use-local-realdwg.mjs --off && pnpm install
+ *   cd cad-viewer
+ *   pnpm dev          # 全功能查看器
+ *   pnpm dev:simple   # 简单查看器
+ *   pnpm build        # 全量构建
  */
 import { execSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const rootDir = dirname(fileURLToPath(import.meta.url))
-const realdwgDir = join(rootDir, 'realdwg-web')
 const cadViewerDir = join(rootDir, 'cad-viewer')
-
-const REALDWG_PACKAGES = [
-  '@mlightcad/common',
-  '@mlightcad/geometry-engine',
-  '@mlightcad/graphic-interface',
-  '@mlightcad/data-model'
-]
-const REALDWG_PACKAGES_STR = REALDWG_PACKAGES.join(' ')
 
 const args = new Set(process.argv.slice(2))
 const fastMode = args.has('--fast')
@@ -45,22 +36,6 @@ function step(index, total, title) {
   console.log(`\n━━━ [${index}/${total}] ${title} ━━━`)
 }
 
-/** 检查 realdwg-web 某个包是否已构建(lib/index.d.ts 存在) */
-function isPackageBuilt(pkgName) {
-  const shortName = pkgName.split('/')[1]
-  return existsSync(join(realdwgDir, 'packages', shortName, 'lib', 'index.d.ts'))
-}
-
-/** 检查 pnpm-workspace.yaml 是否已切到本地 link: 模式 */
-function isLocalOverrideActive() {
-  try {
-    const content = readFileSync(join(cadViewerDir, 'pnpm-workspace.yaml'), 'utf8')
-    return content.includes("'@mlightcad/data-model': 'link:")
-  } catch {
-    return false
-  }
-}
-
 // ── 前置检查 ──────────────────────────────────────────────────
 
 const nodeMajor = Number(process.versions.node.split('.')[0])
@@ -70,14 +45,14 @@ if (nodeMajor < 24) {
   )
 }
 
-if (!existsSync(join(realdwgDir, 'package.json')) || !existsSync(join(cadViewerDir, 'package.json'))) {
-  console.error('错误: 未找到 realdwg-web/ 或 cad-viewer/ 目录,请在 bw-cad-view 仓库根目录运行。')
+if (!existsSync(join(cadViewerDir, 'package.json'))) {
+  console.error('错误: 未找到 cad-viewer/ 目录,请在 bw-cad-view 仓库根目录运行。')
   process.exit(1)
 }
 
 // ── 主流程 ──────────────────────────────────────────────────
 
-const totalSteps = fastMode ? 4 : 5
+const totalSteps = fastMode ? 2 : 3
 let stepIndex = 0
 let skippedCount = 0
 const startTime = Date.now()
@@ -87,41 +62,7 @@ function elapsed() {
   return `${s}s`
 }
 
-// Step 1: 安装 realdwg-web 依赖
-stepIndex++
-step(stepIndex, totalSteps, '安装 realdwg-web 依赖')
-if (!forceMode && existsSync(join(realdwgDir, 'node_modules'))) {
-  console.log('  ⏭ 已存在 node_modules,跳过 (--force 可强制重装)')
-  skippedCount++
-} else {
-  run('pnpm install', realdwgDir)
-  console.log('  ✓ 完成')
-}
-
-// Step 2: 构建 realdwg-web 本地包
-stepIndex++
-step(stepIndex, totalSteps, '构建 realdwg-web 本地包')
-const allBuilt = REALDWG_PACKAGES.every(isPackageBuilt)
-if (!forceMode && allBuilt) {
-  console.log('  ⏭ 4 个包均已构建,跳过 (--force 可强制重构建)')
-  skippedCount++
-} else {
-  run(`pnpm exec nx run-many -t build -p ${REALDWG_PACKAGES_STR}`, realdwgDir)
-  console.log('  ✓ 完成')
-}
-
-// Step 3: 切换 cad-viewer overrides 到本地
-stepIndex++
-step(stepIndex, totalSteps, '切换 cad-viewer 到本地联动(link:)')
-if (!forceMode && isLocalOverrideActive()) {
-  console.log('  ⏭ 已是本地联动模式,跳过')
-  skippedCount++
-} else {
-  run('node tools/use-local-realdwg.mjs', cadViewerDir)
-  console.log('  ✓ 完成')
-}
-
-// Step 4: 安装 cad-viewer 依赖
+// Step 1: 安装依赖
 stepIndex++
 step(stepIndex, totalSteps, '安装 cad-viewer 依赖')
 if (!forceMode && existsSync(join(cadViewerDir, 'node_modules'))) {
@@ -132,38 +73,51 @@ if (!forceMode && existsSync(join(cadViewerDir, 'node_modules'))) {
   console.log('  ✓ 完成')
 }
 
-// Step 5: 构建 cad-viewer(验证)
-if (!fastMode) {
-  stepIndex++
-  step(stepIndex, totalSteps, '构建 cad-viewer 全量项目(验证)')
+// Step 2: 构建全部包
+stepIndex++
+step(stepIndex, totalSteps, '构建全部包')
+if (!forceMode && existsSync(join(cadViewerDir, 'packages', 'cad-viewer-example', 'dist'))) {
+  console.log('  ⏭ 已存在构建产物,跳过 (--force 可强制重构建)')
+  skippedCount++
+} else {
   run('pnpm build', cadViewerDir)
   console.log('  ✓ 完成')
+}
+
+// Step 3: 验证构建(--fast 跳过)
+if (!fastMode) {
+  stepIndex++
+  step(stepIndex, totalSteps, '验证构建产物')
+  const expectedFiles = [
+    'packages/data-model/lib/index.js',
+    'packages/data-model/dist/dxf-parser-worker.js',
+    'packages/cad-viewer-example/dist/index.html'
+  ]
+  let allOk = true
+  for (const f of expectedFiles) {
+    const full = join(cadViewerDir, f)
+    if (existsSync(full)) {
+      console.log(`  ✓ ${f}`)
+    } else {
+      console.log(`  ✗ ${f} (缺失)`)
+      allOk = false
+    }
+  }
+  if (!allOk) {
+    console.error('\n⚠ 部分构建产物缺失,请检查构建日志。')
+    process.exit(1)
+  }
 }
 
 // ── 总结 ──────────────────────────────────────────────────
 
 const skippedMsg = skippedCount > 0 ? `(跳过 ${skippedCount} 步)` : ''
 console.log(`\n✅ 初始化完成 ${skippedMsg}  耗时 ${elapsed()}`)
-
-if (fastMode) {
-  console.log(`
-快速启动:
-  cd cad-viewer
-  pnpm dev          # 全功能查看器
-  pnpm dev:simple   # 简单查看器
-
-提示: 首次启动 dev 时 Vite 会自动预构建依赖,后续热更新更快。
-日常联动: 修改 realdwg 后重新构建对应包即可,无需重装 cad-viewer:
-  cd realdwg-web && pnpm exec nx run-many -t build -p ${REALDWG_PACKAGES_STR}`)
-} else {
-  console.log(`
+console.log(`
 启动开发服务器:
   cd cad-viewer
   pnpm dev          # 全功能查看器
   pnpm dev:simple   # 简单查看器
-
-日常联动: 修改 realdwg 后重新构建对应包,重启 dev server 即可:
-  cd realdwg-web && pnpm exec nx run-many -t build -p ${REALDWG_PACKAGES_STR}
+  pnpm build        # 全量构建(用于部署)
 
 提示: 使用 --fast 可跳过验证构建,加快首次初始化速度。`)
-}

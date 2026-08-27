@@ -295,8 +295,6 @@ export default {
       properties: 'Otevře paletu Vlastnosti pro aktuální výběr.',
       quickSelect:
         'Otevře Rychlý výběr pro filtrování a výběr objektů podle kritérií.',
-      invertSelection:
-        'Obrátí aktuální výběr: vybrané objekty se zruší a všechny ostatní se vyberou (Ctrl+Shift+I).',
       countList: 'Otevře paletu Počet pro zobrazení a správu počtu bloků.',
       missingResources:
         'Otevře paletu Chybějící / externí zdroje pro fonty, obrázky a externí reference.',
@@ -314,6 +312,8 @@ export default {
         'Vytvoří definici atributu pro použití v bloku (ATTDEF).',
       agent:
         'Otevře kartu palety CAD Agent pro kreslení geometrie přirozeným jazykem.',
+      search:
+        'Otevře kartu palety Vyhledávání obsahu pro fuzzy vyhledávání textu ve výkresu a přiblížení prvků (SEARCH).',
       propertyColor: 'Nastaví barvu nových nebo vybraných objektů.',
       propertyLineType: 'Nastaví typ čáry nových nebo vybraných objektů.',
       propertyLineWeight:
@@ -407,7 +407,6 @@ export default {
       redo: 'Znovu',
       properties: 'Vlastnosti',
       quickSelect: 'Rychlý\nvýběr',
-      invertSelection: 'Obrátit\nvýběr',
       countList: 'Počet',
       drawingUnits: 'Jednotky\nvýkresu',
       attachDwg: 'Připojit\nDWG',
@@ -415,7 +414,8 @@ export default {
       insert: 'Vložit',
       editAttributes: 'Upravit\natributy',
       defineAttribute: 'Definovat\natribut',
-      agent: 'CAD\nAgent'
+      agent: 'CAD\nAgent',
+      search: 'Vyhledávání\nobsahu'
     }
   },
   verticalToolbar: {

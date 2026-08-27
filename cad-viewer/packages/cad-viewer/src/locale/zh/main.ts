@@ -291,8 +291,6 @@ export default {
       redo: '重做上一次撤销的操作。',
       properties: '打开当前所选对象的属性面板。',
       quickSelect: '打开快速选择对话框，按条件筛选并选择图元。',
-      invertSelection:
-        '反选当前选择集：已选图元取消选择，未选图元全部选中（Ctrl+Shift+I）。',
       countList: '打开计数面板以查看并管理块计数。',
       missingResources: '打开缺失/外部资源面板以处理字体、图片和外部参照。',
       drawingUnits: '打开图形单位对话框，设置坐标格式、精度与插入缩放单位。',
@@ -302,6 +300,7 @@ export default {
       editAttributes: '打开增强属性编辑器，编辑块属性值与显示特性（ATTEDIT）。',
       defineAttribute: '创建用于块的属性定义（ATTDEF）。',
       agent: '打开 CAD Agent 工具面板，使用自然语言描述并绘制图形。',
+      search: '打开内容搜索面板，按文字内容模糊搜索并定位图元（SEARCH）。',
       propertyColor: '设置新建对象或当前选中对象使用的颜色。',
       propertyLineType: '设置新建对象或当前选中对象使用的线型。',
       propertyLineWeight: '设置新建对象或当前选中对象使用的线宽。',
@@ -377,7 +376,6 @@ export default {
       redo: '重做',
       properties: '属性',
       quickSelect: '快速选择',
-      invertSelection: '反选',
       countList: '计数',
       drawingUnits: '图形单位',
       attachDwg: '附着\nDWG',
@@ -385,7 +383,8 @@ export default {
       insert: '插入',
       editAttributes: '编辑属性',
       defineAttribute: '定义属性',
-      agent: 'CAD Agent'
+      agent: 'CAD Agent',
+      search: '内容搜索'
     }
   },
   verticalToolbar: {

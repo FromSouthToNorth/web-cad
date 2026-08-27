@@ -1,0 +1,62 @@
+{
+  "name": "@mlightcad/cad-search-plugin",
+  "version": "1.6.1",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlightcad/cad-viewer.git"
+  },
+  "files": [
+    "dist",
+    "lib",
+    "typings",
+    "README.md",
+    "package.json"
+  ],
+  "main": "./dist/cad-search-plugin.umd.cjs",
+  "module": "./dist/cad-search-plugin.js",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "types": "./typings/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "register": [
+        "typings/register.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./typings/index.d.ts",
+      "import": "./dist/cad-search-plugin.js",
+      "require": "./dist/cad-search-plugin.umd.cjs"
+    },
+    "./register": {
+      "types": "./typings/register.d.ts",
+      "import": "./dist/cad-search-plugin-register.js",
+      "require": "./dist/cad-search-plugin-register.umd.cjs"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "scripts": {
+    "clean": "rimraf dist lib tsconfig.tsbuildinfo",
+    "build:types": "node scripts/copy-typings.mjs",
+    "build": "pnpm build:types && vite build",
+    "lint": "eslint src/",
+    "lint:fix": "eslint --fix --quiet src/"
+  },
+  "devDependencies": {
+    "@mlightcad/cad-simple-viewer": "workspace:*",
+    "@mlightcad/data-model": "workspace:*",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "vue": "^3.4.21",
+    "vue-tsc": "^2.1.6"
+  },
+  "peerDependencies": {
+    "@mlightcad/cad-simple-viewer": "workspace:*",
+    "@mlightcad/data-model": "workspace:*",
+    "vue": "^3.4.21"
+  }
+}

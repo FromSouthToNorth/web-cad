@@ -822,7 +822,7 @@ export class AcTrView2d extends AcEdBaseView {
       const db = AcApDocManager.instance?.curDocument?.database
       if (!db) return []
       // Available once @mlightcad/data-model exports getUnresolvedXrefs on the
-      // block table (realdwg-web). Soft-detect so older package versions still run.
+      // block table. Soft-detect so older package versions still run.
       const blockTable = db.tables.blockTable as {
         getUnresolvedXrefs?: () => Array<{
           name: string

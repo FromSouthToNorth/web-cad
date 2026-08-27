@@ -11,6 +11,7 @@ import {
   RefreshLeft,
   RefreshRight,
   Right,
+  Search,
   Stamp,
   View
 } from '@element-plus/icons-vue'
@@ -111,7 +112,6 @@ import {
   exportIcon,
   hatch,
   importIcon,
-  invertSelection,
   layer,
   layerCurrent,
   layerFreeze,
@@ -913,7 +913,8 @@ const buildBaseTabs = (
   openMode: AcEdOpenMode,
   markupVisible: boolean,
   measurementVisible: boolean,
-  agentPluginEnabled: boolean
+  agentPluginEnabled: boolean,
+  searchPluginEnabled: boolean
 ): RibbonTabModel[] => {
   const ribbonTooltips = {
     line: t('main.ribbon.tooltip.line'),
@@ -940,7 +941,6 @@ const buildBaseTabs = (
     redo: t('main.ribbon.tooltip.redo'),
     properties: t('main.ribbon.tooltip.properties'),
     quickSelect: t('main.ribbon.tooltip.quickSelect'),
-    invertSelection: t('main.ribbon.tooltip.invertSelection'),
     countList: t('main.ribbon.tooltip.countList'),
     drawingUnits: t('main.ribbon.tooltip.drawingUnits'),
     attachDwg: t('main.ribbon.tooltip.attachDwg'),
@@ -949,6 +949,7 @@ const buildBaseTabs = (
     editAttributes: t('main.ribbon.tooltip.editAttributes'),
     defineAttribute: t('main.ribbon.tooltip.defineAttribute'),
     agent: t('main.ribbon.tooltip.agent'),
+    search: t('main.ribbon.tooltip.search'),
     propertyColor: t('main.ribbon.tooltip.propertyColor'),
     propertyLineType: t('main.ribbon.tooltip.propertyLineType'),
     propertyLineWeight: t('main.ribbon.tooltip.propertyLineWeight')
@@ -2035,18 +2036,6 @@ const buildBaseTabs = (
                   }
                 },
                 {
-                  id: 'cmd-invertsel',
-                  type: 'button',
-                  label: t('main.ribbon.command.invertSelection'),
-                  tooltip: ribbonTooltips.invertSelection,
-                  size: 'large',
-                  props: {
-                    icon: invertSelection,
-                    labelWrapLines: 2,
-                    labelWrapWidth: 'max-content'
-                  }
-                },
-                {
                   id: 'cmd-countlist',
                   type: 'button',
                   label: t('main.ribbon.command.countList'),
@@ -2080,6 +2069,22 @@ const buildBaseTabs = (
                         size: 'large' as const,
                         props: {
                           icon: ChatDotRound,
+                          labelWrapLines: 2,
+                          labelWrapWidth: 'max-content'
+                        }
+                      }
+                    ]
+                  : []),
+                ...(searchPluginEnabled
+                  ? [
+                      {
+                        id: 'cmd-search',
+                        type: 'button' as const,
+                        label: t('main.ribbon.command.search'),
+                        tooltip: ribbonTooltips.search,
+                        size: 'large' as const,
+                        props: {
+                          icon: Search,
                           labelWrapLines: 2,
                           labelWrapWidth: 'max-content'
                         }
@@ -2208,6 +2213,7 @@ const buildBaseTabs = (
 const ribbonData = computed(() => {
   locale.value
   store.features.agentPlugin
+  store.features.searchPlugin
   const openMode = docOpenMode.value
   const markupVisible = isMarkupOverlayVisible.value
   const measurementVisible = isMeasurementOverlayVisible.value
@@ -2275,7 +2281,6 @@ const ribbonData = computed(() => {
   commandByItemId.set('cmd-layer', 'layer')
   commandByItemId.set('cmd-properties', 'properties')
   commandByItemId.set('cmd-qselect', 'qselect')
-  commandByItemId.set('cmd-invertsel', 'invertsel')
   commandByItemId.set('cmd-countlist', 'countlist')
   commandByItemId.set('cmd-drawing-units', 'units')
   commandByItemId.set('cmd-xattach', 'xattach')
@@ -2284,6 +2289,9 @@ const ribbonData = computed(() => {
   commandByItemId.set('cmd-attdef', 'attdef')
   if (store.features.agentPlugin) {
     commandByItemId.set('cmd-agent', 'agent')
+  }
+  if (store.features.searchPlugin) {
+    commandByItemId.set('cmd-search', 'search')
   }
   commandByItemId.set('cmd-tool-markup-panel', 'markuppanel')
   commandByItemId.set('cmd-tool-markup-text', 'markuptext')
@@ -2321,7 +2329,8 @@ const ribbonData = computed(() => {
     openMode,
     markupVisible,
     measurementVisible,
-    store.features.agentPlugin
+    store.features.agentPlugin,
+    store.features.searchPlugin
   )
   return {
     tabs,
@@ -2421,8 +2430,8 @@ const handleRibbonItemClick = (payload: {
   }
   const command = ribbonData.value.commandByItemId.get(payload.itemId)
   if (!command) return
-  if (command === 'agent') {
-    void runLazyCommand('agent')
+  if (command === 'agent' || command === 'search') {
+    void runLazyCommand(command)
     return
   }
   AcApDocManager.instance.sendStringToExecute(command)

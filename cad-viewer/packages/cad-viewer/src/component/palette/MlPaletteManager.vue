@@ -70,6 +70,15 @@
         >
           <agent-chat-panel embedded />
         </div>
+        <div
+          v-else-if="
+            store.features.searchPlugin &&
+            store.dialogs.activePaletteTab === 'search'
+          "
+          class="ml-search-palette-wrapper"
+        >
+          <search-panel />
+        </div>
       </ml-overflow-tabs>
     </ml-tool-palette>
   </el-config-provider>
@@ -104,6 +113,13 @@ const AgentChatPanel = defineAsyncComponent(() =>
     import('@mlightcad/cad-agent-plugin/style.css'),
     import('@mlightcad/cad-agent-plugin')
   ]).then(([, module]) => module.AgentChatPanel)
+)
+
+const SearchPanel = defineAsyncComponent(() =>
+  Promise.all([
+    import('@mlightcad/cad-search-plugin/style.css'),
+    import('@mlightcad/cad-search-plugin')
+  ]).then(([, module]) => module.SearchPanel)
 )
 
 /**
@@ -219,6 +235,9 @@ const tabNames = computed((): readonly string[] => {
   }
   if (store.features.agentPlugin) {
     names.push('agent')
+  }
+  if (store.features.searchPlugin) {
+    names.push('search')
   }
   return names
 })
@@ -351,6 +370,20 @@ const properties = computed(() => {
 }
 
 .ml-agent-palette-wrapper :deep(.cad-agent-panel-root) {
+  flex: 1;
+  min-height: 0;
+}
+
+.ml-search-palette-wrapper {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ml-search-palette-wrapper :deep(.cad-search-panel-root) {
   flex: 1;
   min-height: 0;
 }

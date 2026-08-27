@@ -19,7 +19,6 @@ import {
   AcApDrawingUnitsCmd,
   AcApExportHtmlDlgCmd,
   AcApInsertPaletteCmd,
-  AcApInvertSelCmd,
   AcApLayerStateCmd,
   AcApMarkupPanelCmd,
   AcApMemCmd,
@@ -85,12 +84,6 @@ export const registerCmds = () => {
       'qselect',
       'qselect',
       new AcApQSelectCmd()
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'invertsel',
-      'invertsel',
-      new AcApInvertSelCmd()
     )
     register.addCommand(
       AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
@@ -223,6 +216,7 @@ export const registerMTextColorPicker = () => {
 
 let isLazyPluginRegistered = false
 let isAgentIntegrationStarted = false
+let isSearchIntegrationStarted = false
 
 const registerAgentIntegration = async (pluginManager: AcApPluginManager) => {
   try {
@@ -250,6 +244,35 @@ const registerAgentIntegration = async (pluginManager: AcApPluginManager) => {
     store.features.agentPlugin = true
   } catch {
     // Optional peer `@mlightcad/cad-agent-plugin` is not installed.
+  }
+}
+
+const registerSearchIntegration = async (pluginManager: AcApPluginManager) => {
+  try {
+    await import('@mlightcad/cad-search-plugin/style.css')
+    const searchRegister = await import('@mlightcad/cad-search-plugin/register')
+
+    searchRegister.setSearchPaletteOpener(() => {
+      if (
+        store.dialogs.layerManager &&
+        store.dialogs.activePaletteTab === 'search'
+      ) {
+        store.dialogs.layerManager = false
+        return
+      }
+
+      store.dialogs.activePaletteTab = 'search'
+      store.dialogs.layerManager = true
+    })
+
+    searchRegister.mergeSearchI18nIntoVueI18n((locale, messages) => {
+      i18n.global.mergeLocaleMessage(locale, messages)
+    })
+
+    searchRegister.registerLazySearchPlugin(pluginManager)
+    store.features.searchPlugin = true
+  } catch {
+    // Optional peer `@mlightcad/cad-search-plugin` is not installed.
   }
 }
 
@@ -286,6 +309,11 @@ export const registerLazyPlugins = (
   if (!isAgentIntegrationStarted) {
     isAgentIntegrationStarted = true
     void registerAgentIntegration(pluginManager)
+  }
+
+  if (!isSearchIntegrationStarted) {
+    isSearchIntegrationStarted = true
+    void registerSearchIntegration(pluginManager)
   }
 
   isLazyPluginRegistered = true

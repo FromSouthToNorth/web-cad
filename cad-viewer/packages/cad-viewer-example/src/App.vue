@@ -44,6 +44,7 @@ import {
   AcEdOpenMode
 } from '@mlightcad/cad-simple-viewer'
 import { MlCadViewer } from '@mlightcad/cad-viewer'
+import { registerInvertSelPlugin } from '@mlightcad/cad-invertsel-plugin/register'
 import { log } from '@mlightcad/data-model'
 import { computed, nextTick, ref, watch } from 'vue'
 
@@ -106,6 +107,10 @@ const initialize = () => {
     'exit',
     new AcApQuitCmd()
   )
+
+  // Invert selection ships as a plugin so the viewer libraries stay
+  // unmodified; dropping this one call removes the feature completely.
+  void registerInvertSelPlugin(AcApDocManager.instance.pluginManager)
 }
 
 // Decide whether to show command line vertical toolbar at the right side,

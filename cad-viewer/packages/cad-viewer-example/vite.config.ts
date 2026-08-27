@@ -18,11 +18,6 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const VIEWER_RUNTIME_SRC = '../cad-html-plugin/dist/viewer-runtime.iife.js'
-const LOCAL_DATA_MODEL_LIB = resolve(
-  __dirname,
-  '../../../realdwg-web/packages/data-model/lib'
-)
-const LOCAL_DATA_MODEL_ENTRY = resolve(LOCAL_DATA_MODEL_LIB, 'index.js')
 const LOCAL_UI_COMPONENTS_SRC = resolve(
   __dirname,
   '../../../ui-components/packages/ui-components/src'
@@ -31,14 +26,6 @@ const LOCAL_UI_COMPONENTS_ROOT = resolve(
   __dirname,
   '../../../ui-components'
 )
-
-function useLocalDataModel(mode: string): boolean {
-  if (mode === 'local-data-model') {
-    return true
-  }
-  const flag = process.env.CAD_VIEWER_USE_LOCAL_DATA_MODEL
-  return flag === '1' || flag?.toLowerCase() === 'true'
-}
 
 export default defineConfig(({ command, mode }) => {
   const hasViewerRuntime = existsSync(resolve(__dirname, VIEWER_RUNTIME_SRC))
@@ -55,10 +42,6 @@ export default defineConfig(({ command, mode }) => {
     'cad-simple-viewer',
     'cad-viewer'
   ]
-  const linkLocalDataModel =
-    command === 'serve' &&
-    useLocalDataModel(mode) &&
-    existsSync(LOCAL_DATA_MODEL_ENTRY)
   const linkLocalUiComponents =
     command === 'serve' && existsSync(LOCAL_UI_COMPONENTS_SRC)
   if (command === 'serve') {
@@ -66,17 +49,6 @@ export default defineConfig(({ command, mode }) => {
       find: /^@mlightcad\/(cad-svg-plugin|three-renderer|cad-simple-viewer|cad-viewer)$/,
       replacement: resolve(__dirname, '../$1/src')
     })
-    if (linkLocalDataModel) {
-      aliases.push({
-        find: '@mlightcad/data-model',
-        replacement: LOCAL_DATA_MODEL_LIB
-      })
-    } else if (useLocalDataModel(mode) && !existsSync(LOCAL_DATA_MODEL_ENTRY)) {
-      console.warn(
-        '[cad-viewer-example] Local data-model alias requested but not found at:',
-        LOCAL_DATA_MODEL_ENTRY
-      )
-    }
     if (linkLocalUiComponents) {
       console.info(
         '[cad-viewer-example] Aliasing @mlightcad/ui-components to local source:',
@@ -155,7 +127,6 @@ export default defineConfig(({ command, mode }) => {
         command === 'serve'
           ? [
               ...devSourcePackages.map(name => `@mlightcad/${name}`),
-              ...(linkLocalDataModel ? ['@mlightcad/data-model'] : []),
               ...(linkLocalUiComponents ? ['@mlightcad/ui-components'] : [])
             ]
           : []

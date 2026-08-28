@@ -324,52 +324,6 @@ importers:
         specifier: ^6.4.3
         version: 6.4.3(@types/node@20.19.37)(sass@1.98.0)(yaml@2.8.3)
 
-  packages/cad-simple-viewer-example:
-    dependencies:
-      '@mlightcad/cad-agent-plugin':
-        specifier: workspace:*
-        version: link:../cad-agent-plugin
-      '@mlightcad/cad-html-plugin':
-        specifier: workspace:*
-        version: link:../cad-html-plugin
-      '@mlightcad/cad-pdf-plugin':
-        specifier: workspace:*
-        version: link:../cad-pdf-plugin
-      '@mlightcad/cad-simple-ui-plugin':
-        specifier: workspace:*
-        version: link:../cad-simple-ui-plugin
-      '@mlightcad/cad-simple-viewer':
-        specifier: workspace:*
-        version: link:../cad-simple-viewer
-      '@mlightcad/cad-svg-plugin':
-        specifier: workspace:*
-        version: link:../cad-svg-plugin
-      '@mlightcad/data-model':
-        specifier: workspace:*
-        version: link:../data-model
-      '@mlightcad/libredwg-converter':
-        specifier: ^3.13.0
-        version: 3.13.0(@mlightcad/data-model@packages+data-model)
-      '@mlightcad/mtext-renderer':
-        specifier: ^0.12.4
-        version: 0.12.4(three@0.172.0)
-      '@mlightcad/three-renderer':
-        specifier: workspace:*
-        version: link:../three-renderer
-      lodash-es:
-        specifier: 4.17.21
-        version: 4.17.21
-      three:
-        specifier: ^0.172.0
-        version: 0.172.0
-      vue:
-        specifier: ^3.4.21
-        version: 3.5.31(typescript@5.9.3)
-    devDependencies:
-      '@vitejs/plugin-vue':
-        specifier: ^6.0.8
-        version: 6.0.8(vite@6.4.3(@types/node@24.12.4)(sass@1.98.0)(yaml@2.8.3))(vue@3.5.31(typescript@5.9.3))
-
   packages/cad-svg-plugin:
     devDependencies:
       '@mlightcad/cad-simple-viewer':
@@ -562,9 +516,6 @@ importers:
 
   packages/examples:
     devDependencies:
-      '@mlightcad/cad-simple-viewer-example':
-        specifier: workspace:*
-        version: link:../cad-simple-viewer-example
       '@mlightcad/cad-viewer-example':
         specifier: workspace:*
         version: link:../cad-viewer-example

@@ -212,6 +212,7 @@ export class AcApLayerCtxOffsetCmd extends AcApLayerCtxCmdBase {
       )
       if (offsetCurves.length > 0) {
         blockTable.modelSpace.appendEntity(offsetCurves)
+        context.view.addEntity(offsetCurves)
       }
     }
 

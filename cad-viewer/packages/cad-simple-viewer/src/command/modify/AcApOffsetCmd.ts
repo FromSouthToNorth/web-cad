@@ -408,6 +408,7 @@ export class AcApOffsetCmd extends AcEdCommand {
           showCommandMessage(AcApI18n.t('jig.offset.offsetFailed'), 'warning')
         } else {
           blockTable.modelSpace.appendEntity(offsetCurves)
+          context.view.addEntity(offsetCurves)
         }
 
         currentCurve = undefined

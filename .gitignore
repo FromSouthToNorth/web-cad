@@ -1,8 +1,50 @@
-# ZCode session data
+# ---------- ZCode ----------
 .zcode/
 
-# Local drawing files (DXF/DWG working data)
+# ---------- Local CAD working data ----------
+# DXF/DWG scratch files kept out of the repo
 cad/
 # Transient process logs (regenerated every run)
 cad-tools/logs/
+
+# ---------- Python (cad-tools) ----------
 __pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+.env
+.env.*
+
+# ---------- Node.js (cad-viewer) ----------
+node_modules/
+.nx/
+tmp/
+coverage/
+*.tsbuildinfo
+.eslintcache
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------- Editor / OS ----------
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

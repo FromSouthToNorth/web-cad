@@ -70,6 +70,14 @@ export class AcEdGripManager {
 
   /** Stable listener reference for selection/command refresh. */
   private readonly _boundRefresh = () => this.refresh()
+  /**
+   * Stable listener reference for command start. A command consumes the
+   * selection: grips are hidden for the whole command (AutoCAD semantics) so
+   * grip handles cannot swallow clicks aimed at canvas prompts. They are
+   * re-evaluated on `commandEnded`, which restores them when the selection
+   * survives the command (e.g. the context-menu transform commands).
+   */
+  private readonly _boundHideGrips = () => this.clearEntries()
   /** Stable listener reference for view pan/zoom/resize repositioning. */
   private readonly _boundReposition = () => this.repositionAll()
   /** Stable listener reference for grip-related system variable changes. */
@@ -188,9 +196,10 @@ export class AcEdGripManager {
   /**
    * Subscribes to events that require a full grip refresh or reposition.
    *
-   * Refresh triggers: selection added/removed, command start/end,
-   * `GRIPOBJLIMIT` sysvar change. Reposition triggers: view changed, view resize.
-   * Appearance updates: `GRIPSIZE`, `GRIPCOLOR`, `GRIPHOT` sysvar changes.
+   * Refresh triggers: selection added/removed, command end,
+   * `GRIPOBJLIMIT` sysvar change. Command start hides all grips. Reposition
+   * triggers: view changed, view resize. Appearance updates: `GRIPSIZE`,
+   * `GRIPCOLOR`, `GRIPHOT` sysvar changes.
    */
   private bindEvents() {
     const { selectionSet, editor, events } = this._view
@@ -199,7 +208,7 @@ export class AcEdGripManager {
     selectionSet.events.selectionRemoved.addEventListener(this._boundRefresh)
     events.viewChanged.addEventListener(this._boundReposition)
     events.viewResize.addEventListener(this._boundReposition)
-    editor.events.commandWillStart.addEventListener(this._boundRefresh)
+    editor.events.commandWillStart.addEventListener(this._boundHideGrips)
     editor.events.commandEnded.addEventListener(this._boundRefresh)
 
     AcDbSysVarManager.instance().events.sysVarChanged.addEventListener(
@@ -217,7 +226,7 @@ export class AcEdGripManager {
     selectionSet.events.selectionRemoved.removeEventListener(this._boundRefresh)
     events.viewChanged.removeEventListener(this._boundReposition)
     events.viewResize.removeEventListener(this._boundReposition)
-    editor.events.commandWillStart.removeEventListener(this._boundRefresh)
+    editor.events.commandWillStart.removeEventListener(this._boundHideGrips)
     editor.events.commandEnded.removeEventListener(this._boundRefresh)
 
     AcDbSysVarManager.instance().events.sysVarChanged.removeEventListener(

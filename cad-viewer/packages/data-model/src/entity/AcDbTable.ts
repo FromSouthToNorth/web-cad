@@ -270,8 +270,7 @@ export class AcDbTable extends AcDbBlockReference {
    * @param col - Column index. Must be greater than or equal to 0 and less than the number of columns
    * @returns The number of contents in the specified cell
    */
-  // @ts-expect-error not use '_' prefix so that typedoc can the correct parameter to generate doc
-  numContents(row: number, col: number) {
+  numContents(_row: number, _col: number) {
     // TODO: Implement it
     return 1
   }
@@ -376,8 +375,7 @@ export class AcDbTable extends AcDbBlockReference {
    * @param content - Content index. Should be greater than or equal to 0 and less than the number of contents
    * @returns The text string in the specified cell
    */
-  // @ts-expect-error not use '_' prefix so that typedoc can the correct parameter to generate doc
-  textString(row: number, col: number, content?: number) {
+  textString(row: number, col: number, _content?: number) {
     const index = row * this._numColumns + col
     return this._cells[index]?.text
   }

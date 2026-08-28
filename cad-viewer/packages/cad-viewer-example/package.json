@@ -35,6 +35,7 @@
     "@mlightcad/cad-agent-plugin": "workspace:*",
     "@mlightcad/cad-html-plugin": "workspace:*",
     "@mlightcad/cad-invertsel-plugin": "workspace:*",
+    "@mlightcad/cad-layerctx-plugin": "workspace:*",
     "@mlightcad/cad-pdf-plugin": "workspace:*",
     "@mlightcad/cad-simple-viewer": "workspace:*",
     "@mlightcad/cad-viewer": "workspace:*",

@@ -3,6 +3,7 @@ import {
   AcGeBox3d,
   AcGeMatrix3d,
   AcGePoint3d,
+  AcGePoint3dLike,
   AcGeVector3dLike
 } from '@mlightcad/geometry-engine'
 import {
@@ -15,7 +16,7 @@ import {
 } from '@mlightcad/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
-import { AcDbObject } from '../base/AcDbObject'
+import { AcDbObject, type AcDbObjectId } from '../base/AcDbObject'
 import { AcDbLinetypeTableRecord } from '../database/AcDbLinetypeTableRecord'
 import { ByBlock, ByLayer, DEFAULT_LINE_TYPE } from '../misc/AcDbConstants'
 import { AcDbOsnapMode } from '../misc/AcDbOsnapMode'
@@ -661,10 +662,8 @@ export abstract class AcDbEntity extends AcDbObject {
    * ```
    */
   subMoveGripPointsAt(
-    // @ts-expect-error not use '_' prefix so that typedoc can the correct parameter to generate doc
-    indices: number[],
-    // @ts-expect-error not use '_' prefix so that typedoc can the correct parameter to generate doc
-    offset: AcGeVector3dLike
+    _indices: number[],
+    _offset: AcGeVector3dLike
   ): this {
     return this
   }
@@ -695,18 +694,12 @@ export abstract class AcDbEntity extends AcDbObject {
    * ```
    */
   subGetOsnapPoints(
-    // @ts-expect-error not use '_' prefix so that typedoc can the correct parameter to generate doc
-    osnapMode: AcDbOsnapMode,
-    // @ts-expect-error not use '_' prefix so that typedoc can the correct parameter to generate doc
-    pickPoint: AcGePoint3dLike,
-    // @ts-expect-error not use '_' prefix so that typedoc can the correct parameter to generate doc
-    lastPoint: AcGePoint3dLike,
-    // @ts-expect-error not use '_' prefix so that typedoc can the correct parameter to generate doc
-    snapPoints: AcGePoint3dLike[],
-    // @ts-expect-error not use '_' prefix so that typedoc can the correct parameter to generate doc
-    gsMark?: AcDbObjectId,
-    // @ts-expect-error not use '_' prefix so that typedoc can the correct parameter to generate doc
-    insertionMat?: AcGeMatrix3d
+    _osnapMode: AcDbOsnapMode,
+    _pickPoint: AcGePoint3dLike,
+    _lastPoint: AcGePoint3dLike,
+    _snapPoints: AcGePoint3dLike[],
+    _gsMark?: AcDbObjectId,
+    _insertionMat?: AcGeMatrix3d
   ) {}
 
   /**
@@ -725,8 +718,7 @@ export abstract class AcDbEntity extends AcDbObject {
    * entity.transformBy(matrix);
    * ```
    */
-  // @ts-expect-error not use '_' prefix so that typedoc can the correct parameter to generate doc
-  transformBy(matrix: AcGeMatrix3d): this {
+  transformBy(_matrix: AcGeMatrix3d): this {
     return this
   }
 

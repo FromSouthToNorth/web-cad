@@ -29,7 +29,7 @@ bw-cad-view/
 │       └── examples/                  # 示例服务
 ├── cad/                        # 测试数据 (DWG/DXF)
 ├── cad-tools/                  # Python DXF 处理脚本
-├── docs/                       # 性能优化文档
+├── docs/                       # 项目文档（分类存放，见 docs/README.md）
 └── bootstrap.mjs               # 一键初始化脚本
 ```
 
@@ -97,9 +97,13 @@ nx 会根据此拓扑关系自动确定构建顺序, 无需手动管理。
 
 ## 文档
 
-- [docs/性能优化总结.md](./docs/性能优化总结.md): 根因分析、已实施优化 (M0–M2)、遗留工作 (M3+)
-- [docs/架构图.md](./docs/架构图.md): 项目流程图与架构图 (Mermaid)
-- [docs/高性能技术分析.md](./docs/高性能技术分析.md)
+文档按主题分类存放在 `docs/` 下，索引见 [docs/README.md](./docs/README.md)。
+
+- [docs/02-性能优化/性能优化总结.md](./docs/02-性能优化/性能优化总结.md): 根因分析、已实施优化 (M0–M2)、遗留工作 (M3+)
+- [docs/02-性能优化/渲染与解析性能瓶颈分析.md](./docs/02-性能优化/渲染与解析性能瓶颈分析.md): 渲染 + 解析性能瓶颈分析 (UTF-8 DXF 焦点)
+- [docs/02-性能优化/优化计划.md](./docs/02-性能优化/优化计划.md): 性能优化实施计划与里程碑复测记录
+- [docs/01-架构设计/架构图.md](./docs/01-架构设计/架构图.md): 项目流程图与架构图 (Mermaid)
+- [docs/01-架构设计/高性能技术分析.md](./docs/01-架构设计/高性能技术分析.md): WebAssembly / Web Worker / 内存管理技术分析
 - [cad-viewer/README.md](./cad-viewer/README.md) (含多语言版本)
 
 ## 注意事项

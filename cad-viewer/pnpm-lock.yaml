@@ -185,6 +185,15 @@ importers:
         specifier: ^1.13.0
         version: 1.14.3
 
+  packages/cad-layerctx-plugin:
+    devDependencies:
+      '@mlightcad/cad-simple-viewer':
+        specifier: workspace:*
+        version: link:../cad-simple-viewer
+      '@mlightcad/data-model':
+        specifier: workspace:*
+        version: link:../data-model
+
   packages/cad-pdf-plugin:
     devDependencies:
       '@mlightcad/cad-simple-viewer':
@@ -468,6 +477,9 @@ importers:
       '@mlightcad/cad-invertsel-plugin':
         specifier: workspace:*
         version: link:../cad-invertsel-plugin
+      '@mlightcad/cad-layerctx-plugin':
+        specifier: workspace:*
+        version: link:../cad-layerctx-plugin
       '@mlightcad/cad-pdf-plugin':
         specifier: workspace:*
         version: link:../cad-pdf-plugin

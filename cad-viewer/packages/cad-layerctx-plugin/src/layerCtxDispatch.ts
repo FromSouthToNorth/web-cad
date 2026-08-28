@@ -9,6 +9,7 @@ import {
   HOST_CMD_COPY,
   HOST_CMD_MOVE,
   HOST_CMD_ROTATE,
+  LAYERCTX_CMD_OFFSET,
   LAYERCTX_CMD_SCALE
 } from './layerCtxCommands'
 
@@ -23,6 +24,7 @@ const TRANSFORM_COMMANDS: ReadonlySet<string> = new Set([
   HOST_CMD_COPY,
   HOST_CMD_MOVE,
   HOST_CMD_ROTATE,
+  LAYERCTX_CMD_OFFSET,
   LAYERCTX_CMD_SCALE
 ])
 

@@ -11,6 +11,7 @@ import {
   HOST_CMD_ROTATE,
   LAYERCTX_CMD_DELETE,
   LAYERCTX_CMD_DESELECT,
+  LAYERCTX_CMD_OFFSET,
   LAYERCTX_CMD_SCALE
 } from './layerCtxCommands'
 import { dispatchCtxCommand } from './layerCtxDispatch'
@@ -105,6 +106,12 @@ const MENU_ITEMS: readonly LayerCtxMenuItem[] = [
     labelKey: 'menuRotate',
     shortcut: 'Ctrl+Shift+R',
     command: HOST_CMD_ROTATE,
+    isDisabled: isWriteItemDisabled
+  },
+  {
+    labelKey: 'menuOffset',
+    shortcut: 'Ctrl+Shift+O',
+    command: LAYERCTX_CMD_OFFSET,
     isDisabled: isWriteItemDisabled
   },
   {
@@ -228,7 +235,7 @@ export function closeLayerCtxMenu(): void {
 /**
  * Dispatches a menu command through the host command pipeline. Commands act
  * on the current selection set, so no target needs to be passed along.
- * Transform commands (copy/move/scale/rotate) restore the selection when the
+ * Transform commands (copy/move/scale/rotate/offset) restore the selection when the
  * command finishes, keeping back-to-back menu operations on the same objects.
  */
 function runMenuCommand(item: LayerCtxMenuItem): void {

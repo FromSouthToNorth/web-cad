@@ -7,6 +7,7 @@ import {
   HOST_CMD_ROTATE,
   LAYERCTX_CMD_DELETE,
   LAYERCTX_CMD_DESELECT,
+  LAYERCTX_CMD_OFFSET,
   LAYERCTX_CMD_SCALE
 } from './layerCtxCommands'
 import {
@@ -32,6 +33,7 @@ const SHORTCUTS: Readonly<Record<string, string>> = {
   KeyM: HOST_CMD_MOVE,
   KeyS: LAYERCTX_CMD_SCALE,
   KeyR: HOST_CMD_ROTATE,
+  KeyO: LAYERCTX_CMD_OFFSET,
   KeyA: LAYERCTX_CMD_DESELECT
 }
 
@@ -86,7 +88,8 @@ const WRITE_COMMANDS: ReadonlySet<string> = new Set([
   LAYERCTX_CMD_SCALE,
   HOST_CMD_COPY,
   HOST_CMD_MOVE,
-  HOST_CMD_ROTATE
+  HOST_CMD_ROTATE,
+  LAYERCTX_CMD_OFFSET
 ])
 
 const handleKeyDown = (e: KeyboardEvent): void => {

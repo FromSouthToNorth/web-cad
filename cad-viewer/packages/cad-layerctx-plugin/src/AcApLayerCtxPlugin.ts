@@ -9,9 +9,11 @@ import { registerLayerCtxI18n, startLayerCtxLocaleSync } from './i18n'
 import {
   AcApLayerCtxDelCmd,
   AcApLayerCtxDeselectCmd,
+  AcApLayerCtxOffsetCmd,
   AcApLayerCtxScaleCmd,
   LAYERCTX_CMD_DELETE,
   LAYERCTX_CMD_DESELECT,
+  LAYERCTX_CMD_OFFSET,
   LAYERCTX_CMD_SCALE
 } from './layerCtxCommands'
 import {
@@ -85,6 +87,12 @@ export class AcApLayerCtxPlugin implements AcApPlugin {
       LAYERCTX_CMD_DESELECT,
       new AcApLayerCtxDeselectCmd()
     )
+    commandManager.addCommand(
+      group,
+      LAYERCTX_CMD_OFFSET,
+      LAYERCTX_CMD_OFFSET,
+      new AcApLayerCtxOffsetCmd()
+    )
 
     startLayerCtxKeyHandler()
     startLayerCtxMenu()
@@ -106,6 +114,7 @@ export class AcApLayerCtxPlugin implements AcApPlugin {
     commandManager.removeCmd(group, LAYERCTX_CMD_DELETE)
     commandManager.removeCmd(group, LAYERCTX_CMD_SCALE)
     commandManager.removeCmd(group, LAYERCTX_CMD_DESELECT)
+    commandManager.removeCmd(group, LAYERCTX_CMD_OFFSET)
 
     this.stopLocaleSync?.()
     this.stopLocaleSync = undefined

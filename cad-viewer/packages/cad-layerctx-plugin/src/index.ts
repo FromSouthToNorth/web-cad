@@ -17,12 +17,15 @@ export {
 export {
   AcApLayerCtxDelCmd,
   AcApLayerCtxDeselectCmd,
+  AcApLayerCtxOffsetCmd,
   AcApLayerCtxScaleCmd,
   HOST_CMD_COPY,
   HOST_CMD_MOVE,
+  HOST_CMD_OFFSET,
   HOST_CMD_ROTATE,
   LAYERCTX_CMD_DELETE,
   LAYERCTX_CMD_DESELECT,
+  LAYERCTX_CMD_OFFSET,
   LAYERCTX_CMD_SCALE
 } from './layerCtxCommands'
 export { deleteSelectedEntitiesCtx, deselectAllCtx } from './layerCtxOps'

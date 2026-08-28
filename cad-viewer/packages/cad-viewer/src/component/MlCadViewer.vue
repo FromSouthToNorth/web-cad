@@ -794,28 +794,14 @@ const closeNotificationCenter = () => {
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
 }
 
-.ml-cad-viewer-container.ml-theme-light .ml-cad-header::before {
-  background: rgba(255, 255, 255, 0.68);
-  border-bottom: 1px solid rgba(31, 45, 61, 0.08);
-  box-shadow: 0 2px 12px rgba(31, 45, 61, 0.06);
+.ml-cad-header::before {
+  background: var(--ml-theme-bg-surface);
+  border-bottom: 1px solid var(--ml-theme-border);
 }
 
-.ml-cad-viewer-container.ml-theme-light .ml-cad-footer::before {
-  background: rgba(255, 255, 255, 0.68);
-  border-top: 1px solid rgba(31, 45, 61, 0.08);
-  box-shadow: 0 -2px 12px rgba(31, 45, 61, 0.06);
-}
-
-.ml-cad-viewer-container.ml-theme-dark .ml-cad-header::before {
-  background: rgba(20, 20, 20, 0.68);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
-}
-
-.ml-cad-viewer-container.ml-theme-dark .ml-cad-footer::before {
-  background: rgba(20, 20, 20, 0.68);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.35);
+.ml-cad-footer::before {
+  background: var(--ml-theme-bg-surface);
+  border-top: 1px solid var(--ml-theme-border);
 }
 
 /* Let the frosted glass show through the ribbon's own surfaces. */

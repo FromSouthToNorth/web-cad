@@ -86,9 +86,6 @@ pnpm install
 ```bash
 # フル機能ビューア（cad-viewer）を起動
 pnpm dev
-
-# またはシンプルビューアを起動
-pnpm dev:simple
 ```
 
 ### ビルド
@@ -165,13 +162,13 @@ CAD-Viewer は [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer) 内�
 - **フェーズ 1 CAD ツール** — `get_drawing_context`；`draw_line`、`draw_circle`、`draw_arc`、`draw_rectangle`、`draw_polyline`、`draw_text`；`set_current_layer`、`create_layer`、`zoom_extents`
 - プラグイン i18n 層による **English / Chinese / Turkish / Czech** UI 文字列
 
-フル Vue [`cad-viewer`](packages/cad-viewer) アプリは、パッケージインストール時にエージェントを自動登録します（パレットタブ）。[`cad-simple-viewer-example`](packages/cad-simple-viewer-example) は `cad-simple-ui-plugin` 経由でドックタブに接続します。ホストアプリは `registerLazyAgentPlugin` と `setAgentPaletteOpener` を呼び出し、パネルのマウント位置を決定します。
+フル Vue [`cad-viewer`](packages/cad-viewer) アプリは、パッケージインストール時にエージェントを自動登録します（パレットタブ）。`cad-simple-viewer` ベースのホストアプリは、`cad-simple-ui-plugin` 経由でドックタブに接続し、`registerLazyAgentPlugin` と `setAgentPaletteOpener` を呼び出してパネルのマウント位置を決定できます。
 
 → **インストール、登録、ツール一覧：** [packages/cad-agent-plugin/README.md](packages/cad-agent-plugin/README.md)
 
 ### エクスポートプラグイン（HTML / PDF / SVG）
 
-これらのプラグインは、同一プラグインマネージャーにエクスポート（および PDF インポート）コマンドを追加します。**遅延読み込み** により初期ページ重量を抑えます。[`cad-simple-viewer-example`](packages/cad-simple-viewer-example) デモは 3 つのエクスポートプラグイン、`cad-simple-ui-plugin`、`cad-agent-plugin` をすべて登録します。フル [`cad-viewer`](packages/cad-viewer) アプリはブートストラップ時にエクスポートプラグインと（インストール時）エージェントプラグインを登録します。
+これらのプラグインは、同一プラグインマネージャーにエクスポート（および PDF インポート）コマンドを追加します。**遅延読み込み** により初期ページ重量を抑えます。フル [`cad-viewer`](packages/cad-viewer) アプリはブートストラップ時にエクスポートプラグインと（インストール時）エージェントプラグインを登録します。
 
 - **HTML** — 共有とアーカイブ向けの単一ファイルオフラインビューア：[packages/cad-html-plugin/README.md](packages/cad-html-plugin/README.md)  
   （同一パイプラインのヘッドレス CLI：[packages/cad-simple-viewer-cli/README.md](packages/cad-simple-viewer-cli/README.md)）

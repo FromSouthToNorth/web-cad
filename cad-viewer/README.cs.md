@@ -86,9 +86,6 @@ pnpm install
 ```bash
 # Spustit plnohodnotný prohlížeč (cad-viewer)
 pnpm dev
-
-# Nebo spustit jednoduchý prohlížeč
-pnpm dev:simple
 ```
 
 ### Sestavení
@@ -165,13 +162,13 @@ Poskytuje:
 - **CAD nástroje fáze 1** — `get_drawing_context`; `draw_line`, `draw_circle`, `draw_arc`, `draw_rectangle`, `draw_polyline`, `draw_text`; `set_current_layer`, `create_layer`, `zoom_extents`
 - **UI řetězce v angličtině / čínštině / turečtině / češtině** přes i18n vrstvu pluginu
 
-Plná Vue aplikace [`cad-viewer`](packages/cad-viewer) registruje agenta automaticky, pokud je balíček nainstalován (záložka palety). [`cad-simple-viewer-example`](packages/cad-simple-viewer-example) ho propojuje do dock záložky přes `cad-simple-ui-plugin`. Hostitelské aplikace volají `registerLazyAgentPlugin` a `setAgentPaletteOpener` pro umístění panelu podle potřeby.
+Plná Vue aplikace [`cad-viewer`](packages/cad-viewer) registruje agenta automaticky, pokud je balíček nainstalován (záložka palety). Hostitelské aplikace postavené na `cad-simple-viewer` ho mohou propojit do dock záložky přes `cad-simple-ui-plugin`; volají `registerLazyAgentPlugin` a `setAgentPaletteOpener` pro umístění panelu podle potřeby.
 
 → **Instalace, registrace a seznam nástrojů:** [packages/cad-agent-plugin/README.md](packages/cad-agent-plugin/README.md)
 
 ### Exportní pluginy (HTML / PDF / SVG)
 
-Tyto pluginy přidávají exportní (a u PDF importní) příkazy do stejného správce pluginů. Jsou **lazy-loaded**, aby počáteční velikost stránky zůstala malá. Demo [`cad-simple-viewer-example`](packages/cad-simple-viewer-example) registruje všechny tři exportní pluginy, `cad-simple-ui-plugin` a `cad-agent-plugin`; plná aplikace [`cad-viewer`](packages/cad-viewer) registruje exportní pluginy a agent plugin (pokud je nainstalován) při bootstrapu.
+Tyto pluginy přidávají exportní (a u PDF importní) příkazy do stejného správce pluginů. Jsou **lazy-loaded**, aby počáteční velikost stránky zůstala malá. Plná aplikace [`cad-viewer`](packages/cad-viewer) registruje exportní pluginy a agent plugin (pokud je nainstalován) při bootstrapu.
 
 - **HTML** — jednosouborový offline prohlížeč pro sdílení a archivaci: [packages/cad-html-plugin/README.md](packages/cad-html-plugin/README.md)  
   (Headless CLI používající stejnou pipeline: [packages/cad-simple-viewer-cli/README.md](packages/cad-simple-viewer-cli/README.md))

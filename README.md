@@ -24,7 +24,6 @@ bw-cad-view/
 │       ├── cad-simple-ui-plugin/
 │       ├── cad-invertsel-plugin/
 │       ├── cad-viewer-example/        # 全功能查看器示例应用
-│       ├── cad-simple-viewer-example/ # 轻量查看器示例应用
 │       ├── cad-simple-viewer-cli/     # 无头 CLI 工具
 │       └── examples/                  # 示例服务
 ├── cad/                        # 测试数据 (DWG/DXF)
@@ -44,7 +43,6 @@ bw-cad-view/
 node bootstrap.mjs          # 一键初始化 (安装依赖 + 全量构建)
 cd cad-viewer
 pnpm dev                    # 全功能查看器 (开发模式)
-pnpm dev:simple             # 简单查看器 (开发模式)
 pnpm build                  # 全量构建 (用于部署)
 ```
 
@@ -63,7 +61,6 @@ pnpm build                  # nx 拓扑排序, 自动按依赖顺序构建全部
 | 应用 | 产物路径 |
 | --- | --- |
 | 全功能查看器 | `packages/cad-viewer-example/dist/` |
-| 简单查看器 | `packages/cad-simple-viewer-example/dist/` |
 | CLI 工具 | `packages/cad-simple-viewer-cli/dist/` |
 
 ## 测试
@@ -90,7 +87,7 @@ cad-simple-viewer / three-renderer
   ↑
 cad-viewer / cad-{svg,pdf,html,agent}-plugin
   ↑
-cad-viewer-example / cad-simple-viewer-example / cad-simple-viewer-cli
+cad-viewer-example / cad-simple-viewer-cli
 ```
 
 nx 会根据此拓扑关系自动确定构建顺序, 无需手动管理。

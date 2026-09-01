@@ -86,9 +86,6 @@ pnpm install
 ```bash
 # Iniciar el visor completo (cad-viewer)
 pnpm dev
-
-# O iniciar el visor simple
-pnpm dev:simple
 ```
 
 ### Compilación
@@ -165,13 +162,13 @@ Proporciona:
 - **Herramientas CAD de fase 1** — `get_drawing_context`; `draw_line`, `draw_circle`, `draw_arc`, `draw_rectangle`, `draw_polyline`, `draw_text`; `set_current_layer`, `create_layer`, `zoom_extents`
 - Cadenas de interfaz en **inglés / chino / turco / checo** a través de la capa i18n del plugin
 
-La aplicación completa de Vue [`cad-viewer`](packages/cad-viewer) registra el agente automáticamente cuando el paquete está instalado (pestaña del panel). [`cad-simple-viewer-example`](packages/cad-simple-viewer-example) lo conecta a una pestaña acoplable mediante `cad-simple-ui-plugin`. Las aplicaciones host llaman a `registerLazyAgentPlugin` y `setAgentPaletteOpener` para montar el panel donde deseen.
+La aplicación completa de Vue [`cad-viewer`](packages/cad-viewer) registra el agente automáticamente cuando el paquete está instalado (pestaña del panel). Las aplicaciones host basadas en `cad-simple-viewer` pueden conectarlo a una pestaña acoplable mediante `cad-simple-ui-plugin`; llaman a `registerLazyAgentPlugin` y `setAgentPaletteOpener` para montar el panel donde deseen.
 
 → **Instalación, registro y lista de herramientas:** [packages/cad-agent-plugin/README.md](packages/cad-agent-plugin/README.md)
 
 ### Plugins de exportación (HTML / PDF / SVG)
 
-Estos plugins añaden comandos de exportación (e importación de PDF) al mismo administrador de plugins. Tienen **carga diferida** para que el peso inicial de la página se mantenga bajo. La demo [`cad-simple-viewer-example`](packages/cad-simple-viewer-example) registra los tres plugins de exportación, `cad-simple-ui-plugin` y `cad-agent-plugin`; la aplicación completa [`cad-viewer`](packages/cad-viewer) registra los plugins de exportación y el plugin del agente (cuando está instalado) en su arranque.
+Estos plugins añaden comandos de exportación (e importación de PDF) al mismo administrador de plugins. Tienen **carga diferida** para que el peso inicial de la página se mantenga bajo. La aplicación completa [`cad-viewer`](packages/cad-viewer) registra los plugins de exportación y el plugin del agente (cuando está instalado) en su arranque.
 
 - **HTML** — visor sin conexión de un solo archivo para compartir y archivar: [packages/cad-html-plugin/README.md](packages/cad-html-plugin/README.md)  
   (CLI sin interfaz que utiliza el mismo canal: [packages/cad-simple-viewer-cli/README.md](packages/cad-simple-viewer-cli/README.md))

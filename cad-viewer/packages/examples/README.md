@@ -1,10 +1,10 @@
 # CAD Viewer Examples
 
-This package serves as a central hub for all CAD viewer examples, providing easy access to both the full-featured CAD viewer and the simple viewer demonstrations.
+This package serves as a central hub for CAD viewer examples, providing easy access to the full-featured CAD viewer demo and other demonstration assets.
 
 ## Overview
 
-This package consolidates the built examples from both `@mlightcad/cad-viewer-example` and `@mlightcad/cad-simple-viewer-example` into a single, easily accessible location. It's designed for showcasing the capabilities of the CAD viewer libraries and providing reference implementations.
+This package consolidates the built `@mlightcad/cad-viewer-example` app and other demonstration assets into a single, easily accessible location. It's designed for showcasing the capabilities of the CAD viewer libraries and providing reference implementations.
 
 ## Available Examples
 
@@ -24,23 +24,7 @@ A full-featured CAD viewer application built with Vue.js and Element Plus.
 - UnoCSS for styling
 - LibreDWG for DWG file support
 
-### 2. CAD Simple Viewer Demo (`/cad-simple-viewer/`)
-A minimal, lightweight CAD viewer focusing on core functionality.
-
-**Features:**
-- 📁 Simple file selection interface
-- 🖥️ High-performance canvas rendering
-- 🔍 Basic zoom controls
-- 📱 Responsive design
-- ⚡ No backend required
-
-**Technology Stack:**
-- Vanilla TypeScript
-- Canvas-based rendering
-- LibreDWG WebAssembly
-- Modern ES2020+ features
-
-### 3. Zero-build CDN Bootstrap (`/cdn-bootstrap/cad-viewer.html`)
+### 2. Zero-build CDN Bootstrap (`/cdn-bootstrap/cad-viewer.html`)
 
 A single HTML file that loads `@mlightcad/cad-viewer` from jsDelivr — no Node, Vite, or local `node_modules`. The landing page is a plain file picker; Vue is only used to mount the viewer.
 
@@ -52,7 +36,7 @@ A single HTML file that loads `@mlightcad/cad-viewer` from jsDelivr — no Node,
 
 Serve over HTTP(S); `file://` will not work for ES module CDN imports.
 
-### 4. Self-Contained Offline HTML (`/self-contained-html/canteen.html`)
+### 3. Self-Contained Offline HTML (`/self-contained-html/canteen.html`)
 
 A single-file HTML export of the sample **canteen.dwg** drawing, produced by `cad-simple-viewer-cli`.
 
@@ -104,7 +88,6 @@ pnpm serve
 The examples will be available at:
 - Main index: `http://localhost:3000`
 - CAD Viewer Demo: `http://localhost:3000/cad-viewer/`
-- CAD Simple Viewer Demo: `http://localhost:3000/cad-simple-viewer/`
 - CDN bootstrap (zero-build): `http://localhost:3000/cdn-bootstrap/cad-viewer.html`
 - Self-contained HTML demo: `http://localhost:3000/self-contained-html/canteen.html` (generate first with `pnpm export:demo-html`)
 
@@ -129,9 +112,8 @@ pnpm serve
 # Build all examples from the root
 pnpm build
 
-# Or build individual examples
+# Or build the viewer example individually
 cd packages/cad-viewer-example && pnpm build
-cd packages/cad-simple-viewer-example && pnpm build
 ```
 
 ### Updating Examples
@@ -151,7 +133,6 @@ packages/examples/
 │   ├── sitemap.xml             # Search engine sitemap
 │   ├── llms.txt                # LLM-friendly project summary
 │   ├── cad-viewer/             # Full CAD viewer demo
-│   ├── cad-simple-viewer/      # Simple CAD viewer demo
 │   ├── cdn-bootstrap/          # Zero-build CDN single-HTML bootstrap
 │   └── self-contained-html/    # Offline HTML export demo (CI / export:demo-html)
 ├── copyDist.js                 # Script to copy built examples
@@ -170,7 +151,6 @@ packages/examples/
 
 ### For Developers
 - **Reference Implementation**: See how to integrate CAD viewer libraries
-- **Feature Comparison**: Compare full vs. simple viewer capabilities
 - **Code Examples**: Study implementation patterns and best practices
 
 ### For Users
@@ -185,7 +165,7 @@ packages/examples/
 
 ## Browser Support
 
-Both examples require:
+The interactive demos require:
 - Modern browsers with WebGL support
 - WebAssembly support (for DWG files)
 - ES2020+ JavaScript features

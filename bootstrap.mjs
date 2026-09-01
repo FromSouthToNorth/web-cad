@@ -13,7 +13,6 @@
  * 之后日常开发:
  *   cd cad-viewer
  *   pnpm dev          # 全功能查看器
- *   pnpm dev:simple   # 简单查看器
  *   pnpm build        # 全量构建
  */
 import { execSync } from 'node:child_process'
@@ -117,7 +116,6 @@ console.log(`
 启动开发服务器:
   cd cad-viewer
   pnpm dev          # 全功能查看器
-  pnpm dev:simple   # 简单查看器
   pnpm build        # 全量构建(用于部署)
 
 提示: 使用 --fast 可跳过验证构建,加快首次初始化速度。`)

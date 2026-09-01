@@ -86,9 +86,6 @@ pnpm install
 ```bash
 # Запуск полнофункционального просмотрщика (cad-viewer)
 pnpm dev
-
-# Или запуск простого просмотрщика
-pnpm dev:simple
 ```
 
 ### Сборка
@@ -165,13 +162,13 @@ CAD-Viewer построен вокруг модульной **системы п�
 - **CAD-инструменты фазы 1** — `get_drawing_context`; `draw_line`, `draw_circle`, `draw_arc`, `draw_rectangle`, `draw_polyline`, `draw_text`; `set_current_layer`, `create_layer`, `zoom_extents`
 - **Строки UI** на английском / китайском / турецком / чешском через слой i18n плагина
 
-Полное Vue-приложение [`cad-viewer`](packages/cad-viewer) регистрирует агента автоматически при установке пакета (вкладка палитры). [`cad-simple-viewer-example`](packages/cad-simple-viewer-example) подключает его во вкладку дока через `cad-simple-ui-plugin`. Host-приложения вызывают `registerLazyAgentPlugin` и `setAgentPaletteOpener`, чтобы разместить панель где нужно.
+Полное Vue-приложение [`cad-viewer`](packages/cad-viewer) регистрирует агента автоматически при установке пакета (вкладка палитры). Host-приложения на базе `cad-simple-viewer` могут подключить его во вкладку дока через `cad-simple-ui-plugin`; они вызывают `registerLazyAgentPlugin` и `setAgentPaletteOpener`, чтобы разместить панель где нужно.
 
 → **Установка, регистрация и список инструментов:** [packages/cad-agent-plugin/README.md](packages/cad-agent-plugin/README.md)
 
 ### Плагины экспорта (HTML / PDF / SVG)
 
-Эти плагины добавляют команды экспорта (и импорта PDF) в тот же менеджер плагинов. Они **лениво загружаются**, чтобы начальный вес страницы оставался небольшим. Демо [`cad-simple-viewer-example`](packages/cad-simple-viewer-example) регистрирует все три плагина экспорта, `cad-simple-ui-plugin` и `cad-agent-plugin`; полное приложение [`cad-viewer`](packages/cad-viewer) регистрирует плагины экспорта и плагин агента (при установке) при bootstrap.
+Эти плагины добавляют команды экспорта (и импорта PDF) в тот же менеджер плагинов. Они **лениво загружаются**, чтобы начальный вес страницы оставался небольшим. Полное приложение [`cad-viewer`](packages/cad-viewer) регистрирует плагины экспорта и плагин агента (при установке) при bootstrap.
 
 - **HTML** — однофайловый офлайн-просмотрщик для обмена и архивирования: [packages/cad-html-plugin/README.md](packages/cad-html-plugin/README.md)  
   (Headless CLI с тем же конвейером: [packages/cad-simple-viewer-cli/README.md](packages/cad-simple-viewer-cli/README.md))

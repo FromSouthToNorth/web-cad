@@ -86,9 +86,6 @@ pnpm install
 ```bash
 # Start the full-featured viewer (cad-viewer)
 pnpm dev
-
-# Or start the simple viewer
-pnpm dev:simple
 ```
 
 ### Build
@@ -165,13 +162,13 @@ It provides:
 - **Phase 1 CAD tools** — `get_drawing_context`; `draw_line`, `draw_circle`, `draw_arc`, `draw_rectangle`, `draw_polyline`, `draw_text`; `set_current_layer`, `create_layer`, `zoom_extents`
 - **English / Chinese / Turkish / Czech** UI strings via the plugin i18n layer
 
-The full Vue [`cad-viewer`](packages/cad-viewer) app registers the agent automatically when the package is installed (palette tab). [`cad-simple-viewer-example`](packages/cad-simple-viewer-example) wires it into a dock tab via `cad-simple-ui-plugin`. Host apps call `registerLazyAgentPlugin` and `setAgentPaletteOpener` to mount the panel where they want.
+The full Vue [`cad-viewer`](packages/cad-viewer) app registers the agent automatically when the package is installed (palette tab). Host apps building on `cad-simple-viewer` can wire it into a dock tab via `cad-simple-ui-plugin`; they call `registerLazyAgentPlugin` and `setAgentPaletteOpener` to mount the panel where they want.
 
 → **Installation, registration, and tool list:** [packages/cad-agent-plugin/README.md](packages/cad-agent-plugin/README.md)
 
 ### Export plugins (HTML / PDF / SVG)
 
-These plugins add export (and PDF import) commands to the same plugin manager. They are **lazy-loaded** so initial page weight stays small. The [`cad-simple-viewer-example`](packages/cad-simple-viewer-example) demo registers all three export plugins, `cad-simple-ui-plugin`, and `cad-agent-plugin`; the full [`cad-viewer`](packages/cad-viewer) app registers the export plugins and the agent plugin (when installed) in its bootstrap.
+These plugins add export (and PDF import) commands to the same plugin manager. They are **lazy-loaded** so initial page weight stays small. The full [`cad-viewer`](packages/cad-viewer) app registers the export plugins and the agent plugin (when installed) in its bootstrap.
 
 - **HTML** — one-file offline viewer for sharing and archiving: [packages/cad-html-plugin/README.md](packages/cad-html-plugin/README.md)  
   (Headless CLI using the same pipeline: [packages/cad-simple-viewer-cli/README.md](packages/cad-simple-viewer-cli/README.md))

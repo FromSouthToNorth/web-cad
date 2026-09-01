@@ -33,7 +33,7 @@
             class="upload-dropzone"
             drag
             :auto-upload="false"
-            accept=".dwg,.dxf"
+            accept=".dxf"
             :on-change="handleFileChange"
             :before-upload="beforeUpload"
           >
@@ -43,7 +43,6 @@
                 <span class="dropzone-link">{{ $t('fileUpload.browse') }}</span>
               </p>
               <div class="format-tags">
-                <span class="format-tag">DWG</span>
                 <span class="format-tag">DXF</span>
               </div>
             </div>
@@ -309,14 +308,14 @@ const handleNewDrawing = () => {
 
 const beforeUpload: UploadProps['beforeUpload'] = (rawFile: File) => {
   if (!isValidFile(rawFile)) {
-    log.warn('Invalid file type. Please upload DWG or DXF files.')
+    log.warn('Invalid file type. Please upload DXF files.')
     return false
   }
   return true
 }
 
 const isValidFile = (file: File): boolean => {
-  const validExtensions = ['.dwg', '.dxf']
+  const validExtensions = ['.dxf']
   const fileName = file.name.toLowerCase()
   return validExtensions.some(ext => fileName.endsWith(ext))
 }

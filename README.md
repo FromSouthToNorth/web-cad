@@ -110,4 +110,4 @@ nx 会根据此拓扑关系自动确定构建顺序, 无需手动管理。
 
 ## License
 
-MIT, `@mlightcad/libredwg-converter` 为 GPL-3.0
+MIT(本工作区已移除 GPL-3.0 的 `@mlightcad/libredwg-converter` 依赖,仅保留 MIT 的 DXF 解析链路)

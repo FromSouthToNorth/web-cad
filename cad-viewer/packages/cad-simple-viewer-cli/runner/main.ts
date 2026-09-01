@@ -7,7 +7,6 @@ import {
   AcEdOpenMode,
   AcTrView2d,
   DXF_PARSER_WORKER_FILE,
-  LIBREDWG_PARSER_WORKER_FILE,
   MTEXT_RENDERER_WORKER_FILE
 } from '@mlightcad/cad-simple-viewer'
 import { registerLazySvgPlugin } from '@mlightcad/cad-svg-plugin/register'
@@ -17,7 +16,6 @@ import {
   AcDbFileType,
   AcDbNativeDxfConverter
 } from '@mlightcad/data-model'
-import { AcDbLibreDwgConverter } from '@mlightcad/libredwg-converter'
 
 /** Max time to wait for convert + deferred font/text geometry after open. */
 const SCENE_IDLE_TIMEOUT_MS = 120_000
@@ -185,15 +183,6 @@ async function ensureViewer(): Promise<void> {
   installDownloadCapture()
 
   const container = document.getElementById('cad-root') as HTMLDivElement
-  const dwgParserUrl = `./workers/${LIBREDWG_PARSER_WORKER_FILE}`
-  AcDbDatabaseConverterManager.instance.register(
-    AcDbFileType.DWG,
-    new AcDbLibreDwgConverter({
-      convertByEntityType: false,
-      useWorker: true,
-      parserWorkerUrl: dwgParserUrl
-    })
-  )
   const dxfParserUrl = `./workers/${DXF_PARSER_WORKER_FILE}`
   AcDbDatabaseConverterManager.instance.register(
     AcDbFileType.DXF,
@@ -211,7 +200,6 @@ async function ensureViewer(): Promise<void> {
     baseUrl: 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/',
     useMainThreadDraw: true,
     webworkerFileUrls: {
-      dwgParser: dwgParserUrl,
       dxfParser: dxfParserUrl,
       mtextRender: `./workers/${MTEXT_RENDERER_WORKER_FILE}`
     }

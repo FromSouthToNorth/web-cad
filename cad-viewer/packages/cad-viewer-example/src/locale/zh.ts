@@ -11,7 +11,7 @@ export default {
   },
   fileUpload: {
     title: '选择要查看的 CAD 文件',
-    subtitle: '将 DWG 或 DXF 图纸导入查看器',
+    subtitle: '将 DXF 图纸导入查看器',
     newDrawing: '新建图纸',
     or: '或',
     dropFile: '拖拽文件到此处，或',

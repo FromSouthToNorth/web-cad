@@ -1,21 +1,15 @@
 import 'element-plus/dist/index.css'
 
-import {
-  DXF_PARSER_WORKER_FILE,
-  LIBREDWG_PARSER_WORKER_FILE
-} from '@mlightcad/cad-simple-viewer'
+import { DXF_PARSER_WORKER_FILE } from '@mlightcad/cad-simple-viewer'
 import { i18n } from '@mlightcad/cad-viewer'
 import ElementPlus from 'element-plus'
 import { createApp } from 'vue'
 
 import App from './App.vue'
 import { initializeLocale } from './locale'
-import { registerLibreDwgConverter } from './registerLibreDwg'
 import { registerNativeDxfConverter } from './registerNativeDxf'
 
 const initApp = () => {
-  // Opt into GPL DWG support before the viewer mounts.
-  registerLibreDwgConverter(`./assets/${LIBREDWG_PARSER_WORKER_FILE}`)
   // DXF tokenizes in its parser worker when the bundle is deployed.
   registerNativeDxfConverter(`./assets/${DXF_PARSER_WORKER_FILE}`)
 

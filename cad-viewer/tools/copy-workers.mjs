@@ -5,13 +5,10 @@
  *   node tools/copy-workers.mjs
  *   → copies mtext worker into ./dist
  *   → copies proprietary dwg workers when that package is available
- *   → does NOT copy LibreDWG (GPL) — hosts/examples must depend on
- *     @mlightcad/libredwg-converter and copy those assets themselves
  *
  * Consumer (examples):
  *   node tools/copy-workers.mjs dist/workers
  *   → copies *-worker.js from @mlightcad/cad-simple-viewer/dist
- *   → copies LibreDWG worker + wasm from @mlightcad/libredwg-converter when present
  */
 import {
   copyFileSync,
@@ -26,9 +23,6 @@ import {
   DWG_CONVERTER_PACKAGE,
   DWG_PARSER_MAIN_FILE,
   DWG_PARSER_WORKER_FILE,
-  LIBREDWG_CONVERTER_PACKAGE,
-  LIBREDWG_PARSER_WASM_FILE,
-  LIBREDWG_PARSER_WORKER_FILE,
   MTEXT_RENDERER_PACKAGE,
   MTEXT_RENDERER_WORKER_FILE
 } from './worker-assets.mjs'
@@ -103,19 +97,6 @@ function copyProducerWorkers() {
   )
 }
 
-function copyLibreDwgAssets(outDir) {
-  copyOptionalWorker(
-    LIBREDWG_CONVERTER_PACKAGE,
-    LIBREDWG_PARSER_WORKER_FILE,
-    outDir
-  )
-  copyOptionalWorker(
-    LIBREDWG_CONVERTER_PACKAGE,
-    LIBREDWG_PARSER_WASM_FILE,
-    outDir
-  )
-}
-
 function copyFromCadSimpleViewer(destRelativePath) {
   const srcDir = join(pkgRoot('@mlightcad/cad-simple-viewer'), 'dist')
   if (!existsSync(srcDir)) {
@@ -139,9 +120,6 @@ function copyFromCadSimpleViewer(destRelativePath) {
   for (const name of workers) {
     copy(join(srcDir, name), join(outDir, name))
   }
-
-  // LibreDWG is host-owned; copy when the example depends on the converter.
-  copyLibreDwgAssets(outDir)
 }
 
 if (destRelative) {

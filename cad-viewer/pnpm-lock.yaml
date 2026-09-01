@@ -5,7 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@mlightcad/libredwg-converter': ^3.13.0
   '@mlightcad/mtext-input-box': ^0.2.23
   '@mlightcad/mtext-renderer': ^0.12.4
   '@mlightcad/ribbon': ^0.1.12
@@ -298,9 +297,6 @@ importers:
       '@mlightcad/data-model':
         specifier: workspace:*
         version: link:../data-model
-      '@mlightcad/libredwg-converter':
-        specifier: ^3.13.0
-        version: 3.13.0(@mlightcad/data-model@packages+data-model)
       '@mlightcad/mtext-renderer':
         specifier: ^0.12.4
         version: 0.12.4(three@0.172.0)
@@ -446,9 +442,6 @@ importers:
       '@mlightcad/data-model':
         specifier: workspace:*
         version: link:../data-model
-      '@mlightcad/libredwg-converter':
-        specifier: ^3.13.0
-        version: 3.13.0(@mlightcad/data-model@packages+data-model)
       '@mlightcad/mtext-renderer':
         specifier: ^0.12.4
         version: 0.12.4(three@0.172.0)
@@ -1823,15 +1816,6 @@ packages:
     peerDependencies:
       '@mlightcad/common': 1.14.3
       '@mlightcad/geometry-engine': 3.14.3
-
-  '@mlightcad/libredwg-converter@3.13.0':
-    resolution: {integrity: sha512-cozU8IdH3n6Yz7daQSl21EQrSQuhpVtb89Peqm5Wjl7bMJ5RYW4KKdkMr6xDmzXKq7Bb2TsoS6DRLwLLc4e7nQ==}
-    peerDependencies:
-      '@mlightcad/data-model': 1.13.0
-
-  '@mlightcad/libredwg-web@0.7.9':
-    resolution: {integrity: sha512-tqjx0eCiR0CNI3TyO3LVYzl4ptuzSFm7asGn/C1YiJaEk7Vneto+lRrVUco85qw+PZDihaFLwWqdYIEse1swbA==}
-    engines: {node: '>=20'}
 
   '@mlightcad/mtext-input-box@0.2.23':
     resolution: {integrity: sha512-b3AmQhpVkqTb3ZaQ7Ty00XnngcFo5bjBPcdXrDDs4plUV841e9p86E1xLFtv+SLnLIx5m7/KkDKAIqLduj7WmQ==}
@@ -7265,13 +7249,6 @@ snapshots:
     dependencies:
       '@mlightcad/common': 1.14.3
       '@mlightcad/geometry-engine': 3.14.3(@mlightcad/common@1.14.3)
-
-  '@mlightcad/libredwg-converter@3.13.0(@mlightcad/data-model@packages+data-model)':
-    dependencies:
-      '@mlightcad/data-model': link:packages/data-model
-      '@mlightcad/libredwg-web': 0.7.9
-
-  '@mlightcad/libredwg-web@0.7.9': {}
 
   '@mlightcad/mtext-input-box@0.2.23(@mlightcad/mtext-renderer@0.12.4(three@0.172.0))(three@0.172.0)':
     dependencies:

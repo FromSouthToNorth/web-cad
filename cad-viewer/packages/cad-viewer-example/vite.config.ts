@@ -10,9 +10,6 @@ import { exampleRollupOutput } from '../vite-config/pluginRollupOutput'
 import {
   DATA_MODEL_PACKAGE,
   DXF_PARSER_WORKER_FILE,
-  LIBREDWG_CONVERTER_PACKAGE,
-  LIBREDWG_PARSER_WASM_FILE,
-  LIBREDWG_PARSER_WORKER_FILE,
   MTEXT_RENDERER_WORKER_FILE
 } from '../../tools/worker-assets.mjs'
 
@@ -32,7 +29,7 @@ export default defineConfig(({ command, mode }) => {
   if (!hasViewerRuntime) {
     console.warn(
       '[cad-viewer-example] viewer-runtime.iife.js not found — HTML export will be unavailable. ' +
-        'Build @mlightcad/cad-html-plugin to enable it. Opening DXF/DWG does not require this file.'
+        'Build @mlightcad/cad-html-plugin to enable it. Opening DXF does not require this file.'
     )
   }
   const aliases: Alias[] = []
@@ -61,15 +58,6 @@ export default defineConfig(({ command, mode }) => {
     }
   }
 
-  const libredwgDist = `./node_modules/${LIBREDWG_CONVERTER_PACKAGE}/dist`
-  const libredwgWasmSrc = resolve(
-    __dirname,
-    'node_modules',
-    LIBREDWG_CONVERTER_PACKAGE,
-    'dist',
-    LIBREDWG_PARSER_WASM_FILE
-  )
-
   const plugins = [
     vue(),
     svgLoader(),
@@ -85,20 +73,6 @@ export default defineConfig(({ command, mode }) => {
           dest: 'assets',
           rename: { stripBase: true }
         },
-        {
-          src: `${libredwgDist}/${LIBREDWG_PARSER_WORKER_FILE}`,
-          dest: 'assets',
-          rename: { stripBase: true }
-        },
-        ...(existsSync(libredwgWasmSrc)
-          ? [
-              {
-                src: `${libredwgDist}/${LIBREDWG_PARSER_WASM_FILE}`,
-                dest: 'assets',
-                rename: { stripBase: true }
-              }
-            ]
-          : []),
         ...(hasViewerRuntime
           ? [
               {

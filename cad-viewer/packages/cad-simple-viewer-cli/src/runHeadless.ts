@@ -162,7 +162,7 @@ function drawingNameFromUrl(urlString: string): string {
   } catch {
     // fall through
   }
-  return 'drawing.dwg'
+  return 'drawing.dxf'
 }
 
 /**
@@ -176,9 +176,9 @@ async function loadDrawingInput(inputPath: string): Promise<{
   if (isHttpUrl(inputPath)) {
     const fileName = drawingNameFromUrl(inputPath)
     const ext = path.extname(fileName).toLowerCase()
-    if (ext !== '.dxf' && ext !== '.dwg') {
+    if (ext !== '.dxf') {
       throw new Error(
-        `Unsupported remote drawing "${fileName}". URL path must end with .dxf or .dwg.`
+        `Unsupported remote drawing "${fileName}". URL path must end with .dxf.`
       )
     }
     const response = await fetch(inputPath)
@@ -197,9 +197,9 @@ async function loadDrawingInput(inputPath: string): Promise<{
 
   const absoluteInput = path.resolve(inputPath)
   const ext = path.extname(absoluteInput).toLowerCase()
-  if (ext !== '.dxf' && ext !== '.dwg') {
+  if (ext !== '.dxf') {
     throw new Error(
-      `Unsupported file type "${ext}". Only .dxf and .dwg are supported.`
+      `Unsupported file type "${ext}". Only .dxf is supported.`
     )
   }
   if (!existsSync(absoluteInput)) {

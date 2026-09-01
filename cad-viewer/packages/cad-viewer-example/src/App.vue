@@ -223,7 +223,7 @@ const handleNewDrawing = (
   justify-content: center;
   align-items: safe center;
   overflow-y: auto;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--ml-theme-bg-base);
   margin: 0;
   padding: 16px;
   box-sizing: border-box;
@@ -231,11 +231,7 @@ const handleNewDrawing = (
   top: 0;
   left: 0;
   z-index: 1000;
-  pointer-events: auto; /* Allow clicks on upload screen */
-}
-
-:root[data-ml-ui-theme='dark'] .upload-screen {
-  background: linear-gradient(135deg, #1e2235 0%, #17142b 100%);
+  pointer-events: auto;
 }
 
 .theme-toggle {
@@ -244,17 +240,19 @@ const handleNewDrawing = (
   right: 16px;
   z-index: 1;
   padding: 6px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid var(--ml-theme-border-subtle);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  background: var(--ml-theme-bg-surface);
+  color: var(--ml-theme-text-primary);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  backdrop-filter: blur(4px);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .theme-toggle:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--ml-theme-bg-hover);
 }
 </style>

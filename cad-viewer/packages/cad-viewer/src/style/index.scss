@@ -3,6 +3,58 @@
 
 :root {
   --ml-status-bar-height: 30px;
+
+  /* ── Theme: primary ── */
+  --ml-theme-primary: #3b82f6;
+  --ml-theme-primary-hover: #2563eb;
+  --ml-theme-primary-active: #1d4ed8;
+  --ml-theme-on-primary: #ffffff;
+
+  /* ── Theme: backgrounds ── */
+  --ml-theme-bg-base: #f8fafc;
+  --ml-theme-bg-surface: #ffffff;
+  --ml-theme-bg-subtle: #f1f5f9;
+  --ml-theme-bg-input: #f8fafc;
+  --ml-theme-bg-hover: #f1f5f9;
+  --ml-theme-bg-active: #dbeafe;
+  --ml-theme-bg-tag: #dbeafe;
+
+  /* ── Theme: text ── */
+  --ml-theme-text-primary: #18181b;
+  --ml-theme-text-secondary: #64748b;
+  --ml-theme-text-muted: #94a3b8;
+  --ml-theme-text-heading: #334155;
+
+  /* ── Theme: borders ── */
+  --ml-theme-border: #e2e8f0;
+  --ml-theme-border-subtle: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-ml-ui-theme='dark'] {
+  /* ── Theme: primary ── */
+  --ml-theme-primary: #3b82f6;
+  --ml-theme-primary-hover: #60a5fa;
+  --ml-theme-primary-active: #93bbfc;
+  --ml-theme-on-primary: #ffffff;
+
+  /* ── Theme: backgrounds ── */
+  --ml-theme-bg-base: #0a0a0b;
+  --ml-theme-bg-surface: #161618;
+  --ml-theme-bg-subtle: #0a0a0b;
+  --ml-theme-bg-input: #1e1e21;
+  --ml-theme-bg-hover: #27272a;
+  --ml-theme-bg-active: rgba(59, 130, 246, 0.14);
+  --ml-theme-bg-tag: rgba(59, 130, 246, 0.12);
+
+  /* ── Theme: text ── */
+  --ml-theme-text-primary: #e4e4e7;
+  --ml-theme-text-secondary: #a1a1aa;
+  --ml-theme-text-muted: #71717a;
+  --ml-theme-text-heading: #d4d4d8;
+
+  /* ── Theme: borders ── */
+  --ml-theme-border: rgba(255, 255, 255, 0.06);
+  --ml-theme-border-subtle: rgba(255, 255, 255, 0.08);
 }
 
 body {

@@ -28,7 +28,7 @@ import {
   SaveOutlined,
   SearchOutlined,
   SwapOutlined,
-  RobotOutlined,
+  RobotFilled,
   ToolOutlined,
   UnlockOutlined
 } from '@ant-design/icons-vue'
@@ -249,7 +249,7 @@ const utilitiesPanel: RibbonPanelDef = {
   id: 'utilities',
   title: 'Utilities',
   items: [
-    btn('agent', 'agent', RobotOutlined, 'CAD\nAgent', 'large'),
+    btn('agent', 'agent', RobotFilled, 'CAD\nAgent', 'large'),
     btn('regen', 'regen', ReloadOutlined, 'Regen', 'small', 'RE'),
     btn('invertSelect', 'invertsel', SwapOutlined, 'Invert\nSelect', 'small'),
     btn('search', 'search', SearchOutlined, 'Search', 'small'),

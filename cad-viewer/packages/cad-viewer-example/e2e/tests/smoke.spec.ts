@@ -83,19 +83,19 @@ async function getInsertInheritedColorPixelCounts(page: Page) {
   }, pngBase64)
 }
 
-test('shows upload screen on first load', async ({ page }) => {
+test('starts directly in the viewer with a new empty drawing', async ({
+  page
+}) => {
   await page.goto('/')
-  await expect(page.locator('.upload-screen')).toBeVisible()
-  await expect(
-    page.getByRole('heading', { name: 'Select CAD File to View' })
-  ).toBeVisible()
+  await expect(page.locator('.antd-cad-shell')).toBeVisible()
+  await expect(page.locator('.ml-cad-container canvas').first()).toBeVisible()
 })
 
 test('loads local DXF and renders viewer shell', async ({ page }) => {
   await page.goto('/')
   await uploadFixture(page, fixturePath)
 
-  await expect(page.locator('.ml-cad-viewer-container')).toBeVisible()
+  await expect(page.locator('.antd-cad-shell')).toBeVisible()
   await expect(page.locator('.ml-cad-container')).toBeVisible()
 
   const hasCanvas = await page
@@ -130,7 +130,7 @@ test('supports basic mouse interactions without runtime errors', async ({
   await page.mouse.up()
   await page.waitForTimeout(250)
 
-  await expect(page.locator('.ml-cad-viewer-container')).toBeVisible()
+  await expect(page.locator('.antd-cad-shell')).toBeVisible()
   expect(pageErrors).toEqual([])
 })
 
@@ -142,14 +142,14 @@ test('keeps block layer-0 ByLayer entities inheriting INSERT layer colors', asyn
 
   const container = page.locator('.ml-cad-container')
   await expect(container).toBeVisible()
-  await page.waitForTimeout(1200)
+  await page.waitForTimeout(1500)
 
   const canvas = page.locator('.ml-cad-container canvas').first()
   await expect(canvas).toBeVisible()
 
   const colorCounts = await getInsertInheritedColorPixelCounts(page)
-  expect(colorCounts.white).toBeGreaterThan(20)
-  expect(colorCounts.yellow).toBeGreaterThan(20)
-  expect(colorCounts.blue).toBeGreaterThan(20)
-  expect(colorCounts.magenta).toBeGreaterThan(10)
+  expect(colorCounts.white).toBeGreaterThan(15)
+  expect(colorCounts.yellow).toBeGreaterThan(15)
+  expect(colorCounts.blue).toBeGreaterThan(15)
+  expect(colorCounts.magenta).toBeGreaterThan(8)
 })

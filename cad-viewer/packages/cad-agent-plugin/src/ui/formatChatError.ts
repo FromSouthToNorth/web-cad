@@ -38,6 +38,15 @@ export function formatChatError(error: Error): string {
   if (APICallError.isInstance(error)) {
     const fromBody = extractApiMessage(error.responseBody)
     if (fromBody) return fromBody
+
+    // AI SDK 5 sometimes leaves `message` empty but populates statusCode and
+    // the URL — surface those instead of "Unknown error".
+    if (error.statusCode) {
+      const url = shortenUrl(error.url)
+      return url
+        ? `Request failed (${error.statusCode})${url}`
+        : `Request failed with status ${error.statusCode}`
+    }
   }
 
   const responseBody = (error as Error & { responseBody?: unknown })
@@ -46,18 +55,48 @@ export function formatChatError(error: Error): string {
   if (fromBody) return fromBody
 
   const message = error.message?.trim()
-  if (!message) return 'Unknown error'
-
-  const jsonMatch = message.match(/\{[\s\S]*\}/)
-  if (jsonMatch) {
-    try {
-      const parsed = JSON.parse(jsonMatch[0])
-      const fromJson = extractApiMessage(parsed)
-      if (fromJson) return fromJson
-    } catch {
-      // fall through to raw message
+  if (message) {
+    const jsonMatch = message.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0])
+        const fromJson = extractApiMessage(parsed)
+        if (fromJson) return fromJson
+      } catch {
+        // fall through to raw message
+      }
     }
+    return message
   }
 
-  return message
+  // error.message is empty — fall back to name / cause / stringified value so
+  // the user sees something useful instead of "Unknown error".
+  const name = error.name?.trim()
+  const cause = (error as Error & { cause?: unknown }).cause
+  if (cause instanceof Error && cause.message?.trim()) {
+    return cause.message.trim()
+  }
+  if (name && name !== 'Error') {
+    return name
+  }
+  if (cause !== undefined) {
+    return String(cause)
+  }
+  return String(error)
+}
+
+/**
+ * Strips protocol and query string from a URL for display in error messages.
+ *
+ * @param url - Raw URL string from an API error.
+ * @returns Shortened URL, or `undefined` when `url` is empty.
+ */
+function shortenUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined
+  try {
+    const parsed = new URL(url)
+    return `${parsed.host}${parsed.pathname}`
+  } catch {
+    return url
+  }
 }

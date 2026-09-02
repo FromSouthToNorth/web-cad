@@ -1,7 +1,9 @@
 import 'element-plus/dist/index.css'
+import 'ant-design-vue/dist/reset.css'
 
 import { DXF_PARSER_WORKER_FILE } from '@mlightcad/cad-simple-viewer'
 import { i18n } from '@mlightcad/cad-viewer'
+import Antd from 'ant-design-vue'
 import ElementPlus from 'element-plus'
 import { createApp } from 'vue'
 
@@ -21,6 +23,8 @@ const initApp = () => {
   // Required when Vite aliases `@mlightcad/ui-components` to source: those SFCs
   // use `<el-*>` tags without local imports (their own build auto-imports them).
   app.use(ElementPlus)
+  // Ant Design Vue shell (ribbon, panels, status bar, upload screen).
+  app.use(Antd)
   app.use(i18n)
   app.mount('#app')
   // Hide the loading spinner

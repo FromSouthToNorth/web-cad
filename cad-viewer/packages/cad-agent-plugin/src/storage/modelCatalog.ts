@@ -72,6 +72,12 @@ export const PROVIDER_MODEL_OPTIONS: Record<
   ],
   deepseek: [
     {
+      value: 'deepseek-v4-flash-vision-exp',
+      labelEn: 'DeepSeek V4 Flash Vision (Exp)',
+      labelZh: 'DeepSeek V4 Flash 视觉（实验）',
+      supportsVision: true
+    },
+    {
       value: 'deepseek-v4-flash',
       labelEn: 'DeepSeek V4 Flash',
       labelZh: 'DeepSeek V4 Flash',
@@ -156,6 +162,7 @@ const VISION_MODEL_PATTERNS = [
   /gemini/i,
   /qwen.*vl/i,
   /deepseek-vl/i,
+  /deepseek.*vision/i,
   /glm-4v/i,
   /llava/i,
   /pixtral/i

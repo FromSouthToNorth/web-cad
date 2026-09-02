@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
+import { openUploadScreen } from '../helpers/fileUpload'
+
 const currentDir = path.dirname(fileURLToPath(import.meta.url))
 const fixturePath = path.resolve(
   currentDir,
@@ -38,13 +40,29 @@ async function countMtextRendererWorkers(
   })
 }
 
+/**
+ * Discards workers spawned by the initial boot (the app always opens an
+ * empty drawing in worker mode before the upload screen is reached), so the
+ * assertions measure only the workers created by the fixture open.
+ */
+async function resetWorkerCount(page: import('@playwright/test').Page) {
+  await page.evaluate(() => {
+    const holder = window as Window & { __createdWorkerUrls?: string[] }
+    if (holder.__createdWorkerUrls) {
+      holder.__createdWorkerUrls.length = 0
+    }
+  })
+}
+
 test('does not create mtext renderer workers when main thread is selected', async ({
   page
 }) => {
   await installWorkerSpy(page)
   await page.goto('/')
+  await openUploadScreen(page)
 
-  await page.getByRole('radio', { name: 'Main thread' }).click()
+  await page.locator('.ant-radio-button-wrapper', { hasText: 'Main thread' }).click()
+  await resetWorkerCount(page)
   await page.locator('input[type="file"]').first().setInputFiles(fixturePath)
 
   await expect(page.locator('.ml-cad-container')).toBeVisible()
@@ -58,8 +76,10 @@ test('creates mtext renderer workers when web worker mode is selected', async ({
 }) => {
   await installWorkerSpy(page)
   await page.goto('/')
+  await openUploadScreen(page)
 
-  await page.getByRole('radio', { name: 'Worker' }).click()
+  await page.locator('.ant-radio-button-wrapper', { hasText: 'Worker' }).click()
+  await resetWorkerCount(page)
   await page.locator('input[type="file"]').first().setInputFiles(fixturePath)
 
   await expect(page.locator('.ml-cad-container')).toBeVisible()
@@ -79,7 +99,8 @@ test('web worker mode loads the worker script and renders linework', async ({
   })
 
   await page.goto('/')
-  await page.getByRole('radio', { name: 'Worker' }).click()
+  await openUploadScreen(page)
+  await page.locator('.ant-radio-button-wrapper', { hasText: 'Worker' }).click()
   await page.locator('input[type="file"]').first().setInputFiles(fixturePath)
 
   await expect(page.locator('.ml-cad-container canvas').first()).toBeVisible()

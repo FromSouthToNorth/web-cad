@@ -1,21 +1,15 @@
 <script setup lang="ts">
 import {
-  ArrowDown,
-  ArrowUp,
-  Search,
-  Star,
-  StarFilled
-} from '@element-plus/icons-vue'
+  DownOutlined,
+  SearchOutlined,
+  StarFilled,
+  StarOutlined,
+  UpOutlined
+} from '@ant-design/icons-vue'
 import {
   AcApBlockInsertSession,
   AcApDocManager
 } from '@mlightcad/cad-simple-viewer'
-import {
-  ElCheckbox,
-  ElIcon,
-  ElInput,
-  ElInputNumber
-} from 'element-plus'
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -251,16 +245,16 @@ onUnmounted(() => {
 
     <div class="ml-blocks-palette__main">
       <div class="ml-blocks-palette__toolbar">
-        <ElInput
-          v-model="filterText"
-          clearable
+        <a-input
+          v-model:value="filterText"
+          allow-clear
           class="ml-blocks-palette__filter"
           :placeholder="t('main.toolPalette.blocks.filterPlaceholder')"
         >
           <template #prefix>
-            <ElIcon><Search /></ElIcon>
+            <SearchOutlined />
           </template>
-        </ElInput>
+        </a-input>
       </div>
 
       <div class="ml-blocks-palette__section-title">{{ sectionTitle }}</div>
@@ -300,11 +294,9 @@ onUnmounted(() => {
                 :title="t('main.toolPalette.blocks.toggleFavorite')"
                 @click="onToggleFavorite(block.name, $event)"
               >
-                <ElIcon>
-                  <component
-                    :is="favoriteActive(block.name) ? StarFilled : Star"
-                  />
-                </ElIcon>
+                <component
+                  :is="favoriteActive(block.name) ? StarFilled : StarOutlined"
+                />
               </button>
             </div>
             <div class="ml-blocks-palette__name">{{ block.name }}</div>
@@ -319,20 +311,18 @@ onUnmounted(() => {
           @click="optionsExpanded = !optionsExpanded"
         >
           <span>{{ t('main.toolPalette.blocks.options') }}</span>
-          <ElIcon>
-            <component :is="optionsExpanded ? ArrowUp : ArrowDown" />
-          </ElIcon>
+          <component :is="optionsExpanded ? UpOutlined : DownOutlined" />
         </button>
 
         <div v-show="optionsExpanded" class="ml-blocks-palette__options-body">
           <label class="ml-blocks-palette__option-row">
-            <ElCheckbox v-model="options.specifyInsertionPoint" disabled />
+            <a-checkbox v-model:checked="options.specifyInsertionPoint" disabled />
             <span>{{ t('main.toolPalette.blocks.insertionPoint') }}</span>
           </label>
 
           <div class="ml-blocks-palette__option-row ml-blocks-palette__option-row--scale">
             <label class="ml-blocks-palette__option-check">
-              <ElCheckbox v-model="options.specifyScale" />
+              <a-checkbox v-model:checked="options.specifyScale" />
               <span>{{ t('main.toolPalette.blocks.scale') }}</span>
             </label>
             <div
@@ -341,8 +331,8 @@ onUnmounted(() => {
             >
               <label>
                 X
-                <ElInputNumber
-                  v-model="options.scaleX"
+                <a-input-number
+                  v-model:value="options.scaleX"
                   :min="0.0001"
                   :step="0.1"
                   :controls="false"
@@ -352,8 +342,8 @@ onUnmounted(() => {
               </label>
               <label>
                 Y
-                <ElInputNumber
-                  v-model="options.scaleY"
+                <a-input-number
+                  v-model:value="options.scaleY"
                   :min="0.0001"
                   :step="0.1"
                   :controls="false"
@@ -363,8 +353,8 @@ onUnmounted(() => {
               </label>
               <label>
                 Z
-                <ElInputNumber
-                  v-model="options.scaleZ"
+                <a-input-number
+                  v-model:value="options.scaleZ"
                   :min="0.0001"
                   :step="0.1"
                   :controls="false"
@@ -377,15 +367,15 @@ onUnmounted(() => {
 
           <div class="ml-blocks-palette__option-row ml-blocks-palette__option-row--rotation">
             <label class="ml-blocks-palette__option-check">
-              <ElCheckbox v-model="options.specifyRotation" />
+              <a-checkbox v-model:checked="options.specifyRotation" />
               <span>{{ t('main.toolPalette.blocks.rotation') }}</span>
             </label>
             <label
               class="ml-blocks-palette__angle-field"
               :class="{ 'is-disabled': options.specifyRotation }"
             >
-              <ElInputNumber
-                v-model="options.rotationDeg"
+              <a-input-number
+                v-model:value="options.rotationDeg"
                 :step="1"
                 :controls="false"
                 size="small"
@@ -396,17 +386,17 @@ onUnmounted(() => {
           </div>
 
           <label class="ml-blocks-palette__option-row">
-            <ElCheckbox v-model="options.autoPlacement" disabled />
+            <a-checkbox v-model:checked="options.autoPlacement" disabled />
             <span>{{ t('main.toolPalette.blocks.autoPlacement') }}</span>
           </label>
 
           <label class="ml-blocks-palette__option-row">
-            <ElCheckbox v-model="options.repeatPlacement" />
+            <a-checkbox v-model:checked="options.repeatPlacement" />
             <span>{{ t('main.toolPalette.blocks.repeatPlacement') }}</span>
           </label>
 
           <label class="ml-blocks-palette__option-row">
-            <ElCheckbox v-model="options.explode" disabled />
+            <a-checkbox v-model:checked="options.explode" disabled />
             <span>{{ t('main.toolPalette.blocks.explode') }}</span>
           </label>
         </div>
@@ -422,16 +412,16 @@ onUnmounted(() => {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--el-bg-color, #1d1e1f);
-  color: var(--el-text-color-regular, #cfd3dc);
+  background: var(--ml-theme-bg-surface, #1d1e1f);
+  color: var(--ml-theme-text-primary, #cfd3dc);
 }
 
 .ml-blocks-palette__sources {
   display: flex;
   flex-direction: column;
   flex: 0 0 28px;
-  border-right: 1px solid var(--el-border-color-lighter, rgba(255, 255, 255, 0.1));
-  background: var(--el-fill-color-darker, #2b2d31);
+  border-right: 1px solid var(--ml-theme-border, rgba(255, 255, 255, 0.1));
+  background: var(--ml-theme-bg-surface, #2b2d31);
 }
 
 .ml-blocks-palette__source {
@@ -441,15 +431,15 @@ onUnmounted(() => {
   min-height: 88px;
   padding: 8px 2px;
   border: 0;
-  border-bottom: 1px solid var(--el-border-color-lighter, rgba(255, 255, 255, 0.08));
+  border-bottom: 1px solid var(--ml-theme-border, rgba(255, 255, 255, 0.08));
   background: transparent;
-  color: var(--el-text-color-secondary, #a3a6ad);
+  color: var(--ml-theme-text-secondary, #a3a6ad);
   cursor: pointer;
 }
 
 .ml-blocks-palette__source.is-active {
-  background: var(--el-fill-color-light, rgba(255, 255, 255, 0.08));
-  color: var(--el-text-color-primary, #e5eaf3);
+  background: var(--ml-theme-bg-hover, rgba(255, 255, 255, 0.08));
+  color: var(--ml-theme-text-primary, #e5eaf3);
 }
 
 .ml-blocks-palette__source-label {
@@ -478,7 +468,7 @@ onUnmounted(() => {
 
 .ml-blocks-palette__section-title {
   padding: 4px 10px 6px;
-  color: var(--el-text-color-regular, #cfd3dc);
+  color: var(--ml-theme-text-primary, #cfd3dc);
   font-size: 12px;
   font-weight: 600;
 }
@@ -492,7 +482,7 @@ onUnmounted(() => {
 
 .ml-blocks-palette__empty {
   padding: 24px 8px;
-  color: var(--el-text-color-secondary, #a3a6ad);
+  color: var(--ml-theme-text-secondary, #a3a6ad);
   font-size: 12px;
   text-align: center;
 }
@@ -517,8 +507,8 @@ onUnmounted(() => {
 }
 
 .ml-blocks-palette__item:hover {
-  background: var(--el-fill-color-light, rgba(255, 255, 255, 0.08));
-  border-color: var(--el-border-color-lighter, rgba(255, 255, 255, 0.12));
+  background: var(--ml-theme-bg-hover, rgba(255, 255, 255, 0.08));
+  border-color: var(--ml-theme-border, rgba(255, 255, 255, 0.12));
 }
 
 .ml-blocks-palette__preview {
@@ -529,7 +519,7 @@ onUnmounted(() => {
   width: 72px;
   height: 72px;
   border-radius: 2px;
-  background: var(--el-fill-color-darker, #2b2d31);
+  background: var(--ml-theme-bg-surface, #2b2d31);
   overflow: hidden;
 }
 
@@ -562,7 +552,7 @@ onUnmounted(() => {
   border: 0;
   border-radius: 2px;
   background: rgba(0, 0, 0, 0.35);
-  color: var(--el-text-color-secondary, #a3a6ad);
+  color: var(--ml-theme-text-secondary, #a3a6ad);
   cursor: pointer;
   opacity: 0;
 }
@@ -588,8 +578,8 @@ onUnmounted(() => {
 
 .ml-blocks-palette__options {
   flex: 0 0 auto;
-  border-top: 1px solid var(--el-border-color-lighter, rgba(255, 255, 255, 0.1));
-  background: var(--el-fill-color-darker, #2b2d31);
+  border-top: 1px solid var(--ml-theme-border, rgba(255, 255, 255, 0.1));
+  background: var(--ml-theme-bg-surface, #2b2d31);
 }
 
 .ml-blocks-palette__options-header {
@@ -650,8 +640,8 @@ onUnmounted(() => {
   font-size: 11px;
 }
 
-.ml-blocks-palette__scale-fields :deep(.el-input-number),
-.ml-blocks-palette__angle-field :deep(.el-input-number) {
+.ml-blocks-palette__scale-fields :deep(.ant-input-number),
+.ml-blocks-palette__angle-field :deep(.ant-input-number) {
   width: 64px;
 }
 

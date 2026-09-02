@@ -41,6 +41,12 @@
       </div>
     </div>
 
+    <!-- Property bar (Home tab only) -->
+    <AntdPropertyBar
+      v-if="activeTabId === 'home' && !isCollapsed"
+      :disabled="disabled"
+    />
+
     <!-- Row 3: Panel area -->
     <div v-if="!isCollapsed" class="antd-ribbon-panels">
       <AntdRibbonPanel
@@ -66,6 +72,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import AntdRibbonPanel from './AntdRibbonPanel.vue'
+import AntdPropertyBar from './AntdPropertyBar.vue'
 import AntdQat from './AntdQat.vue'
 import { fileItems, qatItems, ribbonTabs } from './ribbonModel'
 

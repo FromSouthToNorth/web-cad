@@ -1,15 +1,9 @@
 <script setup lang="ts">
-import { ArrowDown, ArrowUp } from '@element-plus/icons-vue'
+import { DownOutlined, UpOutlined } from '@ant-design/icons-vue'
 import {
   AcApBlockInsertSession,
   AcApDocManager
 } from '@mlightcad/cad-simple-viewer'
-import {
-  ElButton,
-  ElDropdown,
-  ElIcon,
-  useGlobalConfig
-} from 'element-plus'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -41,8 +35,6 @@ const OPTIONS_KEY = 'ml-cad-block-insert-options'
 
 const { t } = useI18n()
 const isOpen = ref(false)
-const globalSize = useGlobalConfig('size', '')
-const resolvedSize = computed(() => globalSize.value || 'default')
 const { blocks, cancelRefresh, refreshBlocks } = useInsertableBlocks()
 
 /**
@@ -172,7 +164,7 @@ const dropdownPopperClass = computed(() =>
   [
     'ml-block-insert-gallery-popper',
     'ml-ribbon-popper',
-    `ml-ribbon-popper--size-${resolvedSize.value}`
+    'ml-ribbon-popper--size-default'
   ].join(' ')
 )
 </script>
@@ -183,16 +175,16 @@ const dropdownPopperClass = computed(() =>
     - Icon on top (click → INSERT / Blocks palette)
     - Label + arrow on one row (click → block preview gallery)
   -->
-  <ElDropdown
-    v-model:visible="isOpen"
+  <a-dropdown
+    v-model:open="isOpen"
     class="ml-ribbon-dropdown ml-ribbon-dropdown--item-large ml-block-insert-gallery"
     trigger="click"
     :disabled="props.disabled"
-    :teleported="true"
-    :popper-class="dropdownPopperClass"
-    @visible-change="onVisibleChange"
+    :getPopupFrom="() => undefined"
+    :overlayClassName="dropdownPopperClass"
+    @openChange="onVisibleChange"
   >
-    <ElButton
+    <a-button
       type="default"
       :disabled="props.disabled"
       :aria-label="displayLabel"
@@ -204,7 +196,7 @@ const dropdownPopperClass = computed(() =>
           aria-hidden="true"
           @click.stop="onIconClick"
         >
-          <!-- Render without ElIcon: its `fill: currentColor` would flatten the multi-color SVG. -->
+          <!-- Render without wrapper: its `fill: currentColor` would flatten the multi-color SVG. -->
           <component
             :is="insertBlock"
             class="ml-block-insert-gallery__icon-svg"
@@ -214,17 +206,16 @@ const dropdownPopperClass = computed(() =>
           <span class="ml-ribbon-item-host__label ml-ribbon-dropdown__label">
             {{ displayLabel }}
           </span>
-          <ElIcon
+          <component
+            :is="isOpen ? UpOutlined : DownOutlined"
             class="ml-ribbon-item-host__dropdown-arrow ml-ribbon-dropdown__arrow"
             :class="{ 'is-open': isOpen }"
-          >
-            <component :is="isOpen ? ArrowUp : ArrowDown" />
-          </ElIcon>
+          />
         </span>
       </span>
-    </ElButton>
+    </a-button>
 
-    <template #dropdown>
+    <template #overlay>
       <div class="ml-block-insert-gallery__panel" @click.stop @mousedown.stop>
         <div class="ml-block-insert-gallery__header">
           {{ currentDrawingLabel }}
@@ -261,18 +252,18 @@ const dropdownPopperClass = computed(() =>
         </div>
       </div>
     </template>
-  </ElDropdown>
+  </a-dropdown>
 </template>
 
 <style scoped>
-.ml-block-insert-gallery :deep(.el-button) {
+.ml-block-insert-gallery :deep(.ant-btn) {
   height: auto;
   padding: 4px 6px;
   border-color: transparent;
   background: transparent;
 }
 
-.ml-block-insert-gallery :deep(.el-button > span) {
+.ml-block-insert-gallery :deep(.ant-btn > span) {
   display: inline-flex;
 }
 
@@ -322,7 +313,7 @@ const dropdownPopperClass = computed(() =>
 
 <!-- Panel is teleported; unscoped styles for popper content -->
 <style>
-.ml-block-insert-gallery-popper.el-dropdown__popper,
+.ml-block-insert-gallery-popper.ant-dropdown,
 .ml-block-insert-gallery-popper {
   padding: 0 !important;
   min-width: 240px;
@@ -340,9 +331,9 @@ const dropdownPopperClass = computed(() =>
   z-index: 1;
   padding: 8px 10px 6px;
   border-bottom: 1px solid
-    var(--el-border-color-lighter, rgba(255, 255, 255, 0.1));
-  background: var(--el-bg-color-overlay, var(--el-bg-color, #1d1e1f));
-  color: var(--el-text-color-regular, #cfd3dc);
+    var(--ml-theme-border, rgba(255, 255, 255, 0.1));
+  background: var(--ml-theme-bg-surface, #1d1e1f);
+  color: var(--ml-theme-text-primary, #cfd3dc);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -350,7 +341,7 @@ const dropdownPopperClass = computed(() =>
 
 .ml-block-insert-gallery__empty {
   padding: 16px 8px;
-  color: var(--el-text-color-secondary, #a3a6ad);
+  color: var(--ml-theme-text-secondary);
   font-size: 12px;
   text-align: center;
 }
@@ -376,8 +367,8 @@ const dropdownPopperClass = computed(() =>
 }
 
 .ml-block-insert-gallery__item:hover {
-  background: var(--el-fill-color-light, rgba(255, 255, 255, 0.08));
-  border-color: var(--el-border-color-lighter, rgba(255, 255, 255, 0.12));
+  background: var(--ml-theme-bg-hover, rgba(255, 255, 255, 0.08));
+  border-color: var(--ml-theme-border, rgba(255, 255, 255, 0.12));
 }
 
 .ml-block-insert-gallery__preview {
@@ -387,7 +378,7 @@ const dropdownPopperClass = computed(() =>
   width: 56px;
   height: 56px;
   border-radius: 2px;
-  background: var(--el-fill-color-darker, #2b2d31);
+  background: var(--ml-theme-bg-surface, #2b2d31);
   overflow: hidden;
 }
 
@@ -402,7 +393,7 @@ const dropdownPopperClass = computed(() =>
   display: inline-flex;
   width: 28px;
   height: 28px;
-  color: var(--el-text-color-secondary, #a3a6ad);
+  color: var(--ml-theme-text-secondary);
   opacity: 0.7;
 }
 

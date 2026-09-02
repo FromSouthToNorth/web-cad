@@ -1,11 +1,10 @@
 <template>
   <div class="ml-lineweight-select">
-    <el-dropdown
+    <a-dropdown
       class="ml-lineweight-select__dropdown"
-      trigger="click"
-      popper-class="ml-lineweight-popper"
+      :trigger="['click']"
+      overlay-class-name="ml-lineweight-popper"
       :disabled="props.disabled || !lineWeightItems.length"
-      @command="onSelect"
     >
       <button
         type="button"
@@ -21,17 +20,14 @@
           />
           <span class="ml-lineweight-label">{{ currentLabel }}</span>
         </span>
-        <el-icon class="ml-lineweight-caret">
-          <ArrowDown />
-        </el-icon>
+        <DownOutlined class="ml-lineweight-caret" />
       </button>
 
-      <template #dropdown>
-        <el-dropdown-menu class="ml-lineweight-menu">
-          <el-dropdown-item
+      <template #overlay>
+        <a-menu class="ml-lineweight-menu" @click="handleMenuClick">
+          <a-menu-item
             v-for="item in lineWeightItems"
             :key="item.value"
-            :command="item.value"
             class="ml-lineweight-item"
           >
             <span
@@ -40,22 +36,16 @@
               :style="{ '--ml-lineweight-height': item.previewWidth + 'px' }"
             />
             <span class="ml-lineweight-text">{{ item.label }}</span>
-          </el-dropdown-item>
-        </el-dropdown-menu>
+          </a-menu-item>
+        </a-menu>
       </template>
-    </el-dropdown>
+    </a-dropdown>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ArrowDown } from '@element-plus/icons-vue'
+import { DownOutlined } from '@ant-design/icons-vue'
 import { AcGiLineWeight } from '@mlightcad/data-model'
-import {
-  ElDropdown,
-  ElDropdownItem,
-  ElDropdownMenu,
-  ElIcon
-} from 'element-plus'
 import { computed } from 'vue'
 
 /**
@@ -178,11 +168,12 @@ const currentPreviewWidth = computed(
 )
 
 /**
- * Emits the chosen line weight through both the model and change channels.
+ * Handles a-menu click events, emitting the selected line weight.
  *
- * @param value Selected line weight enum.
+ * @param param0 Menu click payload containing the clicked item's key.
  */
-function onSelect(value: AcGiLineWeight) {
+function handleMenuClick({ key }: { key: string }) {
+  const value = Number(key) as AcGiLineWeight
   emit('update:modelValue', value)
   emit('change', value)
 }
@@ -190,7 +181,7 @@ function onSelect(value: AcGiLineWeight) {
 
 <style scoped>
 .ml-lineweight-select {
-  --ml-lineweight-caret-size: var(--el-font-size-base);
+  --ml-lineweight-caret-size: 14px;
   display: flex;
   flex: 1 1 auto;
   align-self: stretch;
@@ -208,7 +199,7 @@ function onSelect(value: AcGiLineWeight) {
   min-width: 0;
 }
 
-.ml-lineweight-select__dropdown :deep(.el-tooltip__trigger) {
+.ml-lineweight-select__dropdown :deep(.ant-tooltip) {
   display: flex;
   flex: 1 1 auto;
   align-self: stretch;
@@ -228,33 +219,33 @@ function onSelect(value: AcGiLineWeight) {
   min-width: 0;
   box-sizing: border-box;
   padding: 0 6px;
-  border: 1px solid var(--el-border-color);
-  border-radius: var(--el-border-radius-base);
-  background: var(--el-fill-color-blank);
-  color: var(--el-text-color-regular);
+  border: 1px solid var(--ml-theme-border);
+  border-radius: 4px;
+  background: var(--ml-theme-bg-surface);
+  color: var(--ml-theme-text-primary);
   font-size: 13px;
   line-height: 1;
   cursor: pointer;
   transition:
-    border-color var(--el-transition-duration),
-    box-shadow var(--el-transition-duration);
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .ml-lineweight-select__trigger:hover {
-  border-color: var(--el-border-color-hover);
+  border-color: var(--ml-theme-border);
 }
 
 .ml-lineweight-select__trigger:focus-visible {
   outline: none;
-  border-color: var(--el-color-primary);
-  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+  border-color: var(--ml-theme-primary);
+  box-shadow: 0 0 0 1px var(--ml-theme-primary) inset;
 }
 
 .ml-lineweight-select__trigger.is-disabled {
   cursor: not-allowed;
-  color: var(--el-disabled-text-color);
-  background: var(--el-fill-color-light);
-  border-color: var(--el-border-color-light);
+  color: var(--ml-theme-text-muted);
+  background: var(--ml-theme-bg-hover);
+  border-color: var(--ml-theme-border);
 }
 
 .ml-lineweight-select__value {
@@ -269,7 +260,7 @@ function onSelect(value: AcGiLineWeight) {
 .ml-lineweight-caret {
   flex: 0 0 auto;
   font-size: var(--ml-lineweight-caret-size);
-  color: var(--el-text-color-placeholder);
+  color: var(--ml-theme-text-muted);
 }
 
 .ml-lineweight-menu {

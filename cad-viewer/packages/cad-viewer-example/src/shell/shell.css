@@ -225,6 +225,236 @@
   border-radius: 0 0 2px 2px;
 }
 
+/* ── property bar ────────────────────────────────────────────── */
+
+.antd-property-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--ml-theme-border-subtle);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.antd-property-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.antd-property-bar-select {
+  min-width: 110px !important;
+  max-width: 160px;
+  height: 26px !important;
+  font-size: 12px !important;
+}
+
+.antd-property-bar-select .ant-select-selector {
+  height: 26px !important;
+  border-color: var(--ml-theme-border) !important;
+  background: var(--ml-theme-bg-base) !important;
+  color: var(--ml-theme-text-primary) !important;
+  font-size: 12px !important;
+  border-radius: 3px !important;
+}
+
+.antd-property-bar-select .ant-select-selection-item {
+  line-height: 24px !important;
+  color: var(--ml-theme-text-primary) !important;
+}
+
+.antd-property-bar-select .ant-select-arrow {
+  color: var(--ml-theme-text-muted) !important;
+}
+
+.antd-property-bar-layer {
+  min-width: 130px !important;
+}
+
+.antd-property-bar-linetype {
+  min-width: 130px !important;
+}
+
+.antd-property-bar-lineweight {
+  min-width: 90px !important;
+}
+
+/* Layer option with color dot */
+.antd-property-bar-layer-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.antd-property-bar-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  border: 1px solid var(--ml-theme-border);
+}
+
+.antd-property-bar-option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Color swatch button */
+.antd-property-bar-swatch {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--ml-theme-border);
+  border-radius: 3px;
+  background: var(--ml-theme-bg-base);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.12s, background-color 0.12s;
+}
+
+.antd-property-bar-swatch:hover {
+  border-color: var(--ml-theme-primary);
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-property-bar-swatch-fill {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--swatch-color, #888);
+  border: 1px solid var(--ml-theme-border);
+  flex-shrink: 0;
+}
+
+.antd-property-bar-swatch-label {
+  font-size: 12px;
+  color: var(--ml-theme-text-primary);
+}
+
+.antd-property-bar-swatch-arrow {
+  font-size: 10px;
+  color: var(--ml-theme-text-muted);
+  margin-left: 2px;
+}
+
+/* Color dropdown menu */
+.antd-property-bar-color-menu {
+  min-width: 140px;
+  padding: 4px;
+  background: var(--ml-theme-bg-surface);
+  border: 1px solid var(--ml-theme-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.antd-property-bar-color-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ml-theme-text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+
+.antd-property-bar-color-item:hover {
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-property-bar-color-item.is-active {
+  background: color-mix(in srgb, var(--ml-theme-primary) 12%, transparent);
+  font-weight: 600;
+}
+
+/* Linetype preview line */
+.antd-property-bar-linetype-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.antd-property-bar-linetype-preview {
+  width: 24px;
+  height: 2px;
+  background: var(--ml-theme-text-primary);
+  flex-shrink: 0;
+}
+
+.antd-property-bar-linetype-preview.lt-Continuous {
+  background: var(--ml-theme-text-primary);
+}
+
+.antd-property-bar-linetype-preview.lt-ByLayer,
+.antd-property-bar-linetype-preview.lt-ByBlock {
+  background: repeating-linear-gradient(
+    to right,
+    var(--ml-theme-text-primary) 0,
+    var(--ml-theme-text-primary) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+.antd-property-bar-linetype-preview.lt-ACAD_ISO02W100 {
+  background: repeating-linear-gradient(
+    to right,
+    var(--ml-theme-text-primary) 0,
+    var(--ml-theme-text-primary) 6px,
+    transparent 6px,
+    transparent 10px
+  );
+}
+
+.antd-property-bar-linetype-preview.lt-ACAD_ISO03W100 {
+  background: repeating-linear-gradient(
+    to right,
+    var(--ml-theme-text-primary) 0,
+    var(--ml-theme-text-primary) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+.antd-property-bar-linetype-preview.lt-ACAD_ISO04W100 {
+  background: repeating-linear-gradient(
+    to right,
+    var(--ml-theme-text-primary) 0,
+    var(--ml-theme-text-primary) 6px,
+    transparent 6px,
+    transparent 8px,
+    var(--ml-theme-text-primary) 8px,
+    var(--ml-theme-text-primary) 9px,
+    transparent 9px,
+    transparent 14px
+  );
+}
+
+.antd-property-bar-linetype-preview.lt-ACAD_ISO05W100 {
+  background: repeating-linear-gradient(
+    to right,
+    var(--ml-theme-text-primary) 0,
+    var(--ml-theme-text-primary) 6px,
+    transparent 6px,
+    transparent 8px,
+    var(--ml-theme-text-primary) 8px,
+    var(--ml-theme-text-primary) 9px,
+    transparent 9px,
+    transparent 10px,
+    var(--ml-theme-text-primary) 10px,
+    var(--ml-theme-text-primary) 11px,
+    transparent 11px,
+    transparent 16px
+  );
+}
+
 /* ── panel area ──────────────────────────────────────────────── */
 
 .antd-ribbon-panels {

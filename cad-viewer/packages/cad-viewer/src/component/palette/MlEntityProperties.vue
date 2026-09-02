@@ -5,12 +5,12 @@
       v-if="entityPropsList && entityPropsList.length > 1"
       class="ml-entity-selector"
     >
-      <el-select
-        v-model="selectedIndex"
+      <a-select
+        v-model:value="selectedIndex"
         placeholder="Select Entity"
         style="width: 100%; margin-bottom: 0.5rem"
       >
-        <el-option
+        <a-select-option
           :label="
             t(
               'main.toolPalette.entityProperties.propertyPanel.multipleEntitySelected',
@@ -19,140 +19,134 @@
           "
           :value="-1"
         />
-        <el-option
+        <a-select-option
           v-for="(item, idx) in entityPropsList"
           :key="idx"
           :label="item.type"
           :value="idx"
-        />
-      </el-select>
+        >
+          {{ item.type }}
+        </a-select-option>
+      </a-select>
     </div>
 
     <!-- Properties Table -->
-    <el-table
+    <a-table
       v-if="tableRows.length"
-      :data="tableRows"
-      row-key="id"
-      border
+      :columns="tableColumns"
+      :data-source="tableRows"
+      :row-key="(record: MlDisplayRow) => record.id"
+      bordered
       default-expand-all
-      :tree-props="{ children: 'children', hasChildren: 'children' }"
       :show-header="false"
-      :span-method="spanMethod"
+      :pagination="false"
+      :custom-row="customRowHandler"
       class="ml-entity-properties-table"
     >
-      <!-- Label -->
-      <el-table-column
-        prop="name"
-        :show-overflow-tooltip="{ placement: 'top-start', showAfter: 2000 }"
-      >
-        <template #default="{ row }">
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.dataIndex === 'name'">
           <div class="ml-cell-container">
-            <div :class="['ml-cell-label', { 'ml-group-row': row.isGroup }]">
-              <strong v-if="row.isGroup">{{ entityPropName(row.name) }}</strong>
-              <span v-else>{{ getPropertyName(row) }}</span>
+            <div :class="['ml-cell-label', { 'ml-group-row': record.isGroup }]">
+              <strong v-if="record.isGroup">{{ entityPropName(record.name) }}</strong>
+              <span v-else>{{ getPropertyName(record as MlDisplayPropertyRow) }}</span>
             </div>
           </div>
         </template>
-      </el-table-column>
-
-      <!-- Value -->
-      <el-table-column>
-        <template #default="{ row }">
-          <div class="ml-cell-value" v-if="!row.isGroup">
+        <template v-else-if="column.dataIndex === 'value'">
+          <div class="ml-cell-value" v-if="!record.isGroup">
             <!-- ===== Readonly ===== -->
             <template
-              v-if="!row.__isArrayIndex && (!editable || !row.editable)"
+              v-if="!(record as MlDisplayPropertyRow).__isArrayIndex && (!editable || !(record as MlDisplayPropertyRow).editable)"
             >
               <ml-color-dropdown
-                v-if="row.type === 'color'"
-                :model-value="row.accessor.get()"
+                v-if="record.type === 'color'"
+                :model-value="record.accessor.get()"
                 disabled
               />
               <span
                 v-else
-                :title="formatDisplayValue(row)"
+                :title="formatDisplayValue(record as MlDisplayPropertyRow)"
                 class="ml-readonly-value"
-                @dblclick="copyReadonlyValue(row)"
+                @dblclick="copyReadonlyValue(record as MlDisplayPropertyRow)"
               >
-                {{ formatDisplayValue(row) }}
+                {{ formatDisplayValue(record as MlDisplayPropertyRow) }}
               </span>
             </template>
 
             <!-- ===== Editable ===== -->
             <template v-else>
               <ml-hatch-pattern-dropdown
-                v-if="isHatchPatternField(row)"
-                :model-value="String(row.accessor.get() ?? '')"
+                v-if="isHatchPatternField(record as MlDisplayPropertyRow)"
+                :model-value="String((record as MlDisplayPropertyRow).accessor.get() ?? '')"
                 @update:modelValue="
                   (v: string) => {
-                    onPropertyChange(row, v)
+                    onPropertyChange(record as MlDisplayPropertyRow, v)
                   }
                 "
               />
 
-              <el-select
-                v-else-if="row.type === 'enum'"
-                :model-value="row.accessor.get()"
-                @change="(v: string | number) => onPropertyChange(row, v)"
+              <a-select
+                v-else-if="record.type === 'enum'"
+                :value="(record as MlDisplayPropertyRow).accessor.get()"
+                @change="(v: string | number) => onPropertyChange(record as MlDisplayPropertyRow, v)"
               >
-                <el-option
-                  v-for="opt in row.options || []"
+                <a-select-option
+                  v-for="opt in (record as MlDisplayPropertyRow).options || []"
                   :key="opt.value"
-                  :label="entityPropEnum(opt.label)"
                   :value="opt.value"
-                />
-              </el-select>
+                >
+                  {{ entityPropEnum(opt.label) }}
+                </a-select-option>
+              </a-select>
 
               <ml-color-dropdown
-                v-else-if="row.type === 'color'"
-                :model-value="row.accessor.get()"
-                @color-change="(v: AcCmColor) => onPropertyChange(row, v)"
+                v-else-if="record.type === 'color'"
+                :model-value="(record as MlDisplayPropertyRow).accessor.get() as AcCmColor | undefined"
+                @color-change="(v: AcCmColor) => onPropertyChange(record as MlDisplayPropertyRow, v)"
               />
 
-              <el-switch
-                v-else-if="row.type === 'boolean'"
-                :model-value="row.accessor.get()"
-                @change="(v: boolean) => onPropertyChange(row, v)"
+              <a-switch
+                v-else-if="record.type === 'boolean'"
+                :checked="(record as MlDisplayPropertyRow).accessor.get()"
+                @change="(v: boolean) => onPropertyChange(record as MlDisplayPropertyRow, v)"
               />
 
-              <el-input-number
-                v-else-if="row.type === 'int'"
-                controls-position="right"
-                :model-value="row.accessor.get()"
-                :min="row.__min"
-                :max="row.__max"
+              <a-input-number
+                v-else-if="record.type === 'int'"
+                :value="(record as MlDisplayPropertyRow).accessor.get()"
+                :min="(record as MlDisplayPropertyRow).__min"
+                :max="(record as MlDisplayPropertyRow).__max"
                 :step="1"
                 :precision="0"
                 @change="
                   (v: number) => {
-                    if (row.__isArrayIndex) {
-                      row.accessor.set?.(v)
+                    if ((record as MlDisplayPropertyRow).__isArrayIndex) {
+                      (record as MlDisplayPropertyRow).accessor.set?.(v)
                     } else {
-                      onPropertyChange(row, v)
+                      onPropertyChange(record as MlDisplayPropertyRow, v)
                     }
                   }
                 "
               />
 
-              <el-input-number
-                v-else-if="row.type === 'float'"
-                controls-position="right"
-                :model-value="row.accessor.get()"
+              <a-input-number
+                v-else-if="record.type === 'float'"
+                :value="(record as MlDisplayPropertyRow).accessor.get()"
                 :step="0.1"
                 :precision="3"
-                @change="(v: number) => onPropertyChange(row, v)"
+                @change="(v: number) => onPropertyChange(record as MlDisplayPropertyRow, v)"
               />
 
-              <el-input
+              <a-input
                 v-else
-                :model-value="row.accessor.get()"
-                @input="(v: string) => onPropertyChange(row, v)"
+                :value="(record as MlDisplayPropertyRow).accessor.get()"
+                @update:value="(v: string) => onPropertyChange(record as MlDisplayPropertyRow, v)"
               />
             </template>
           </div>
         </template>
-      </el-table-column>
-    </el-table>
+      </template>
+    </a-table>
 
     <div v-else class="ml-no-entity-selected">
       {{
@@ -172,16 +166,7 @@ import {
   AcGiLineWeight,
   log
 } from '@mlightcad/data-model'
-import {
-  ElInput,
-  ElInputNumber,
-  ElMessage,
-  ElOption,
-  ElSelect,
-  ElSwitch,
-  ElTable,
-  ElTableColumn
-} from 'element-plus'
+import { message } from 'ant-design-vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -214,7 +199,7 @@ const selectedIndex = ref(-1)
 const arrayIndexMap = ref<Record<string, number>>({})
 
 /**
- * 🔑 Forces rebuild of array property rows
+ * Forces rebuild of array property rows
  */
 const arrayRebuildVersion = ref(0)
 
@@ -262,6 +247,19 @@ function arrayKey(group: string, prop: string) {
   return `${group}.${prop}`
 }
 
+/* ================= table columns ================= */
+
+const tableColumns = [
+  {
+    dataIndex: 'name',
+    key: 'name'
+  },
+  {
+    dataIndex: 'value',
+    key: 'value'
+  }
+]
+
 /* ================= formatting ================= */
 
 function getPropertyName(row: MlDisplayPropertyRow): string {
@@ -291,29 +289,25 @@ async function copyReadonlyValue(row: MlDisplayPropertyRow) {
 
   try {
     await navigator.clipboard.writeText(value)
-    ElMessage({
-      message: t(
+    message.success(
+      t(
         'main.toolPalette.entityProperties.propertyPanel.propValCopied'
-      ),
-      grouping: true,
-      type: 'success'
-    })
+      )
+    )
   } catch (e) {
     log.error(e)
-    ElMessage({
-      message: t(
+    message.error(
+      t(
         'main.toolPalette.entityProperties.propertyPanel.failedToCopyPropVal'
-      ),
-      grouping: true,
-      type: 'error'
-    })
+      )
+    )
   }
 }
 
 /* ================= rows ================= */
 
 const tableRows = computed<MlDisplayRow[]>(() => {
-  // 🔑 dependency to force rebuild when array index changes
+  // dependency to force rebuild when array index changes
   arrayRebuildVersion.value
 
   const entity = activeEntityProperties.value
@@ -370,7 +364,7 @@ function expandEntity(entity: AcDbEntityProperties): MlDisplayRow[] {
             const newIndex = Math.min(Math.max(1, v), arr.length)
             if (arrayIndexMap.value[key] !== newIndex) {
               arrayIndexMap.value[key] = newIndex
-              arrayRebuildVersion.value++ // 🔥 force rebuild
+              arrayRebuildVersion.value++ // force rebuild
             }
           }
         }
@@ -443,19 +437,15 @@ function findCommonProperties(
 }
 
 /**
- * span-method for group rows
+ * customRow handler for span method (group rows span both columns)
  */
-const spanMethod = ({
-  row,
-  columnIndex
-}: {
-  row: MlDisplayRow
-  columnIndex: number
-}) => {
-  if (row.isGroup) {
-    return columnIndex === 0 ? [1, 2] : [0, 0]
+const customRowHandler = (record: MlDisplayRow) => {
+  if (record.isGroup) {
+    return {
+      style: { textAlign: 'left' as const }
+    }
   }
-  return [1, 1]
+  return {}
 }
 
 /**
@@ -473,15 +463,11 @@ function onPropertyChange(row: MlDisplayPropertyRow, newValue: unknown) {
 </script>
 
 <style scoped>
-::v-deep(.el-table__placeholder) {
-  width: 0px;
-}
-
-::v-deep(.el-table .cell) {
+:deep(.ant-table-cell) {
   display: flex;
 }
 
-::v-deep(.ml-cell-value > *) {
+:deep(.ml-cell-value > *) {
   width: 100%;
 }
 

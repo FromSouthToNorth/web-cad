@@ -15,28 +15,24 @@
         </span>
       </div>
       <div class="ml-memory-profile-actions">
-        <el-tooltip
-          :content="t('main.toolPalette.memoryProfile.estimateNote')"
-          placement="bottom-end"
-          :hide-after="0"
+        <a-tooltip
+          :title="t('main.toolPalette.memoryProfile.estimateNote')"
+          placement="bottomRight"
         >
-          <el-icon
+          <InfoCircleFilled
             class="ml-memory-profile-info"
             :aria-label="t('main.toolPalette.memoryProfile.estimateNote')"
-          >
-            <InfoFilled />
-          </el-icon>
-        </el-tooltip>
-        <el-tooltip
-          :content="
+          />
+        </a-tooltip>
+        <a-tooltip
+          :title="
             showPie
               ? t('main.toolPalette.memoryProfile.hidePie')
               : t('main.toolPalette.memoryProfile.showPie')
           "
-          placement="bottom-end"
-          :hide-after="0"
+          placement="bottomRight"
         >
-          <el-button
+          <a-button
             size="small"
             :type="showPie ? 'primary' : 'default'"
             :aria-label="
@@ -46,24 +42,24 @@
             "
             @click="showPie = !showPie"
           >
-            <el-icon><PieChart /></el-icon>
-          </el-button>
-        </el-tooltip>
-        <el-button
+            <PieChartOutlined />
+          </a-button>
+        </a-tooltip>
+        <a-button
           size="small"
           type="primary"
           :loading="loading"
           @click="refresh"
         >
           {{ t('main.toolPalette.memoryProfile.refresh') }}
-        </el-button>
+        </a-button>
       </div>
     </div>
 
-    <el-alert
+    <a-alert
       v-if="error"
       type="error"
-      :title="error"
+      :message="error"
       show-icon
       :closable="false"
       class="ml-memory-profile-alert"
@@ -173,103 +169,49 @@
         v-if="activeTab === 'geometry'"
         class="ml-memory-profile-pane"
       >
-        <el-table
-          :data="snapshot?.geometry.layers ?? []"
+        <a-table
+          :data-source="snapshot?.geometry.layers ?? []"
+          :columns="geometryColumns"
           size="small"
+          :pagination="false"
           class="ml-memory-profile-table"
-          table-layout="fixed"
-          :empty-text="t('main.toolPalette.memoryProfile.empty')"
+          :locale="{ emptyText: t('main.toolPalette.memoryProfile.empty') }"
         >
-          <el-table-column
-            prop="layoutKey"
-            :label="t('main.toolPalette.memoryProfile.columns.layout')"
-            min-width="90"
-            show-overflow-tooltip
-          />
-          <el-table-column
-            prop="layerName"
-            :label="t('main.toolPalette.memoryProfile.columns.layer')"
-            min-width="80"
-            show-overflow-tooltip
-          />
-          <el-table-column
-            :label="t('main.toolPalette.memoryProfile.columns.geometry')"
-            width="88"
-            align="right"
-            header-align="right"
-          >
-            <template #default="{ row }">
-              {{ formatMemoryBytes(row.geometryBytes) }}
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'geometryBytes'">
+              {{ formatMemoryBytes(record.geometryBytes) }}
             </template>
-          </el-table-column>
-          <el-table-column
-            :label="t('main.toolPalette.memoryProfile.columns.mapping')"
-            width="88"
-            align="right"
-            header-align="right"
-          >
-            <template #default="{ row }">
-              {{ formatMemoryBytes(row.mappingBytes) }}
+            <template v-else-if="column.dataIndex === 'mappingBytes'">
+              {{ formatMemoryBytes(record.mappingBytes) }}
             </template>
-          </el-table-column>
-          <el-table-column
-            prop="entityCount"
-            :label="t('main.toolPalette.memoryProfile.columns.entities')"
-            width="72"
-            align="right"
-            header-align="right"
-          />
-        </el-table>
+          </template>
+        </a-table>
       </div>
 
       <div
         v-else-if="activeTab === 'spatial'"
         class="ml-memory-profile-pane"
       >
-        <el-table
-          :data="snapshot?.spatial.layouts ?? []"
+        <a-table
+          :data-source="snapshot?.spatial.layouts ?? []"
+          :columns="spatialColumns"
           size="small"
+          :pagination="false"
           class="ml-memory-profile-table"
-          table-layout="fixed"
-          :empty-text="t('main.toolPalette.memoryProfile.empty')"
+          :locale="{ emptyText: t('main.toolPalette.memoryProfile.empty') }"
         >
-          <el-table-column
-            prop="layoutKey"
-            :label="t('main.toolPalette.memoryProfile.columns.layout')"
-            min-width="100"
-            show-overflow-tooltip
-          />
-          <el-table-column
-            :label="t('main.toolPalette.memoryProfile.columns.rootItems')"
-            width="80"
-            align="right"
-            header-align="right"
-          >
-            <template #default="{ row }">
-              {{ row.stats.rootItemCount ?? row.stats.itemCount }}
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'rootItems'">
+              {{ record.stats.rootItemCount ?? record.stats.itemCount }}
             </template>
-          </el-table-column>
-          <el-table-column
-            :label="t('main.toolPalette.memoryProfile.columns.childItems')"
-            width="88"
-            align="right"
-            header-align="right"
-          >
-            <template #default="{ row }">
-              {{ row.stats.childItemCount ?? 0 }}
+            <template v-else-if="column.dataIndex === 'childItems'">
+              {{ record.stats.childItemCount ?? 0 }}
             </template>
-          </el-table-column>
-          <el-table-column
-            :label="t('main.toolPalette.memoryProfile.columns.estimated')"
-            width="96"
-            align="right"
-            header-align="right"
-          >
-            <template #default="{ row }">
-              {{ formatMemoryBytes(row.stats.estimatedBytes) }}
+            <template v-else-if="column.dataIndex === 'estimatedBytes'">
+              {{ formatMemoryBytes(record.stats.estimatedBytes) }}
             </template>
-          </el-table-column>
-        </el-table>
+          </template>
+        </a-table>
       </div>
 
       <div
@@ -282,47 +224,28 @@
             class="ml-memory-profile-dm-section-title"
             @click="dmCategoriesExpanded = !dmCategoriesExpanded"
           >
-            <el-icon
+            <RightOutlined
               class="ml-memory-profile-dm-caret"
               :class="{ 'is-expanded': dmCategoriesExpanded }"
-            >
-              <ArrowRight />
-            </el-icon>
+            />
             {{ t('main.toolPalette.memoryProfile.dataModelCategories') }}
           </button>
-          <el-table
+          <a-table
             v-show="dmCategoriesExpanded"
-            :data="snapshot?.dataModel.categories ?? []"
+            :data-source="snapshot?.dataModel.categories ?? []"
+            :columns="dmCategoryColumns"
             size="small"
+            :pagination="false"
             class="ml-memory-profile-table ml-memory-profile-table-compact"
-            table-layout="fixed"
-            :empty-text="t('main.toolPalette.memoryProfile.empty')"
-            max-height="160"
+            :scroll="{ y: 160 }"
+            :locale="{ emptyText: t('main.toolPalette.memoryProfile.empty') }"
           >
-            <el-table-column
-              prop="name"
-              :label="t('main.toolPalette.memoryProfile.columns.category')"
-              min-width="100"
-              show-overflow-tooltip
-            />
-            <el-table-column
-              prop="count"
-              :label="t('main.toolPalette.memoryProfile.columns.count')"
-              width="72"
-              align="right"
-              header-align="right"
-            />
-            <el-table-column
-              :label="t('main.toolPalette.memoryProfile.columns.estimated')"
-              width="96"
-              align="right"
-              header-align="right"
-            >
-              <template #default="{ row }">
-                {{ formatMemoryBytes(row.estimatedBytes) }}
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.dataIndex === 'estimatedBytes'">
+                {{ formatMemoryBytes(record.estimatedBytes) }}
               </template>
-            </el-table-column>
-          </el-table>
+            </template>
+          </a-table>
         </div>
         <div
           class="ml-memory-profile-dm-section"
@@ -333,46 +256,27 @@
             class="ml-memory-profile-dm-section-title"
             @click="dmEntityTypesExpanded = !dmEntityTypesExpanded"
           >
-            <el-icon
+            <RightOutlined
               class="ml-memory-profile-dm-caret"
               :class="{ 'is-expanded': dmEntityTypesExpanded }"
-            >
-              <ArrowRight />
-            </el-icon>
+            />
             {{ t('main.toolPalette.memoryProfile.dataModelEntityTypes') }}
           </button>
-          <el-table
+          <a-table
             v-show="dmEntityTypesExpanded"
-            :data="snapshot?.dataModel.entitiesByType ?? []"
+            :data-source="snapshot?.dataModel.entitiesByType ?? []"
+            :columns="dmEntityTypeColumns"
             size="small"
+            :pagination="false"
             class="ml-memory-profile-table"
-            table-layout="fixed"
-            :empty-text="t('main.toolPalette.memoryProfile.empty')"
+            :locale="{ emptyText: t('main.toolPalette.memoryProfile.empty') }"
           >
-            <el-table-column
-              prop="name"
-              :label="t('main.toolPalette.memoryProfile.columns.type')"
-              min-width="100"
-              show-overflow-tooltip
-            />
-            <el-table-column
-              prop="count"
-              :label="t('main.toolPalette.memoryProfile.columns.count')"
-              width="72"
-              align="right"
-              header-align="right"
-            />
-            <el-table-column
-              :label="t('main.toolPalette.memoryProfile.columns.estimated')"
-              width="96"
-              align="right"
-              header-align="right"
-            >
-              <template #default="{ row }">
-                {{ formatMemoryBytes(row.estimatedBytes) }}
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.dataIndex === 'estimatedBytes'">
+                {{ formatMemoryBytes(record.estimatedBytes) }}
               </template>
-            </el-table-column>
-          </el-table>
+            </template>
+          </a-table>
         </div>
       </div>
 
@@ -380,36 +284,20 @@
         v-else-if="activeTab === 'materials'"
         class="ml-memory-profile-pane"
       >
-        <el-table
-          :data="materialRows"
+        <a-table
+          :data-source="materialRows"
+          :columns="materialColumns"
           size="small"
+          :pagination="false"
           class="ml-memory-profile-table"
-          table-layout="fixed"
-          :empty-text="t('main.toolPalette.memoryProfile.empty')"
+          :locale="{ emptyText: t('main.toolPalette.memoryProfile.empty') }"
         >
-          <el-table-column
-            prop="name"
-            :label="t('main.toolPalette.memoryProfile.columns.category')"
-            min-width="80"
-          />
-          <el-table-column
-            prop="count"
-            :label="t('main.toolPalette.memoryProfile.columns.count')"
-            width="72"
-            align="right"
-            header-align="right"
-          />
-          <el-table-column
-            :label="t('main.toolPalette.memoryProfile.columns.estimated')"
-            width="96"
-            align="right"
-            header-align="right"
-          >
-            <template #default="{ row }">
-              {{ formatMemoryBytes(row.estimatedBytes) }}
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'estimatedBytes'">
+              {{ formatMemoryBytes(record.estimatedBytes) }}
             </template>
-          </el-table-column>
-        </el-table>
+          </template>
+        </a-table>
       </div>
 
       <div
@@ -426,35 +314,20 @@
               })
             }}
           </div>
-          <el-table
-            :data="snapshot.fonts.fonts"
+          <a-table
+            :data-source="snapshot.fonts.fonts"
+            :columns="fontColumns"
             size="small"
+            :pagination="false"
             class="ml-memory-profile-table"
-            table-layout="fixed"
-            :empty-text="t('main.toolPalette.memoryProfile.empty')"
+            :locale="{ emptyText: t('main.toolPalette.memoryProfile.empty') }"
           >
-            <el-table-column
-              prop="name"
-              :label="t('main.toolPalette.memoryProfile.columns.font')"
-              min-width="100"
-              show-overflow-tooltip
-            />
-            <el-table-column
-              prop="type"
-              :label="t('main.toolPalette.memoryProfile.columns.type')"
-              width="64"
-            />
-            <el-table-column
-              :label="t('main.toolPalette.memoryProfile.columns.estimated')"
-              width="96"
-              align="right"
-              header-align="right"
-            >
-              <template #default="{ row }">
-                {{ formatMemoryBytes(row.estimatedBytes) }}
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.dataIndex === 'estimatedBytes'">
+                {{ formatMemoryBytes(record.estimatedBytes) }}
               </template>
-            </el-table-column>
-          </el-table>
+            </template>
+          </a-table>
           <div
             v-if="snapshot.fonts.missedNames.length > 0"
             class="ml-memory-profile-fonts-missed"
@@ -489,19 +362,15 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowRight, InfoFilled, PieChart } from '@element-plus/icons-vue'
+import {
+  InfoCircleFilled,
+  PieChartOutlined,
+  RightOutlined
+} from '@ant-design/icons-vue'
 import {
   type MlOverflowTab,
   MlOverflowTabs
 } from '@mlightcad/ui-components'
-import {
-  ElAlert,
-  ElButton,
-  ElIcon,
-  ElTable,
-  ElTableColumn,
-  ElTooltip
-} from 'element-plus'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -553,17 +422,56 @@ const detailTabs = computed<MlOverflowTab[]>(() => [
   }
 ])
 
+const geometryColumns = [
+  { title: t('main.toolPalette.memoryProfile.columns.layout'), dataIndex: 'layoutKey', width: 90, ellipsis: true },
+  { title: t('main.toolPalette.memoryProfile.columns.layer'), dataIndex: 'layerName', width: 80, ellipsis: true },
+  { title: t('main.toolPalette.memoryProfile.columns.geometry'), dataIndex: 'geometryBytes', width: 88, align: 'right' as const },
+  { title: t('main.toolPalette.memoryProfile.columns.mapping'), dataIndex: 'mappingBytes', width: 88, align: 'right' as const },
+  { title: t('main.toolPalette.memoryProfile.columns.entities'), dataIndex: 'entityCount', width: 72, align: 'right' as const }
+]
+
+const spatialColumns = [
+  { title: t('main.toolPalette.memoryProfile.columns.layout'), dataIndex: 'layoutKey', width: 100, ellipsis: true },
+  { title: t('main.toolPalette.memoryProfile.columns.rootItems'), dataIndex: 'rootItems', width: 80, align: 'right' as const },
+  { title: t('main.toolPalette.memoryProfile.columns.childItems'), dataIndex: 'childItems', width: 88, align: 'right' as const },
+  { title: t('main.toolPalette.memoryProfile.columns.estimated'), dataIndex: 'estimatedBytes', width: 96, align: 'right' as const }
+]
+
+const dmCategoryColumns = [
+  { title: t('main.toolPalette.memoryProfile.columns.category'), dataIndex: 'name', width: 100, ellipsis: true },
+  { title: t('main.toolPalette.memoryProfile.columns.count'), dataIndex: 'count', width: 72, align: 'right' as const },
+  { title: t('main.toolPalette.memoryProfile.columns.estimated'), dataIndex: 'estimatedBytes', width: 96, align: 'right' as const }
+]
+
+const dmEntityTypeColumns = [
+  { title: t('main.toolPalette.memoryProfile.columns.type'), dataIndex: 'name', width: 100, ellipsis: true },
+  { title: t('main.toolPalette.memoryProfile.columns.count'), dataIndex: 'count', width: 72, align: 'right' as const },
+  { title: t('main.toolPalette.memoryProfile.columns.estimated'), dataIndex: 'estimatedBytes', width: 96, align: 'right' as const }
+]
+
+const materialColumns = [
+  { title: t('main.toolPalette.memoryProfile.columns.category'), dataIndex: 'name', width: 80 },
+  { title: t('main.toolPalette.memoryProfile.columns.count'), dataIndex: 'count', width: 72, align: 'right' as const },
+  { title: t('main.toolPalette.memoryProfile.columns.estimated'), dataIndex: 'estimatedBytes', width: 96, align: 'right' as const }
+]
+
+const fontColumns = [
+  { title: t('main.toolPalette.memoryProfile.columns.font'), dataIndex: 'name', width: 100, ellipsis: true },
+  { title: t('main.toolPalette.memoryProfile.columns.type'), dataIndex: 'type', width: 64 },
+  { title: t('main.toolPalette.memoryProfile.columns.estimated'), dataIndex: 'estimatedBytes', width: 96, align: 'right' as const }
+]
+
 /** Donut geometry in viewBox units. */
 const PIE_RADIUS = 34
 const PIE_STROKE = 14
 const PIE_CIRCUMFERENCE = 2 * Math.PI * PIE_RADIUS
 
 const PIE_COLORS: Record<string, string> = {
-  geometry: 'var(--el-color-primary)',
-  mapping: 'var(--el-color-success)',
-  spatial: 'var(--el-color-warning)',
-  dataModel: 'var(--el-color-danger)',
-  materials: 'var(--el-color-info)',
+  geometry: 'var(--ml-theme-primary)',
+  mapping: 'var(--ml-theme-primary)',
+  spatial: '#f59e0b',
+  dataModel: '#ef4444',
+  materials: '#06b6d4',
   fonts: '#b37feb'
 }
 
@@ -595,7 +503,7 @@ const pieSlices = computed((): PieSlice[] => {
       detail: row.detail,
       bytes: row.bytes,
       isEstimated: row.isEstimated,
-      color: PIE_COLORS[row.id] ?? 'var(--el-text-color-secondary)',
+      color: PIE_COLORS[row.id] ?? 'var(--ml-theme-text-secondary)',
       dashArray: `${length} ${PIE_CIRCUMFERENCE}`,
       dashOffset: -offset,
       percentLabel: `${((row.bytes / total) * 100).toFixed(1)}%`
@@ -712,7 +620,7 @@ onMounted(() => {
 }
 
 .ml-memory-profile-info {
-  color: var(--el-color-info);
+  color: #06b6d4;
   cursor: help;
   font-size: 16px;
 }
@@ -743,7 +651,7 @@ onMounted(() => {
 }
 
 .ml-memory-profile-pie-track {
-  stroke: var(--el-fill-color);
+  stroke: var(--ml-theme-bg-subtle);
 }
 
 .ml-memory-profile-pie-slice {
@@ -751,14 +659,14 @@ onMounted(() => {
 }
 
 .ml-memory-profile-pie-center-value {
-  fill: var(--el-text-color-primary);
+  fill: var(--ml-theme-text-heading);
   font-size: 9px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
 .ml-memory-profile-pie-center-label {
-  fill: var(--el-text-color-secondary);
+  fill: var(--ml-theme-text-secondary);
   font-size: 6px;
 }
 
@@ -796,7 +704,7 @@ onMounted(() => {
 
 .ml-memory-profile-pie-swatch.is-empty {
   background: transparent;
-  border: 1px solid var(--el-border-color);
+  border: 1px solid var(--ml-theme-border);
 }
 
 .ml-memory-profile-pie-legend-text {
@@ -862,7 +770,7 @@ onMounted(() => {
   width: 100%;
 }
 
-.ml-memory-profile-table :deep(.el-table__inner-wrapper) {
+.ml-memory-profile-table :deep(.ant-table-wrapper) {
   height: 100%;
 }
 
@@ -904,7 +812,7 @@ onMounted(() => {
 }
 
 .ml-memory-profile-dm-section-title:hover {
-  color: var(--el-color-primary);
+  color: var(--ml-theme-primary);
 }
 
 .ml-memory-profile-dm-caret {

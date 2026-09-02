@@ -39,7 +39,7 @@ const hasTitle = computed(() => Boolean(props.title?.trim()))
   min-height: 0;
   height: 100%;
   box-sizing: border-box;
-  border: 1px solid var(--el-border-color);
+  border: 1px solid var(--ml-theme-border);
   border-radius: 2px;
   padding: 10px 12px 12px;
   background-color: transparent;
@@ -52,7 +52,7 @@ const hasTitle = computed(() => Boolean(props.title?.trim()))
   margin-left: 4px;
   font-size: var(--ml-dialog-font-size, 12px);
   font-weight: 600;
-  color: var(--el-text-color-primary);
+  color: var(--ml-theme-text-heading);
 }
 
 .ml-fieldset-group__body {

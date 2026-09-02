@@ -1,24 +1,23 @@
 <template>
   <div class="ml-ribbon-language-switch">
-    <el-select
-      v-model="language"
+    <a-select
+      v-model:value="language"
       :disabled="props.disabled"
       size="small"
       class="ml-ribbon-language-switch__select"
     >
-      <el-option
+      <a-select-option
         v-for="option in languageOptions"
         :key="option.value"
         :value="option.value"
         :label="option.label"
       />
-    </el-select>
+    </a-select>
   </div>
 </template>
 
 <script setup lang="ts">
 import { AcApLocale } from '@mlightcad/cad-simple-viewer'
-import { ElOption, ElSelect } from 'element-plus'
 import { computed } from 'vue'
 
 import { isSupportedLocale, LOCALE_OPTIONS, useLocale } from '../../composable'

@@ -16,24 +16,24 @@
           class="ml-att-def-dlg__pane"
         >
           <div class="ml-att-def-dlg__mode-list">
-            <el-checkbox v-model="form.invisible">
+            <a-checkbox v-model:checked="form.invisible">
               {{ t('dialog.attDefDlg.invisible') }}
-            </el-checkbox>
-            <el-checkbox v-model="form.constant">
+            </a-checkbox>
+            <a-checkbox v-model:checked="form.constant">
               {{ t('dialog.attDefDlg.constant') }}
-            </el-checkbox>
-            <el-checkbox v-model="form.verify">
+            </a-checkbox>
+            <a-checkbox v-model:checked="form.verify">
               {{ t('dialog.attDefDlg.verify') }}
-            </el-checkbox>
-            <el-checkbox v-model="form.preset">
+            </a-checkbox>
+            <a-checkbox v-model:checked="form.preset">
               {{ t('dialog.attDefDlg.preset') }}
-            </el-checkbox>
-            <el-checkbox v-model="form.lockPosition">
+            </a-checkbox>
+            <a-checkbox v-model:checked="form.lockPosition">
               {{ t('dialog.attDefDlg.lockPosition') }}
-            </el-checkbox>
-            <el-checkbox v-model="form.multipleLines">
+            </a-checkbox>
+            <a-checkbox v-model:checked="form.multipleLines">
               {{ t('dialog.attDefDlg.multipleLines') }}
-            </el-checkbox>
+            </a-checkbox>
           </div>
         </ml-fieldset-group>
 
@@ -42,21 +42,21 @@
           :title="t('dialog.attDefDlg.attributeSection')"
           class="ml-att-def-dlg__pane"
         >
-          <el-form
-            label-position="left"
-            label-width="72px"
+          <a-form
+            layout="horizontal"
+            :label-col="{ style: { width: '72px' } }"
             class="ml-att-def-dlg__form"
           >
-            <el-form-item :label="t('dialog.attDefDlg.tag')">
-              <el-input ref="tagInputRef" v-model="form.tag" />
-            </el-form-item>
-            <el-form-item :label="t('dialog.attDefDlg.prompt')">
-              <el-input v-model="form.prompt" :disabled="form.constant" />
-            </el-form-item>
-            <el-form-item :label="t('dialog.attDefDlg.default')">
-              <el-input v-model="form.defaultValue" />
-            </el-form-item>
-          </el-form>
+            <a-form-item :label="t('dialog.attDefDlg.tag')">
+              <a-input ref="tagInputRef" v-model:value="form.tag" />
+            </a-form-item>
+            <a-form-item :label="t('dialog.attDefDlg.prompt')">
+              <a-input v-model:value="form.prompt" :disabled="form.constant" />
+            </a-form-item>
+            <a-form-item :label="t('dialog.attDefDlg.default')">
+              <a-input v-model:value="form.defaultValue" />
+            </a-form-item>
+          </a-form>
         </ml-fieldset-group>
 
         <!-- Insertion Point -->
@@ -65,43 +65,40 @@
           class="ml-att-def-dlg__pane"
           :disabled="form.alignBelow"
         >
-          <el-checkbox
-            v-model="form.specifyOnScreen"
+          <a-checkbox
+            v-model:checked="form.specifyOnScreen"
             class="ml-att-def-dlg__specify"
           >
             {{ t('dialog.attDefDlg.specifyOnScreen') }}
-          </el-checkbox>
-          <el-form
-            label-position="left"
-            label-width="28px"
+          </a-checkbox>
+          <a-form
+            layout="horizontal"
+            :label-col="{ style: { width: '28px' } }"
             class="ml-att-def-dlg__form ml-att-def-dlg__xyz"
             :disabled="form.specifyOnScreen || form.alignBelow"
           >
-            <el-form-item label="X:">
-              <el-input-number
-                v-model="form.x"
+            <a-form-item label="X:">
+              <a-input-number
+                v-model:value="form.x"
                 :step="1"
-                controls-position="right"
                 class="ml-att-def-dlg__control"
               />
-            </el-form-item>
-            <el-form-item label="Y:">
-              <el-input-number
-                v-model="form.y"
+            </a-form-item>
+            <a-form-item label="Y:">
+              <a-input-number
+                v-model:value="form.y"
                 :step="1"
-                controls-position="right"
                 class="ml-att-def-dlg__control"
               />
-            </el-form-item>
-            <el-form-item label="Z:">
-              <el-input-number
-                v-model="form.z"
+            </a-form-item>
+            <a-form-item label="Z:">
+              <a-input-number
+                v-model:value="form.z"
                 :step="1"
-                controls-position="right"
                 class="ml-att-def-dlg__control"
               />
-            </el-form-item>
-          </el-form>
+            </a-form-item>
+          </a-form>
         </ml-fieldset-group>
 
         <!-- Text Settings -->
@@ -110,91 +107,91 @@
           class="ml-att-def-dlg__pane"
           :disabled="form.alignBelow"
         >
-          <el-form
-            label-position="left"
-            label-width="100px"
+          <a-form
+            layout="horizontal"
+            :label-col="{ style: { width: '100px' } }"
             class="ml-att-def-dlg__form"
           >
-            <el-form-item :label="t('dialog.attDefDlg.justification')">
-              <el-select
-                v-model="form.justification"
+            <a-form-item :label="t('dialog.attDefDlg.justification')">
+              <a-select
+                v-model:value="form.justification"
                 class="ml-att-def-dlg__control"
               >
-                <el-option
+                <a-select-option
                   v-for="opt in justificationOptions"
                   :key="opt.value"
-                  :label="opt.label"
                   :value="opt.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item :label="t('dialog.attDefDlg.textStyle')">
-              <el-select
-                v-model="form.styleName"
-                filterable
+                >
+                  {{ opt.label }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+            <a-form-item :label="t('dialog.attDefDlg.textStyle')">
+              <a-select
+                v-model:value="form.styleName"
+                show-search
+                :filter-option="filterOptionByLabel"
                 class="ml-att-def-dlg__control"
               >
-                <el-option
+                <a-select-option
                   v-for="name in textStyleNames"
                   :key="name"
-                  :label="name"
                   :value="name"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item>
-              <el-checkbox v-model="form.annotative" disabled>
+                >
+                  {{ name }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+            <a-form-item>
+              <a-checkbox v-model:checked="form.annotative" disabled>
                 {{ t('dialog.attDefDlg.annotative') }}
-              </el-checkbox>
-            </el-form-item>
-            <el-form-item :label="t('dialog.attDefDlg.height')">
+              </a-checkbox>
+            </a-form-item>
+            <a-form-item :label="t('dialog.attDefDlg.height')">
               <div class="ml-att-def-dlg__with-pick">
-                <el-input-number
-                  v-model="form.height"
+                <a-input-number
+                  v-model:value="form.height"
                   :min="0"
                   :step="0.1"
-                  controls-position="right"
                   class="ml-att-def-dlg__control"
                 />
-                <el-button
-                  :icon="selectIcon"
-                  :disabled="isPicking"
-                  @click="pickHeight"
-                />
+                <a-button :disabled="isPicking" @click="pickHeight">
+                  <template #icon>
+                    <component :is="selectIcon" />
+                  </template>
+                </a-button>
               </div>
-            </el-form-item>
-            <el-form-item :label="t('dialog.attDefDlg.rotation')">
+            </a-form-item>
+            <a-form-item :label="t('dialog.attDefDlg.rotation')">
               <div class="ml-att-def-dlg__with-pick">
-                <el-input-number
-                  v-model="form.rotationDeg"
+                <a-input-number
+                  v-model:value="form.rotationDeg"
                   :step="1"
-                  controls-position="right"
                   class="ml-att-def-dlg__control"
                 />
-                <el-button
-                  :icon="selectIcon"
-                  :disabled="isPicking"
-                  @click="pickRotation"
-                />
+                <a-button :disabled="isPicking" @click="pickRotation">
+                  <template #icon>
+                    <component :is="selectIcon" />
+                  </template>
+                </a-button>
               </div>
-            </el-form-item>
-            <el-form-item :label="t('dialog.attDefDlg.boundaryWidth')">
-              <el-input-number
-                v-model="form.boundaryWidth"
+            </a-form-item>
+            <a-form-item :label="t('dialog.attDefDlg.boundaryWidth')">
+              <a-input-number
+                v-model:value="form.boundaryWidth"
                 :min="0"
                 :step="0.1"
                 :disabled="!form.multipleLines"
-                controls-position="right"
                 class="ml-att-def-dlg__control"
               />
-            </el-form-item>
-          </el-form>
+            </a-form-item>
+          </a-form>
         </ml-fieldset-group>
       </div>
 
-      <el-checkbox v-model="form.alignBelow" class="ml-att-def-dlg__align">
+      <a-checkbox v-model:checked="form.alignBelow" class="ml-att-def-dlg__align">
         {{ t('dialog.attDefDlg.alignBelow') }}
-      </el-checkbox>
+      </a-checkbox>
     </div>
   </ml-base-dialog>
 </template>
@@ -217,16 +214,16 @@ import {
   DEFAULT_TEXT_STYLE
 } from '@mlightcad/data-model'
 import {
-  ElButton,
-  ElCheckbox,
-  ElForm,
-  ElFormItem,
-  ElInput,
-  ElInputNumber,
-  ElMessage,
-  ElOption,
-  ElSelect
-} from 'element-plus'
+  Button as AButton,
+  Checkbox as ACheckbox,
+  Form as AForm,
+  FormItem as AFormItem,
+  Input as AInput,
+  InputNumber as AInputNumber,
+  message,
+  Select as ASelect,
+  SelectOption as ASelectOption
+} from 'ant-design-vue'
 import { computed, nextTick, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -274,13 +271,19 @@ const visible = computed({
   set: v => emit('update:modelValue', v)
 })
 
-const tagInputRef = ref<InstanceType<typeof ElInput>>()
+const tagInputRef = ref<InstanceType<typeof AInput> | null>(null)
 const textStyleNames = ref<string[]>([])
 const isPicking = ref(false)
 /** When true, the next `@open` keeps the in-memory form instead of resetting. */
 const preserveFormOnOpen = ref(false)
 
 const form = reactive<AttDefFormState>(createDefaultForm())
+
+/** antdv `show-search` filter: match label against the typed input. */
+function filterOptionByLabel(input: string, option: { label?: string }) {
+  const label = option?.label ?? ''
+  return String(label).toLowerCase().includes(input.toLowerCase())
+}
 
 // Align / Fit need a second point; omit until two-point placement is supported.
 const justificationOptions = computed(() => [
@@ -487,7 +490,7 @@ function findLastAttributeDefinition(): AcDbAttributeDefinition | undefined {
 function applyAlignBelowDefaults() {
   const previous = findLastAttributeDefinition()
   if (!previous) {
-    ElMessage.warning(t('dialog.attDefDlg.noPrevious'))
+    message.warning(t('dialog.attDefDlg.noPrevious'))
     form.alignBelow = false
     return
   }
@@ -618,7 +621,7 @@ async function resolveInsertionPoint(): Promise<AcGePoint3d | undefined> {
   if (form.alignBelow) {
     const previous = findLastAttributeDefinition()
     if (!previous) {
-      ElMessage.warning(t('dialog.attDefDlg.noPrevious'))
+      message.warning(t('dialog.attDefDlg.noPrevious'))
       return undefined
     }
     const height = previous.height > 0 ? previous.height : form.height
@@ -653,7 +656,7 @@ function handleOpen() {
   }
   resetForm()
   void nextTick(() => {
-    tagInputRef.value?.focus?.()
+    ;(tagInputRef.value as HTMLInputElement | null)?.focus?.()
   })
 }
 
@@ -670,7 +673,7 @@ function reopenDialogPreservingForm() {
 async function handleOk() {
   const tag = normalizeTag(form.tag)
   if (!tag) {
-    ElMessage.warning(t('dialog.attDefDlg.tagRequired'))
+    message.warning(t('dialog.attDefDlg.tagRequired'))
     return
   }
   form.tag = tag
@@ -765,9 +768,9 @@ watch(
   gap: 0;
 }
 
-.ml-att-def-dlg__mode-list :deep(.el-checkbox) {
+.ml-att-def-dlg__mode-list :deep(.ant-checkbox-wrapper) {
   height: 22px;
-  margin-right: 0;
+  margin-inline-end: 0;
 }
 
 .ml-att-def-dlg__form {
@@ -799,17 +802,15 @@ watch(
   height: 22px;
 }
 
-.ml-att-def-dlg :deep(.el-form-item) {
+.ml-att-def-dlg :deep(.ant-form-item) {
   margin-bottom: 4px;
 }
 
-.ml-att-def-dlg :deep(.el-form-item__label) {
+.ml-att-def-dlg :deep(.ant-form-item-label) {
   line-height: 24px;
-  height: 24px;
 }
 
-.ml-att-def-dlg :deep(.el-form-item__content) {
-  line-height: 24px;
-  min-height: 24px;
+.ml-att-def-dlg :deep(.ant-form-item-label > label) {
+  height: 24px;
 }
 </style>

@@ -178,6 +178,12 @@ export default {
         quit: 'Quit'
       }
     },
+    propertyBar: {
+      layer: 'Layer',
+      color: 'Color',
+      linetype: 'Linetype',
+      lineweight: 'Lineweight'
+    },
     panels: {
       layers: 'Layers',
       blocks: 'Blocks',

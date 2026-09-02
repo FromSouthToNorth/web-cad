@@ -1,7 +1,7 @@
 <template>
   <div ref="rootRef" class="ml-layout-tabs">
-    <el-button-group class="ml-layout-tabs-list" role="tablist">
-      <el-button
+    <div class="ml-layout-tabs-list" role="tablist">
+      <a-button
         v-for="layout in layouts"
         :key="layout.blockTableRecordId"
         :ref="
@@ -12,43 +12,42 @@
         size="small"
         role="tab"
         :hidden="overflowIds.includes(layout.blockTableRecordId)"
-        :type="layout.isActive ? 'primary' : ''"
+        :type="layout.isActive ? 'primary' : 'default'"
         :aria-selected="layout.isActive"
         @click="handleSelectLayout(layout)"
       >
         {{ layout.name }}
-      </el-button>
-      <el-dropdown
+      </a-button>
+      <a-dropdown
         v-show="overflowLayouts.length > 0"
-        trigger="click"
-        placement="top-start"
-        @command="handleSelectById"
+        :trigger="['click']"
+        placement="topLeft"
+        :overlay-class-name="'ml-layout-tabs-overflow-menu'"
       >
-        <el-button
+        <a-button
           ref="overflowButtonRef"
           class="ml-layout-tabs-overflow-button"
           size="small"
           :class="{ 'is-active': overflowContainsActive }"
-          :type="overflowContainsActive ? 'primary' : ''"
+          :type="overflowContainsActive ? 'primary' : 'default'"
           :title="t('main.statusBar.moreLayouts')"
           :aria-label="t('main.statusBar.moreLayouts')"
         >
           {{ overflowButtonLabel }}
-        </el-button>
-        <template #dropdown>
-          <el-dropdown-menu class="ml-layout-tabs-overflow-menu">
-            <el-dropdown-item
+        </a-button>
+        <template #overlay>
+          <a-menu @click="handleMenuClick">
+            <a-menu-item
               v-for="layout in overflowLayouts"
               :key="layout.blockTableRecordId"
-              :command="layout.blockTableRecordId"
               :class="{ 'is-selected': layout.isActive }"
             >
               {{ layout.name }}
-            </el-dropdown-item>
-          </el-dropdown-menu>
+            </a-menu-item>
+          </a-menu>
         </template>
-      </el-dropdown>
-    </el-button-group>
+      </a-dropdown>
+    </div>
   </div>
 </template>
 
@@ -58,13 +57,6 @@ import {
   acdbHostApplicationServices,
   AcDbObjectId
 } from '@mlightcad/data-model'
-import {
-  ElButton,
-  ElButtonGroup,
-  ElDropdown,
-  ElDropdownItem,
-  ElDropdownMenu
-} from 'element-plus'
 import {
   type ComponentPublicInstance,
   computed,
@@ -140,6 +132,10 @@ const handleSelectById = (id: AcDbObjectId) => {
   if (layout) {
     handleSelectLayout(layout)
   }
+}
+
+const handleMenuClick = ({ key }: { key: string }) => {
+  handleSelectById(key as AcDbObjectId)
 }
 
 const scheduleUpdateOverflow = () => {
@@ -327,13 +323,13 @@ onBeforeUnmount(() => {
   border: none;
 }
 
-.ml-layout-tabs-list :deep(.el-dropdown) {
+.ml-layout-tabs-list :deep(.ant-dropdown-trigger) {
   flex: 0 0 auto;
   display: inline-flex;
   align-self: stretch;
 }
 
-.ml-layout-tabs-list :deep(.el-button) {
+.ml-layout-tabs-list :deep(.ant-btn) {
   margin: 0;
 }
 
@@ -360,7 +356,7 @@ onBeforeUnmount(() => {
 </style>
 
 <style>
-.ml-layout-tabs-overflow-menu .el-dropdown-menu__item.is-selected {
-  color: var(--el-color-primary, #409eff);
+.ml-layout-tabs-overflow-menu .ant-dropdown-menu-item.is-selected {
+  color: var(--ml-theme-primary, #409eff);
 }
 </style>

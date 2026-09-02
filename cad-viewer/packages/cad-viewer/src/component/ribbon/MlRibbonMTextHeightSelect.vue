@@ -4,28 +4,25 @@
     :disabled="disabled"
     :control-width="controlWidth"
   >
-    <el-select
-      :model-value="selectedValue"
+    <a-select
+      :value="selectedValue"
       :disabled="disabled"
       :placeholder="placeholder"
-      allow-create
-      default-first-option
-      filterable
+      show-search
       size="small"
       @change="handleChange"
     >
-      <el-option
+      <a-select-option
         v-for="option in normalizedOptions"
         :key="option"
         :label="option"
         :value="option"
       />
-    </el-select>
+    </a-select>
   </ml-ribbon-property-field>
 </template>
 
 <script setup lang="ts">
-import { ElOption, ElSelect } from 'element-plus'
 import { computed } from 'vue'
 
 import { mtext as mtextIcon } from '../../svg'

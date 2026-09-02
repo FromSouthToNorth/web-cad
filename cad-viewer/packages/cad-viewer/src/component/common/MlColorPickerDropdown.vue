@@ -1,40 +1,39 @@
 <template>
   <div class="ml-color-picker-dropdown">
-    <ElPopover
+    <a-popover
       placement="bottom"
       trigger="click"
-      width="360"
-      v-model:visible="colorPopoverVisible"
-      :teleported="teleported"
+      :overlayInnerStyle="{ width: '360px' }"
+      v-model:open="colorPopoverVisible"
+      :destroyTooltipOnHide="!teleported"
       :disabled="disabled"
-      :popper-class="resolvedPopperClass"
+      :overlayClassName="resolvedPopperClass"
     >
-      <MlColorPickerTabs
-        :model-value="modelValue"
-        @update:modelValue="onColorChange"
-      />
-
-      <template #reference>
-        <slot name="reference">
-          <button
-            type="button"
-            class="ml-color-picker-dropdown-trigger"
-            :disabled="disabled"
-          >
-            <span
-              class="ml-color-picker-dropdown-indicator"
-              :style="{ background: cssColor || 'transparent' }"
-            />
-          </button>
-        </slot>
+      <template #content>
+        <MlColorPickerTabs
+          :model-value="modelValue"
+          @update:modelValue="onColorChange"
+        />
       </template>
-    </ElPopover>
+
+      <slot name="reference">
+        <button
+          type="button"
+          class="ml-color-picker-dropdown-trigger"
+          :disabled="disabled"
+        >
+          <span
+            class="ml-color-picker-dropdown-indicator"
+            :style="{ background: cssColor || 'transparent' }"
+          />
+        </button>
+      </slot>
+    </a-popover>
   </div>
 </template>
 
 <script setup lang="ts">
 import { AcCmColor } from '@mlightcad/data-model'
-import { ElPopover } from 'element-plus'
 import { computed, ref, watch } from 'vue'
 
 import MlColorPickerTabs from './MlColorPickerTabs.vue'

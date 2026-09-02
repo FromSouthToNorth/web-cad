@@ -1,9 +1,9 @@
 <template>
   <div class="ml-color-dropdown">
-    <el-select
-      v-model="selectedKey"
+    <a-select
+      v-model:value="selectedKey"
       :disabled="props.disabled"
-      popper-class="ml-color-dropdown-popper"
+      popupClassName="ml-color-dropdown-popper"
       class="ml-color-dropdown-select"
       style="width: 100%"
       @change="onChange"
@@ -29,7 +29,7 @@
         </div>
       </template>
 
-      <el-option
+      <a-select-option
         v-for="item in mergedColorItems"
         :key="item.key"
         :label="item.i18nName"
@@ -44,9 +44,9 @@
             {{ item.i18nName }}
           </span>
         </div>
-      </el-option>
+      </a-select-option>
 
-      <el-option
+      <a-select-option
         key="custom-trigger"
         :value="'custom-trigger'"
         :label="t('main.colorDropdown.custom')"
@@ -58,8 +58,8 @@
             {{ t('main.colorDropdown.custom') }}
           </span>
         </div>
-      </el-option>
-    </el-select>
+      </a-select-option>
+    </a-select>
 
     <ml-color-picker-dlg
       v-model="dlgVisible"
@@ -73,7 +73,6 @@
 
 <script setup lang="ts">
 import { AcCmColor, AcCmColorMethod } from '@mlightcad/data-model'
-import { ElOption, ElSelect } from 'element-plus'
 import { type Component, computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -226,10 +225,9 @@ function keyToDisplayName(key: string) {
   min-width: 100%;
 }
 
-.ml-color-dropdown :deep(.el-select__wrapper),
-.ml-color-dropdown :deep(.el-select__selection),
-.ml-color-dropdown :deep(.el-select__selected-item),
-.ml-color-dropdown :deep(.el-select__placeholder) {
+.ml-color-dropdown :deep(.ant-select-selector),
+.ml-color-dropdown :deep(.ant-select-selection-item),
+.ml-color-dropdown :deep(.ant-select-selection-placeholder) {
   width: 100%;
   min-width: 0;
 }
@@ -252,7 +250,7 @@ function keyToDisplayName(key: string) {
   width: 16px;
   height: 16px;
   flex: 0 0 16px;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary);
 }
 
 .ml-color-dropdown-color-preview {
@@ -269,7 +267,7 @@ function keyToDisplayName(key: string) {
   justify-content: center;
   width: 14px;
   height: 14px;
-  border: 1px dashed var(--el-border-color);
+  border: 1px dashed var(--ml-theme-border);
   border-radius: 2px;
   font-size: 12px;
   line-height: 1;
@@ -286,12 +284,12 @@ function keyToDisplayName(key: string) {
   white-space: nowrap;
 }
 
-:global(.ml-color-dropdown-popper .el-select-dropdown__wrap) {
+:global(.ml-color-dropdown-popper .ant-select-dropdown) {
   max-height: none;
   overflow-y: visible;
 }
 
-:global(.ml-color-dropdown-popper .el-scrollbar__bar.is-vertical) {
+:global(.ml-color-dropdown-popper .ant-select-dropdown .rc-virtual-list-scrollbar-thumb) {
   display: none;
 }
 </style>

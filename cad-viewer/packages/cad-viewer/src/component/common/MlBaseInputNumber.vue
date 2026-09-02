@@ -7,30 +7,29 @@
   -->
   <div class="ml-base-input-number">
     <!-- Numeric input -->
-    <el-input
-      v-model="displayValue"
+    <a-input
+      v-model:value="displayValue"
       class="ml-base-input-number__input"
       :placeholder="placeholder"
       :readonly="!editable"
-      @input="onInput"
+      @update:value="onInput"
       @blur="onBlur"
-      clearable
+      allow-clear
     />
 
     <!-- Mode selector (dec/oct/hex) -->
-    <el-select v-model="base" class="ml-base-input-number__select" size="small">
-      <el-option
+    <a-select v-model:value="base" class="ml-base-input-number__select" size="small">
+      <a-select-option
         v-for="opt in baseOptions"
         :key="opt.value"
         :label="opt.label"
         :value="opt.value"
       />
-    </el-select>
+    </a-select>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ElInput, ElOption, ElSelect } from 'element-plus'
 import type { Ref } from 'vue'
 import { ref, watch } from 'vue'
 

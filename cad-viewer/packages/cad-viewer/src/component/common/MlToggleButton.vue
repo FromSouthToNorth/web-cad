@@ -1,17 +1,18 @@
 <template>
-  <el-tooltip :content="tooltip" :hide-after="0">
-    <el-button
+  <a-tooltip :title="tooltip">
+    <a-button
       class="ml-toggle-button"
-      :icon="icon"
       :style="{ color: iconColor }"
       @click="handleClicked"
-    />
-  </el-tooltip>
+    >
+      <component :is="icon" />
+    </a-button>
+  </a-tooltip>
 </template>
 
 <script lang="ts" setup>
-import { ElButton, ElTooltip } from 'element-plus'
-import { Component, computed, DefineComponent } from 'vue'
+import { computed } from 'vue'
+import type { Component, DefineComponent } from 'vue'
 
 export type MlIconType = (() => DefineComponent) | Component
 
@@ -87,9 +88,9 @@ const tooltip = computed(() => {
 
 const iconColor = computed(() => {
   if (on.value) {
-    return props.data.onColor ?? 'var(--el-color-primary)'
+    return props.data.onColor ?? 'var(--ml-theme-primary)'
   }
-  return props.data.offColor ?? 'var(--el-text-color-regular)'
+  return props.data.offColor ?? 'var(--ml-theme-text-primary)'
 })
 
 const handleClicked = () => {
@@ -104,6 +105,6 @@ const handleClicked = () => {
   cursor: pointer;
   width: v-bind(size);
   height: v-bind(size);
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
 }
 </style>

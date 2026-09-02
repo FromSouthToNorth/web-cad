@@ -5,15 +5,15 @@
       <label class="ml-hatch-fill-type-panel__label">
         {{ label }}
       </label>
-      <ElSelect
-        :model-value="modelValue"
+      <a-select
+        :value="modelValue"
         :disabled="disabled"
-        @update:model-value="handleFillTypeChange"
+        @change="handleFillTypeChange"
       >
-        <ElOption label="Solid" value="solid" />
-        <ElOption label="Pattern" value="pattern" />
-        <ElOption label="Gradient" value="gradient" />
-      </ElSelect>
+        <a-select-option value="solid">Solid</a-select-option>
+        <a-select-option value="pattern">Pattern</a-select-option>
+        <a-select-option value="gradient">Gradient</a-select-option>
+      </a-select>
     </div>
 
     <!-- Row 2: Fill Color -->
@@ -62,7 +62,6 @@
 </template>
 
 <script setup lang="ts">
-import { ElOption, ElSelect } from 'element-plus'
 
 interface MlHatchFillTypePanelProps {
   modelValue?: string
@@ -148,16 +147,16 @@ const handleGradient2ColorChange = (e: Event) => {
 .ml-hatch-fill-type-panel__color-input {
   flex: 1;
   height: 28px;
-  border: 1px solid var(--el-border-color);
+  border: 1px solid var(--ml-theme-border);
   border-radius: 2px;
   cursor: pointer;
 }
 
-:deep(.el-select) {
+:deep(.ant-select) {
   flex: 1;
 }
 
-:deep(.el-select .el-select__wrapper) {
+:deep(.ant-select .ant-select-selector) {
   height: 28px;
 }
 </style>

@@ -126,8 +126,8 @@ onUnmounted(() => {
   justify-content: center;
   box-sizing: border-box;
   padding: 0 8px;
-  color: var(--el-text-color-regular);
-  font-size: var(--el-font-size-small);
+  color: var(--ml-theme-text-primary);
+  font-size: 12px;
   line-height: 1.2;
   text-align: center;
   pointer-events: none;

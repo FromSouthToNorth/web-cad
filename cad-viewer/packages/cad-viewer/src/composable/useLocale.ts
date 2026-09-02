@@ -1,8 +1,4 @@
 import { AcApI18n, AcApLocale } from '@mlightcad/cad-simple-viewer'
-import cs from 'element-plus/es/locale/lang/cs'
-import en from 'element-plus/es/locale/lang/en'
-import tr from 'element-plus/es/locale/lang/tr'
-import zh from 'element-plus/es/locale/lang/zh-cn'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -100,18 +96,9 @@ export function useLocale(propLocale?: LocaleProp) {
     }
   )
 
-  // Element Plus locale computed
-  const elementPlusLocale = computed(() => {
-    if (effectiveLocale.value === 'zh') return zh
-    if (effectiveLocale.value === 'tr') return tr
-    if (effectiveLocale.value === 'cs') return cs
-    return en
-  })
-
   return {
     currentLocale,
     effectiveLocale,
-    elementPlusLocale,
     setLocale,
     clearStoragePreference,
     isControlled: computed(() => !!(propLocale && propLocale !== 'default'))

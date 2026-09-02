@@ -5,44 +5,43 @@
     :disabled="disabled"
     :control-width="controlWidth"
   >
-    <el-select
-      :model-value="modelValue"
+    <a-select
+      :value="modelValue"
       :disabled="disabled"
       :placeholder="placeholder"
-      filterable
+      show-search
       size="small"
       class="ml-ribbon-font-select__control"
-      @update:model-value="emit('update:modelValue', $event as string)"
+      @change="emit('update:modelValue', $event as string)"
     >
-      <el-option
+      <a-select-option
         v-for="name in options"
         :key="name"
         :label="name"
         :value="name"
       />
-    </el-select>
+    </a-select>
   </ml-ribbon-property-field>
-  <el-select
+  <a-select
     v-else
-    :model-value="modelValue"
+    :value="modelValue"
     :disabled="disabled"
     :placeholder="placeholder"
-    filterable
+    show-search
     size="default"
     class="ml-ribbon-font-select--plain"
-    @update:model-value="emit('update:modelValue', $event as string)"
+    @change="emit('update:modelValue', $event as string)"
   >
-    <el-option
+    <a-select-option
       v-for="name in options"
       :key="name"
       :label="name"
       :value="name"
     />
-  </el-select>
+  </a-select>
 </template>
 
 <script setup lang="ts">
-import { ElOption, ElSelect } from 'element-plus'
 import { h } from 'vue'
 
 import MlRibbonPropertyField from './MlRibbonPropertyField.vue'

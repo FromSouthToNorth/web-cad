@@ -1,4 +1,4 @@
-import { CircleClose } from '@element-plus/icons-vue'
+import { CloseCircleOutlined } from '@ant-design/icons-vue'
 import type { AcEdCommandEventArgs } from '@mlightcad/cad-simple-viewer'
 import {
   AcApDocManager,
@@ -1684,7 +1684,7 @@ export function useMTextContextualRibbon({
                   label: t('main.ribbon.mtext.command.close'),
                   tooltip: t('main.ribbon.mtext.tooltip.close'),
                   size: 'large',
-                  props: { icon: CircleClose }
+                  props: { icon: CloseCircleOutlined }
                 }
               ]
             }

@@ -1,87 +1,85 @@
 <template>
-  <el-config-provider :size="'small'">
-    <ml-tool-palette
-      class="ml-layer-manager"
-      :style="paletteStyle"
-      v-model="store.dialogs.layerManager"
-      :title="activeTabTitle"
-      :left-offset="paletteOffsets.left"
-      :right-offset="paletteOffsets.right"
-      :top-offset="paletteOffsets.top"
-      :bottom-offset="paletteOffsets.bottom"
+  <ml-tool-palette
+    class="ml-layer-manager"
+    :style="paletteStyle"
+    v-model="store.dialogs.layerManager"
+    :title="activeTabTitle"
+    :left-offset="paletteOffsets.left"
+    :right-offset="paletteOffsets.right"
+    :top-offset="paletteOffsets.top"
+    :bottom-offset="paletteOffsets.bottom"
+  >
+    <ml-overflow-tabs
+      v-model="store.dialogs.activePaletteTab"
+      :tabs="tabs"
+      :more-tabs-label="t('main.toolPalette.moreTabs')"
     >
-      <ml-overflow-tabs
-        v-model="store.dialogs.activePaletteTab"
-        :tabs="tabs"
-        :more-tabs-label="t('main.toolPalette.moreTabs')"
+      <div
+        v-if="store.dialogs.activePaletteTab === 'layerManager'"
+        class="ml-layer-list-wrapper"
       >
-        <div
-          v-if="store.dialogs.activePaletteTab === 'layerManager'"
-          class="ml-layer-list-wrapper"
-        >
-          <ml-layer-list :editor="props.editor" />
-        </div>
-        <ml-entity-properties
-          v-else-if="store.dialogs.activePaletteTab === 'entityProperties'"
-          :entity-props-list="properties"
-        />
-        <div
-          v-else-if="store.dialogs.activePaletteTab === 'countList'"
-          class="ml-count-list-wrapper"
-        >
-          <ml-count-list />
-        </div>
-        <div
-          v-else-if="store.dialogs.activePaletteTab === 'designReview'"
-          class="ml-design-review-wrapper"
-        >
-          <ml-design-review-palette />
-        </div>
-        <div
-          v-else-if="store.dialogs.activePaletteTab === 'missingResources'"
-          class="ml-missing-resources-wrapper"
-        >
-          <ml-missing-resources />
-        </div>
-        <div
-          v-else-if="store.dialogs.activePaletteTab === 'memoryProfile'"
-          class="ml-memory-profile-wrapper"
-        >
-          <ml-memory-profile />
-        </div>
-        <div
-          v-else-if="store.dialogs.activePaletteTab === 'openFileProfile'"
-          class="ml-open-file-profile-wrapper"
-        >
-          <ml-open-file-profile />
-        </div>
-        <div
-          v-else-if="store.dialogs.activePaletteTab === 'blocks'"
-          class="ml-blocks-palette-wrapper"
-        >
-          <ml-blocks-palette />
-        </div>
-        <div
-          v-else-if="
-            store.features.agentPlugin &&
-            store.dialogs.activePaletteTab === 'agent'
-          "
-          class="ml-agent-palette-wrapper"
-        >
-          <agent-chat-panel embedded />
-        </div>
-        <div
-          v-else-if="
-            store.features.searchPlugin &&
-            store.dialogs.activePaletteTab === 'search'
-          "
-          class="ml-search-palette-wrapper"
-        >
-          <search-panel />
-        </div>
-      </ml-overflow-tabs>
-    </ml-tool-palette>
-  </el-config-provider>
+        <ml-layer-list :editor="props.editor" />
+      </div>
+      <ml-entity-properties
+        v-else-if="store.dialogs.activePaletteTab === 'entityProperties'"
+        :entity-props-list="properties"
+      />
+      <div
+        v-else-if="store.dialogs.activePaletteTab === 'countList'"
+        class="ml-count-list-wrapper"
+      >
+        <ml-count-list />
+      </div>
+      <div
+        v-else-if="store.dialogs.activePaletteTab === 'designReview'"
+        class="ml-design-review-wrapper"
+      >
+        <ml-design-review-palette />
+      </div>
+      <div
+        v-else-if="store.dialogs.activePaletteTab === 'missingResources'"
+        class="ml-missing-resources-wrapper"
+      >
+        <ml-missing-resources />
+      </div>
+      <div
+        v-else-if="store.dialogs.activePaletteTab === 'memoryProfile'"
+        class="ml-memory-profile-wrapper"
+      >
+        <ml-memory-profile />
+      </div>
+      <div
+        v-else-if="store.dialogs.activePaletteTab === 'openFileProfile'"
+        class="ml-open-file-profile-wrapper"
+      >
+        <ml-open-file-profile />
+      </div>
+      <div
+        v-else-if="store.dialogs.activePaletteTab === 'blocks'"
+        class="ml-blocks-palette-wrapper"
+      >
+        <ml-blocks-palette />
+      </div>
+      <div
+        v-else-if="
+          store.features.agentPlugin &&
+          store.dialogs.activePaletteTab === 'agent'
+        "
+        class="ml-agent-palette-wrapper"
+      >
+        <agent-chat-panel embedded />
+      </div>
+      <div
+        v-else-if="
+          store.features.searchPlugin &&
+          store.dialogs.activePaletteTab === 'search'
+        "
+        class="ml-search-palette-wrapper"
+      >
+        <search-panel />
+      </div>
+    </ml-overflow-tabs>
+  </ml-tool-palette>
 </template>
 
 <script setup lang="ts">
@@ -92,7 +90,6 @@ import {
   MlOverflowTabs,
   MlToolPalette
 } from '@mlightcad/ui-components'
-import { ElConfigProvider } from 'element-plus'
 import { computed, defineAsyncComponent, nextTick, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 

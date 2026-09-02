@@ -23,7 +23,7 @@
           </div>
           <div class="ml-text-style-dlg__left-stack">
             <div class="ml-text-style-dlg__list-box">
-              <el-scrollbar class="ml-text-style-dlg__list-scroll">
+              <div class="ml-text-style-dlg__list-scroll">
                 <ul class="ml-text-style-dlg__list" role="listbox">
                   <li
                     v-for="name in styleNames"
@@ -40,7 +40,7 @@
                     {{ name }}
                   </li>
                 </ul>
-              </el-scrollbar>
+              </div>
             </div>
 
             <div class="ml-text-style-dlg__preview" aria-hidden="true">
@@ -63,79 +63,81 @@
               >
                 <div class="ml-text-style-dlg__pair-grid">
                   <div class="ml-text-style-dlg__pair-col">
-                    <el-form
-                      label-position="top"
-                      class="ml-text-style-dlg__form"
-                    >
-                      <el-form-item :label="t('dialog.textStyleDlg.fontName')">
-                        <el-select
-                          v-model="form.font"
-                          filterable
+                    <a-form layout="vertical" class="ml-text-style-dlg__form">
+                      <a-form-item :label="t('dialog.textStyleDlg.fontName')">
+                        <a-select
+                          v-model:value="form.font"
+                          show-search
+                          :filter-option="filterOptionByLabel"
                           class="ml-text-style-dlg__control"
                           @change="handleFontChange"
                         >
-                          <el-option
+                          <a-select-option
                             v-for="opt in fontOptions"
                             :key="opt.value"
-                            :label="opt.label"
                             :value="opt.value"
-                          />
-                        </el-select>
-                      </el-form-item>
-                      <el-form-item class="ml-text-style-dlg__form-item--plain">
-                        <el-checkbox
-                          v-model="form.useBigFont"
+                          >
+                            {{ opt.label }}
+                          </a-select-option>
+                        </a-select>
+                      </a-form-item>
+                      <a-form-item class="ml-text-style-dlg__form-item--plain">
+                        <a-checkbox
+                          v-model:checked="form.useBigFont"
                           :disabled="!bigFontSupported"
                         >
                           {{ t('dialog.textStyleDlg.useBigFont') }}
-                        </el-checkbox>
-                      </el-form-item>
-                    </el-form>
+                        </a-checkbox>
+                      </a-form-item>
+                    </a-form>
                   </div>
                   <div class="ml-text-style-dlg__pair-col">
-                    <el-form
+                    <a-form
                       v-if="form.useBigFont"
-                      label-position="top"
+                      layout="vertical"
                       class="ml-text-style-dlg__form"
                     >
-                      <el-form-item
+                      <a-form-item
                         :label="t('dialog.textStyleDlg.bigFontName')"
                       >
-                        <el-select
-                          v-model="form.bigFont"
-                          filterable
+                        <a-select
+                          v-model:value="form.bigFont"
+                          show-search
+                          :filter-option="filterOptionByLabel"
                           class="ml-text-style-dlg__control"
                         >
-                          <el-option
+                          <a-select-option
                             v-for="opt in bigFontOptions"
                             :key="opt.value"
-                            :label="opt.label"
                             :value="opt.value"
-                          />
-                        </el-select>
-                      </el-form-item>
-                    </el-form>
-                    <el-form
+                          >
+                            {{ opt.label }}
+                          </a-select-option>
+                        </a-select>
+                      </a-form-item>
+                    </a-form>
+                    <a-form
                       v-else
-                      label-position="top"
+                      layout="vertical"
                       class="ml-text-style-dlg__form"
                     >
-                      <el-form-item :label="t('dialog.textStyleDlg.fontStyle')">
-                        <el-select
-                          v-model="form.fontStyle"
+                      <a-form-item :label="t('dialog.textStyleDlg.fontStyle')">
+                        <a-select
+                          v-model:value="form.fontStyle"
                           :disabled="!fontStyleEnabled"
                           class="ml-text-style-dlg__control"
                           @change="handleFontStyleChange"
                         >
-                          <el-option
+                          <a-select-option
                             v-for="style in fontStyleOptions"
                             :key="style"
-                            :label="style"
                             :value="style"
-                          />
-                        </el-select>
-                      </el-form-item>
-                    </el-form>
+                          >
+                            {{ style }}
+                          </a-select-option>
+                        </a-select>
+                      </a-form-item>
+                    </a-form>
                   </div>
                 </div>
               </ml-fieldset-group>
@@ -148,24 +150,20 @@
               >
                 <div class="ml-text-style-dlg__pair-grid">
                   <div class="ml-text-style-dlg__pair-col">
-                    <el-form
-                      label-position="top"
-                      class="ml-text-style-dlg__form"
-                    >
-                      <el-form-item
+                    <a-form layout="vertical" class="ml-text-style-dlg__form">
+                      <a-form-item
                         :label="t('dialog.textStyleDlg.textHeight')"
                       >
-                        <el-input-number
+                        <a-input-number
                           :key="`${selectedName}-height`"
-                          v-model="form.textHeight"
+                          v-model:value="form.textHeight"
                           :min="0"
                           :step="0.1"
                           :precision="4"
-                          controls-position="right"
                           class="ml-text-style-dlg__control"
                         />
-                      </el-form-item>
-                    </el-form>
+                      </a-form-item>
+                    </a-form>
                   </div>
                   <div
                     class="ml-text-style-dlg__pair-col ml-text-style-dlg__pair-col--spacer"
@@ -185,47 +183,42 @@
                   <div
                     class="ml-text-style-dlg__pair-col ml-text-style-dlg__effects-checks"
                   >
-                    <el-checkbox v-model="form.upsideDown">
+                    <a-checkbox v-model:checked="form.upsideDown">
                       {{ t('dialog.textStyleDlg.upsideDown') }}
-                    </el-checkbox>
-                    <el-checkbox v-model="form.backwards">
+                    </a-checkbox>
+                    <a-checkbox v-model:checked="form.backwards">
                       {{ t('dialog.textStyleDlg.backwards') }}
-                    </el-checkbox>
-                    <el-checkbox v-model="form.vertical">
+                    </a-checkbox>
+                    <a-checkbox v-model:checked="form.vertical">
                       {{ t('dialog.textStyleDlg.vertical') }}
-                    </el-checkbox>
+                    </a-checkbox>
                   </div>
                   <div class="ml-text-style-dlg__pair-col">
-                    <el-form
-                      label-position="top"
-                      class="ml-text-style-dlg__form"
-                    >
-                      <el-form-item
+                    <a-form layout="vertical" class="ml-text-style-dlg__form">
+                      <a-form-item
                         :label="t('dialog.textStyleDlg.widthFactor')"
                       >
-                        <el-input-number
+                        <a-input-number
                           :key="`${selectedName}-width`"
-                          v-model="form.widthFactor"
+                          v-model:value="form.widthFactor"
                           :min="0.01"
                           :step="0.1"
                           :precision="4"
-                          controls-position="right"
                           class="ml-text-style-dlg__control"
                         />
-                      </el-form-item>
-                      <el-form-item
+                      </a-form-item>
+                      <a-form-item
                         :label="t('dialog.textStyleDlg.obliqueAngle')"
                       >
-                        <el-input-number
+                        <a-input-number
                           :key="`${selectedName}-oblique`"
-                          v-model="form.obliqueAngle"
+                          v-model:value="form.obliqueAngle"
                           :step="1"
                           :precision="0"
-                          controls-position="right"
                           class="ml-text-style-dlg__control"
                         />
-                      </el-form-item>
-                    </el-form>
+                      </a-form-item>
+                    </a-form>
                   </div>
                 </div>
               </ml-fieldset-group>
@@ -234,23 +227,23 @@
         </div>
 
         <div class="ml-text-style-dlg__actions">
-          <el-button
+          <a-button
             class="ml-text-style-dlg__action-btn"
             :disabled="!canSetCurrent"
             @click="handleSetCurrent"
           >
             {{ t('dialog.textStyleDlg.setCurrent') }}
-          </el-button>
-          <el-button class="ml-text-style-dlg__action-btn" @click="handleNew">
+          </a-button>
+          <a-button class="ml-text-style-dlg__action-btn" @click="handleNew">
             {{ t('dialog.textStyleDlg.new') }}
-          </el-button>
-          <el-button
+          </a-button>
+          <a-button
             class="ml-text-style-dlg__action-btn"
             :disabled="!canDelete"
             @click="handleDelete"
           >
             {{ t('dialog.textStyleDlg.delete') }}
-          </el-button>
+          </a-button>
         </div>
       </div>
     </div>
@@ -266,36 +259,35 @@
     @ok="handleNewOk"
     @cancel="handleNewCancel"
   >
-    <el-form label-position="top" class="ml-text-style-dlg__new-form">
-      <el-form-item :label="t('dialog.textStyleDlg.newStyleName')">
-        <el-input
+    <a-form layout="vertical" class="ml-text-style-dlg__new-form">
+      <a-form-item :label="t('dialog.textStyleDlg.newStyleName')">
+        <a-input
           ref="newStyleInputRef"
-          v-model="newStyleName"
+          v-model:value="newStyleName"
           class="ml-text-style-dlg__control"
           @keyup.enter="handleNewOk"
         />
-      </el-form-item>
+      </a-form-item>
       <div v-if="newStyleError" class="ml-text-style-dlg__new-error">
         {{ newStyleError }}
       </div>
-    </el-form>
+    </a-form>
   </ml-base-dialog>
 </template>
 
 <script setup lang="ts">
 import {
-  ElButton,
-  ElCheckbox,
-  ElForm,
-  ElFormItem,
-  ElInput,
-  ElInputNumber,
-  ElMessage,
-  ElMessageBox,
-  ElOption,
-  ElScrollbar,
-  ElSelect
-} from 'element-plus'
+  Button as AButton,
+  Checkbox as ACheckbox,
+  Form as AForm,
+  FormItem as AFormItem,
+  Input as AInput,
+  InputNumber as AInputNumber,
+  message,
+  Modal,
+  Select as ASelect,
+  SelectOption as ASelectOption
+} from 'ant-design-vue'
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -347,7 +339,13 @@ const visible = computed({
 const newStyleVisible = ref(false)
 const newStyleName = ref('')
 const newStyleError = ref('')
-const newStyleInputRef = ref<InstanceType<typeof ElInput>>()
+const newStyleInputRef = ref<InstanceType<typeof AInput> | null>(null)
+
+/** antdv `show-search` filter: match label against the typed input. */
+function filterOptionByLabel(input: string, option: { label?: string }) {
+  const label = option?.label ?? ''
+  return String(label).toLowerCase().includes(input.toLowerCase())
+}
 
 function handleOpen() {
   openDialog()
@@ -363,7 +361,7 @@ function handleOk() {
 
 function handleSetCurrent() {
   if (setCurrentStyle()) {
-    ElMessage.success(
+    message.success(
       t('dialog.textStyleDlg.setCurrentDone', { name: selectedName.value })
     )
   }
@@ -377,7 +375,7 @@ function handleNew() {
 
 function handleNewDialogOpen() {
   void nextTick(() => {
-    newStyleInputRef.value?.focus()
+    ;(newStyleInputRef.value as HTMLInputElement | null)?.focus?.()
   })
 }
 
@@ -406,38 +404,32 @@ function handleNewOk() {
   if (addStyle(name)) {
     newStyleVisible.value = false
     newStyleName.value = ''
-    ElMessage.success(t('dialog.textStyleDlg.created', { name }))
+    message.success(t('dialog.textStyleDlg.created', { name }))
   }
 }
 
-async function handleDelete() {
+function handleDelete() {
   const name = selectedName.value
   if (!canDelete.value) return
 
-  try {
-    await ElMessageBox.confirm(
-      t('dialog.textStyleDlg.deleteConfirm', { name }),
-      t('dialog.textStyleDlg.deleteTitle'),
-      {
-        confirmButtonText: t('dialog.textStyleDlg.delete'),
-        cancelButtonText: t('dialog.baseDialog.cancel'),
-        type: 'warning'
+  Modal.confirm({
+    title: t('dialog.textStyleDlg.deleteTitle'),
+    content: t('dialog.textStyleDlg.deleteConfirm', { name }),
+    okText: t('dialog.textStyleDlg.delete'),
+    cancelText: t('dialog.baseDialog.cancel'),
+    onOk() {
+      if (deleteSelectedStyle()) {
+        message.success(t('dialog.textStyleDlg.deleted', { name }))
       }
-    )
-  } catch {
-    return
-  }
-
-  if (deleteSelectedStyle()) {
-    ElMessage.success(t('dialog.textStyleDlg.deleted', { name }))
-  }
+    }
+  })
 }
 </script>
 
 <style scoped>
 .ml-text-style-dlg__current {
   margin-bottom: 8px;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-secondary, #64748b);
 }
 
 .ml-text-style-dlg__layout {
@@ -479,7 +471,7 @@ async function handleDelete() {
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
-  border: 1px solid var(--el-border-color);
+  border: 1px solid var(--ml-theme-border, #e2e8f0);
   border-radius: 2px;
 }
 
@@ -491,26 +483,15 @@ async function handleDelete() {
 .ml-text-style-dlg__list-scroll {
   height: 100%;
   width: 100%;
-}
-
-.ml-text-style-dlg__list-scroll :deep(.el-scrollbar) {
-  height: 100%;
-  width: 100%;
-}
-
-.ml-text-style-dlg__list-scroll :deep(.el-scrollbar__wrap) {
-  overflow-x: hidden;
-}
-
-.ml-text-style-dlg__list-scroll :deep(.el-scrollbar__view) {
-  width: 100%;
-  box-sizing: border-box;
+  overflow: auto;
 }
 
 .ml-text-style-dlg__list {
   list-style: none;
   margin: 0;
   padding: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .ml-text-style-dlg__list-item {
@@ -520,11 +501,11 @@ async function handleDelete() {
 }
 
 .ml-text-style-dlg__list-item:hover {
-  background: var(--el-fill-color-light);
+  background: var(--ml-theme-bg-hover, #f1f5f9);
 }
 
 .ml-text-style-dlg__list-item--active {
-  background: var(--el-color-primary);
+  background: var(--ml-theme-primary, #3b82f6);
   color: #fff;
 }
 
@@ -613,32 +594,32 @@ async function handleDelete() {
   padding: 2px 0;
 }
 
-.ml-text-style-dlg__effects-checks :deep(.el-checkbox) {
+.ml-text-style-dlg__effects-checks :deep(.ant-checkbox-wrapper) {
   height: auto;
-  margin-right: 0;
+  margin-inline-end: 0;
   line-height: 1.2;
 }
 
-.ml-text-style-dlg__new-form :deep(.el-form-item) {
+.ml-text-style-dlg__new-form :deep(.ant-form-item) {
   margin-bottom: 0;
 }
 
 .ml-text-style-dlg__new-error {
   margin-top: 6px;
-  color: var(--el-color-danger);
+  color: var(--ml-theme-color-danger, #ef4444);
   font-size: var(--ml-dialog-font-size, 12px);
 }
 
-.ml-text-style-dlg__form :deep(.el-form-item) {
+.ml-text-style-dlg__form :deep(.ant-form-item) {
   margin-bottom: 6px;
 }
 
-.ml-text-style-dlg__form :deep(.el-form-item:last-child) {
+.ml-text-style-dlg__form :deep(.ant-form-item:last-child) {
   margin-bottom: 0;
 }
 
-.ml-text-style-dlg__form-item--plain :deep(.el-form-item__content) {
-  line-height: 1;
+.ml-text-style-dlg__form-item--plain :deep(.ant-form-item-control-input) {
+  min-height: auto;
 }
 
 .ml-text-style-dlg__control {
@@ -646,12 +627,12 @@ async function handleDelete() {
   max-width: 100%;
 }
 
-.ml-text-style-dlg__form :deep(.el-input-number) {
+.ml-text-style-dlg__form :deep(.ant-input-number) {
   width: 100%;
   max-width: 100%;
 }
 
-.ml-text-style-dlg__form :deep(.el-select) {
+.ml-text-style-dlg__form :deep(.ant-select) {
   width: 100%;
   max-width: 100%;
 }
@@ -667,10 +648,9 @@ async function handleDelete() {
 
 .ml-text-style-dlg__action-btn {
   width: 100%;
-  margin: 0 !important;
 }
 
-.ml-text-style-dlg__actions :deep(.el-button) {
+.ml-text-style-dlg__actions :deep(.ant-btn) {
   width: 100%;
   margin: 0 !important;
   padding-left: 6px;
@@ -678,7 +658,7 @@ async function handleDelete() {
   justify-content: center;
 }
 
-.ml-text-style-dlg__actions :deep(.el-button > span) {
+.ml-text-style-dlg__actions :deep(.ant-btn > span) {
   width: 100%;
   justify-content: center;
 }

@@ -5,9 +5,7 @@
   >
     <!-- Notification Icon -->
     <div class="ml-notification-item-icon">
-      <el-icon>
-        <component :is="typeIcon" />
-      </el-icon>
+      <component :is="typeIcon" />
     </div>
 
     <!-- Notification Content -->
@@ -18,7 +16,7 @@
           <template
             v-if="notification.actions && notification.actions.length > 0"
           >
-            <el-button
+            <a-button
               v-for="action in notification.actions"
               :key="action.label"
               :type="action.primary ? 'primary' : 'default'"
@@ -26,11 +24,11 @@
               @click="handleAction(action)"
             >
               {{ action.label }}
-            </el-button>
+            </a-button>
           </template>
-          <el-button text size="small" @click="$emit('close')">
-            <el-icon><Close /></el-icon>
-          </el-button>
+          <a-button type="text" size="small" @click="$emit('close')">
+            <CloseOutlined />
+          </a-button>
         </div>
       </div>
 
@@ -49,13 +47,12 @@
 
 <script setup lang="ts">
 import {
-  CircleCloseFilled,
-  Close,
-  InfoFilled,
-  SuccessFilled,
+  CheckCircleFilled,
+  CloseCircleFilled,
+  CloseOutlined,
+  InfoCircleFilled,
   WarningFilled
-} from '@element-plus/icons-vue'
-import { ElButton, ElIcon } from 'element-plus'
+} from '@ant-design/icons-vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -80,15 +77,15 @@ const { t } = useI18n()
 const typeIcon = computed(() => {
   switch (props.notification.type) {
     case 'info':
-      return InfoFilled
+      return InfoCircleFilled
     case 'warning':
       return WarningFilled
     case 'error':
-      return CircleCloseFilled
+      return CloseCircleFilled
     case 'success':
-      return SuccessFilled
+      return CheckCircleFilled
     default:
-      return InfoFilled
+      return InfoCircleFilled
   }
 })
 
@@ -122,12 +119,12 @@ const formatTime = (timestamp: Date) => {
   display: flex;
   gap: 12px;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  border-bottom: 1px solid var(--ml-theme-border);
   transition: background-color 0.2s ease;
 }
 
 .ml-notification-item:hover {
-  background-color: var(--el-fill-color-light);
+  background-color: var(--ml-theme-bg-hover);
 }
 
 .ml-notification-item:last-child {
@@ -145,19 +142,19 @@ const formatTime = (timestamp: Date) => {
 }
 
 .ml-notification-item--info .ml-notification-item-icon {
-  color: var(--el-color-info);
+  color: #06b6d4;
 }
 
 .ml-notification-item--warning .ml-notification-item-icon {
-  color: var(--el-color-warning);
+  color: #f59e0b;
 }
 
 .ml-notification-item--error .ml-notification-item-icon {
-  color: var(--el-color-danger);
+  color: #ef4444;
 }
 
 .ml-notification-item--success .ml-notification-item-icon {
-  color: var(--el-color-success);
+  color: var(--ml-theme-primary);
 }
 
 .ml-notification-item-content {
@@ -177,7 +174,7 @@ const formatTime = (timestamp: Date) => {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--el-text-color-primary);
+  color: var(--ml-theme-text-heading);
   line-height: 1.4;
   flex: 1;
 }
@@ -192,7 +189,7 @@ const formatTime = (timestamp: Date) => {
 .ml-notification-item-message {
   margin: 0 0 8px 0;
   font-size: 13px;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
   line-height: 1.4;
   word-wrap: break-word;
 }
@@ -205,11 +202,11 @@ const formatTime = (timestamp: Date) => {
 
 .ml-notification-item-time {
   font-size: 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary);
 }
 
 /* Dark theme adjustments */
 .dark .ml-notification-item:hover {
-  background-color: var(--el-fill-color-darker);
+  background-color: var(--ml-theme-bg-surface);
 }
 </style>

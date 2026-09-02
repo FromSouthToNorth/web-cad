@@ -1,46 +1,38 @@
 <template>
   <div class="ml-layer-table-wrap">
-    <el-table
-      :data="layers"
+    <a-table
+      :data-source="layers"
+      :columns="tableColumns"
       class="ml-layer-table"
-      border
+      :bordered="true"
       :row-key="getRowKey"
-      highlight-current-row
       :row-class-name="getRowClassName"
-      :current-row-key="selectedLayerName ?? undefined"
-      @current-change="handleCurrentRowChange"
-      @row-click="handleRowClick"
-      @row-dblclick="handleRowDbClick"
+      :custom-row="customRowHandlers"
+      :pagination="false"
+      size="small"
     >
-      <el-table-column
-        property="name"
-        :label="t('main.toolPalette.layerManager.layerList.name')"
-        min-width="140"
-        resizable
-        sortable
-        show-overflow-tooltip
-      >
-        <template #default="scope">
-          <el-input
-            v-if="scope.row.isDraft"
+      <template #bodyCell="{ column, record }">
+        <!-- Name column -->
+        <template v-if="column.key === 'name'">
+          <input
+            v-if="record.isDraft"
             ref="draftInputRef"
-            :model-value="draftLayerName"
-            size="small"
+            :value="draftLayerName"
             class="ml-layer-table-name-input"
             :disabled="readonly"
             :placeholder="
               t('main.toolPalette.layerManager.layerList.newLayerPlaceholder')
             "
             @click.stop
-            @update:model-value="emit('update:draftLayerName', $event)"
+            @input="emit('update:draftLayerName', ($event.target as HTMLInputElement).value)"
             @keydown.enter.prevent="emit('draft-commit')"
             @keydown.escape.prevent="emit('draft-cancel')"
             @blur="emit('draft-commit')"
           />
           <span v-else class="ml-layer-table-name">
-            {{ scope.row.name }}
+            {{ record.name }}
             <span
-              v-if="scope.row.name === currentLayerName"
+              v-if="record.name === currentLayerName"
               class="ml-layer-table-current-marker"
               :title="t('main.toolPalette.layerManager.layerList.currentLayer')"
               aria-hidden="true"
@@ -49,39 +41,21 @@
             </span>
           </span>
         </template>
-      </el-table-column>
 
-      <el-table-column
-        property="isOn"
-        :label="t('main.toolPalette.layerManager.layerList.on')"
-        width="40"
-        resizable
-        align="center"
-      >
-        <template #header>
-          <div class="ml-layer-table-header-toggle">
-            <el-checkbox
-              :model-value="isAllOn"
-              :indeterminate="isSomeOn"
-              :disabled="readonly"
-              :aria-label="t('main.toolPalette.layerManager.layerList.on')"
-              @change="handleToggleAll"
-            />
-          </div>
-        </template>
-        <template #default="scope">
+        <!-- isOn column -->
+        <template v-else-if="column.key === 'isOn'">
           <div class="ml-layer-table-cell">
             <button
               type="button"
               class="ml-layer-table-state-button"
-              :disabled="readonly || scope.row.isDraft"
+              :disabled="readonly || record.isDraft"
               :title="t('main.toolPalette.layerManager.layerList.on')"
               :aria-label="t('main.toolPalette.layerManager.layerList.on')"
-              @click.stop="emitChange(scope.row, 'on', !scope.row.isOn)"
+              @click.stop="emitChange(record, 'on', !record.isOn)"
             >
               <span
                 class="ml-layer-table-state-icon"
-                :class="scope.row.isOn ? 'is-on' : 'is-off'"
+                :class="record.isOn ? 'is-on' : 'is-off'"
                 aria-hidden="true"
               >
                 <component :is="layerLight" />
@@ -89,140 +63,105 @@
             </button>
           </div>
         </template>
-      </el-table-column>
 
-      <el-table-column
-        property="isFrozen"
-        :label="t('main.toolPalette.layerManager.layerList.freeze')"
-        width="48"
-        resizable
-        align="center"
-      >
-        <template #default="scope">
+        <!-- isFrozen column -->
+        <template v-else-if="column.key === 'isFrozen'">
           <div class="ml-layer-table-cell">
             <button
               type="button"
               class="ml-layer-table-state-button"
-              :disabled="readonly || scope.row.isDraft"
+              :disabled="readonly || record.isDraft"
               :title="t('main.toolPalette.layerManager.layerList.freeze')"
               :aria-label="t('main.toolPalette.layerManager.layerList.freeze')"
-              @click.stop="emitChange(scope.row, 'frozen', !scope.row.isFrozen)"
+              @click.stop="emitChange(record, 'frozen', !record.isFrozen)"
             >
               <span
                 class="ml-layer-table-state-icon"
-                :class="scope.row.isFrozen ? 'is-frozen' : 'is-unfrozen'"
+                :class="record.isFrozen ? 'is-frozen' : 'is-unfrozen'"
                 aria-hidden="true"
               >
-                <component :is="layerSnow" v-if="scope.row.isFrozen" />
+                <component :is="layerSnow" v-if="record.isFrozen" />
                 <component :is="layerThawed" v-else />
               </span>
             </button>
           </div>
         </template>
-      </el-table-column>
 
-      <el-table-column
-        property="isLocked"
-        :label="t('main.toolPalette.layerManager.layerList.lock')"
-        width="48"
-        resizable
-        align="center"
-      >
-        <template #default="scope">
+        <!-- isLocked column -->
+        <template v-else-if="column.key === 'isLocked'">
           <div class="ml-layer-table-cell">
             <button
               type="button"
               class="ml-layer-table-state-button"
-              :disabled="readonly || scope.row.isDraft"
+              :disabled="readonly || record.isDraft"
               :title="t('main.toolPalette.layerManager.layerList.lock')"
               :aria-label="t('main.toolPalette.layerManager.layerList.lock')"
-              @click.stop="emitChange(scope.row, 'locked', !scope.row.isLocked)"
+              @click.stop="emitChange(record, 'locked', !record.isLocked)"
             >
               <span
                 class="ml-layer-table-state-icon"
-                :class="scope.row.isLocked ? 'is-locked' : 'is-unlocked'"
+                :class="record.isLocked ? 'is-locked' : 'is-unlocked'"
                 aria-hidden="true"
               >
-                <component :is="layerLocker" v-if="scope.row.isLocked" />
+                <component :is="layerLocker" v-if="record.isLocked" />
                 <component :is="layerUnlocked" v-else />
               </span>
             </button>
           </div>
         </template>
-      </el-table-column>
 
-      <el-table-column
-        property="isPlottable"
-        :label="t('main.toolPalette.layerManager.layerList.plot')"
-        width="48"
-        resizable
-        align="center"
-      >
-        <template #default="scope">
+        <!-- isPlottable column -->
+        <template v-else-if="column.key === 'isPlottable'">
           <div class="ml-layer-table-cell">
             <button
               type="button"
               class="ml-layer-table-state-button"
-              :disabled="readonly || scope.row.isDraft"
+              :disabled="readonly || record.isDraft"
               :title="t('main.toolPalette.layerManager.layerList.plot')"
               :aria-label="t('main.toolPalette.layerManager.layerList.plot')"
               @click.stop="
-                emitChange(scope.row, 'plottable', !scope.row.isPlottable)
+                emitChange(record, 'plottable', !record.isPlottable)
               "
             >
               <span
                 class="ml-layer-table-state-icon ml-layer-table-plot-icon"
-                :class="scope.row.isPlottable ? 'is-plottable' : 'is-no-plot'"
+                :class="record.isPlottable ? 'is-plottable' : 'is-no-plot'"
                 aria-hidden="true"
               >
-                <component :is="layerPlot" v-if="scope.row.isPlottable" />
+                <component :is="layerPlot" v-if="record.isPlottable" />
                 <component :is="layerNoPlot" v-else />
               </span>
             </button>
           </div>
         </template>
-      </el-table-column>
 
-      <el-table-column
-        property="color"
-        :label="t('main.toolPalette.layerManager.layerList.color')"
-        width="75"
-        resizable
-        show-overflow-tooltip
-      >
-        <template #default="scope">
+        <!-- color column -->
+        <template v-else-if="column.key === 'color'">
           <div
             class="ml-layer-table-cell ml-layer-table-color-cell"
             :class="{
               'ml-layer-table-color-cell--disabled':
-                readonly || scope.row.isDraft
+                readonly || record.isDraft
             }"
-            @click.stop="openColorPicker(scope.row)"
+            @click.stop="openColorPicker(record)"
           >
             <span
               class="ml-layer-table-color-swatch"
-              :style="{ backgroundColor: scope.row.cssColor }"
+              :style="{ backgroundColor: record.cssColor }"
             />
             <span class="ml-layer-table-color-name">
-              {{ formatLayerColorName(scope.row) }}
+              {{ formatLayerColorName(record) }}
             </span>
           </div>
         </template>
-      </el-table-column>
 
-      <el-table-column
-        property="linetype"
-        :label="t('main.toolPalette.layerManager.layerList.linetype')"
-        min-width="130"
-        resizable
-        show-overflow-tooltip
-      >
-        <template #default="scope">
+        <!-- linetype column -->
+        <template v-else-if="column.key === 'linetype'">
           <div
-            v-if="readonly || scope.row.isDraft"
+            v-if="readonly || record.isDraft"
             class="ml-layer-table-cell ml-layer-table-text-cell"
           >
-            {{ scope.row.linetype }}
+            {{ record.linetype }}
           </div>
           <div
             v-else
@@ -230,26 +169,19 @@
             @click.stop
           >
             <MlLineTypeSelect
-              :model-value="scope.row.linetype"
-              @change="emitChange(scope.row, 'linetype', $event)"
+              :model-value="record.linetype"
+              @change="emitChange(record, 'linetype', $event)"
             />
           </div>
         </template>
-      </el-table-column>
 
-      <el-table-column
-        property="lineWeight"
-        :label="t('main.toolPalette.layerManager.layerList.lineweight')"
-        min-width="120"
-        resizable
-        show-overflow-tooltip
-      >
-        <template #default="scope">
+        <!-- lineWeight column -->
+        <template v-else-if="column.key === 'lineWeight'">
           <div
-            v-if="readonly || scope.row.isDraft"
+            v-if="readonly || record.isDraft"
             class="ml-layer-table-cell ml-layer-table-text-cell"
           >
-            {{ formatLineWeightLabel(scope.row.lineWeight) }}
+            {{ formatLineWeightLabel(record.lineWeight) }}
           </div>
           <div
             v-else
@@ -257,72 +189,75 @@
             @click.stop
           >
             <MlLineWeightSelect
-              :model-value="scope.row.lineWeight"
+              :model-value="record.lineWeight"
               :placeholder="
                 t('main.toolPalette.layerManager.layerList.lineWeightDefault')
               "
-              @change="emitChange(scope.row, 'lineWeight', $event)"
+              @change="emitChange(record, 'lineWeight', $event)"
             />
           </div>
         </template>
-      </el-table-column>
 
-      <el-table-column
-        property="transparency"
-        :label="t('main.toolPalette.layerManager.layerList.transparency')"
-        width="90"
-        resizable
-        align="center"
-      >
-        <template #default="scope">
+        <!-- transparency column -->
+        <template v-else-if="column.key === 'transparency'">
           <div class="ml-layer-table-cell">
             <span
-              v-if="readonly || scope.row.isDraft"
+              v-if="readonly || record.isDraft"
               class="ml-layer-table-text-value"
             >
-              {{ scope.row.transparency }}
+              {{ record.transparency }}
             </span>
             <input
               v-else
               class="ml-layer-table-text-input"
-              :value="scope.row.transparency"
+              :value="record.transparency"
               @click.stop
               @change="
-                emitChange(scope.row, 'transparency', inputEventValue($event))
+                emitChange(record, 'transparency', inputEventValue($event))
               "
             />
           </div>
         </template>
-      </el-table-column>
 
-      <el-table-column
-        property="description"
-        :label="t('main.toolPalette.layerManager.layerList.description')"
-        min-width="140"
-        resizable
-        show-overflow-tooltip
-      >
-        <template #default="scope">
+        <!-- description column -->
+        <template v-else-if="column.key === 'description'">
           <div class="ml-layer-table-cell">
             <span
-              v-if="readonly || scope.row.isDraft"
+              v-if="readonly || record.isDraft"
               class="ml-layer-table-text-value"
             >
-              {{ scope.row.description }}
+              {{ record.description }}
             </span>
             <input
               v-else
               class="ml-layer-table-text-input"
-              :value="scope.row.description"
+              :value="record.description"
               @click.stop
               @change="
-                emitChange(scope.row, 'description', inputEventValue($event))
+                emitChange(record, 'description', inputEventValue($event))
               "
             />
           </div>
         </template>
-      </el-table-column>
-    </el-table>
+      </template>
+
+      <template #headerCell="{ column }">
+        <template v-if="column.key === 'isOn'">
+          <div class="ml-layer-table-header-toggle">
+            <a-checkbox
+              :checked="isAllOn"
+              :indeterminate="isSomeOn"
+              :disabled="readonly"
+              :aria-label="t('main.toolPalette.layerManager.layerList.on')"
+              @change="handleToggleAll"
+            />
+          </div>
+        </template>
+        <template v-else>
+          {{ column.title }}
+        </template>
+      </template>
+    </a-table>
 
     <ml-color-picker-dlg
       v-if="!readonly"
@@ -337,8 +272,6 @@
 
 <script setup lang="ts">
 import { AcCmColor, AcGiLineWeight } from '@mlightcad/data-model'
-import type { InputInstance } from 'element-plus'
-import { ElCheckbox, ElInput, ElTable, ElTableColumn } from 'element-plus'
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -405,7 +338,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const draftInputRef = ref<InputInstance>()
+const draftInputRef = ref<HTMLInputElement | null>(null)
 const colorDialogVisible = ref(false)
 const colorTargetLayer = ref<MlLayerTableRow | null>(null)
 const oldColor = ref<string | undefined>(undefined)
@@ -439,16 +372,9 @@ const getRowClassName = ({ row }: { row: MlLayerTableRow }) => {
   return classes.join(' ')
 }
 
-const handleToggleAll = (isOn: string | number | boolean) => {
+const handleToggleAll = (e: { target: { checked: boolean } }) => {
   if (props.readonly) return
-  emit('toggle-all-on', Boolean(isOn))
-}
-
-const handleCurrentRowChange = (row: MlLayerTableRow | undefined) => {
-  // Ignore null clears from table data refreshes; keep the last explicit selection.
-  if (row && !row.isDraft) {
-    emit('update:selectedLayerName', row.name)
-  }
+  emit('toggle-all-on', e.target.checked)
 }
 
 const handleRowClick = (row: MlLayerTableRow) => {
@@ -462,6 +388,95 @@ const handleRowDbClick = (row: MlLayerTableRow) => {
   emit('update:selectedLayerName', row.name)
   emit('row-dblclick', row)
 }
+
+const customRowHandlers = (record: MlLayerTableRow) => ({
+  onClick: () => handleRowClick(record),
+  onDblclick: () => handleRowDbClick(record)
+})
+
+const tableColumns = computed(() => [
+  {
+    key: 'name',
+    dataIndex: 'name',
+    title: t('main.toolPalette.layerManager.layerList.name'),
+    ellipsis: { showTitle: true },
+    sorter: true,
+    width: 140,
+    resizable: true
+  },
+  {
+    key: 'isOn',
+    dataIndex: 'isOn',
+    title: t('main.toolPalette.layerManager.layerList.on'),
+    width: 40,
+    align: 'center' as const,
+    resizable: true
+  },
+  {
+    key: 'isFrozen',
+    dataIndex: 'isFrozen',
+    title: t('main.toolPalette.layerManager.layerList.freeze'),
+    width: 48,
+    align: 'center' as const,
+    resizable: true
+  },
+  {
+    key: 'isLocked',
+    dataIndex: 'isLocked',
+    title: t('main.toolPalette.layerManager.layerList.lock'),
+    width: 48,
+    align: 'center' as const,
+    resizable: true
+  },
+  {
+    key: 'isPlottable',
+    dataIndex: 'isPlottable',
+    title: t('main.toolPalette.layerManager.layerList.plot'),
+    width: 48,
+    align: 'center' as const,
+    resizable: true
+  },
+  {
+    key: 'color',
+    dataIndex: 'color',
+    title: t('main.toolPalette.layerManager.layerList.color'),
+    ellipsis: { showTitle: true },
+    width: 75,
+    resizable: true
+  },
+  {
+    key: 'linetype',
+    dataIndex: 'linetype',
+    title: t('main.toolPalette.layerManager.layerList.linetype'),
+    ellipsis: { showTitle: true },
+    width: 130,
+    resizable: true
+  },
+  {
+    key: 'lineWeight',
+    dataIndex: 'lineWeight',
+    title: t('main.toolPalette.layerManager.layerList.lineweight'),
+    ellipsis: { showTitle: true },
+    width: 120,
+    resizable: true
+  },
+  {
+    key: 'transparency',
+    dataIndex: 'transparency',
+    title: t('main.toolPalette.layerManager.layerList.transparency'),
+    width: 90,
+    align: 'center' as const,
+    resizable: true
+  },
+  {
+    key: 'description',
+    dataIndex: 'description',
+    title: t('main.toolPalette.layerManager.layerList.description'),
+    ellipsis: { showTitle: true },
+    width: 140,
+    resizable: true
+  }
+])
 
 const emitChange = (
   row: MlLayerTableRow,
@@ -538,42 +553,42 @@ defineExpose({
   min-width: 100%;
 }
 
-.ml-layer-table .el-table__cell {
+.ml-layer-table .ant-table-cell {
   padding-top: 0;
   padding-bottom: 0;
   font-size: 12px;
 }
 
-.ml-layer-table .el-table__header .el-table__cell {
+.ml-layer-table .ant-table-thead .ant-table-cell {
   padding-top: 2px;
   padding-bottom: 2px;
   font-size: 12px;
 }
 
-.ml-layer-table .el-table__header .cell,
-.ml-layer-table .el-table__body .cell {
+.ml-layer-table .ant-table-thead .ant-table-cell,
+.ml-layer-table .ant-table-tbody .ant-table-cell {
   font-size: 12px;
   line-height: 20px;
   min-height: 20px;
 }
 
-.ml-layer-table .el-table__header .cell {
+.ml-layer-table .ant-table-thead .ant-table-cell {
   white-space: nowrap;
 }
 
 /*
- * Element Plus only sets `th.style.cursor = col-resize` for sortable columns.
+ * Antdv only sets `th.style.cursor = col-resize` for sortable columns.
  * Non-sortable headers rely on `document.body.style.cursor`, which is easy to
  * miss under table cells. Mirror the 8px resize handle so the cursor appears
  * consistently on every column edge (except the last, which is not resizable).
  */
-.ml-layer-table.el-table--border .el-table__header th.el-table__cell {
+.ml-layer-table.ant-table-bordered .ant-table-thead th.ant-table-cell {
   position: relative;
 }
 
-.ml-layer-table.el-table--border
-  .el-table__header
-  th.el-table__cell:not(:last-child)::after {
+.ml-layer-table.ant-table-bordered
+  .ant-table-thead
+  th.ant-table-cell:not(:last-child)::after {
   content: '';
   position: absolute;
   top: 0;
@@ -584,9 +599,9 @@ defineExpose({
   z-index: 2;
 }
 
-.ml-layer-table .el-table__header,
-.ml-layer-table .el-table__body {
-  border-bottom: 1px solid var(--el-border-color);
+.ml-layer-table .ant-table-thead,
+.ml-layer-table .ant-table-tbody {
+  border-bottom: 1px solid var(--ml-theme-border);
 }
 
 .ml-layer-table-cell {
@@ -636,27 +651,27 @@ defineExpose({
   display: inline-flex;
   width: 16px;
   height: 16px;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
 }
 
 .ml-layer-table-state-icon.is-on,
 .ml-layer-table-state-icon.is-plottable {
-  color: var(--el-color-primary);
+  color: var(--ml-theme-primary);
 }
 
 .ml-layer-table-state-icon.is-off,
 .ml-layer-table-state-icon.is-no-plot {
-  color: var(--el-text-color-disabled);
+  color: var(--ml-theme-text-muted);
 }
 
 .ml-layer-table-state-icon.is-frozen,
 .ml-layer-table-state-icon.is-locked {
-  color: var(--el-text-color-primary);
+  color: var(--ml-theme-text-heading);
 }
 
 .ml-layer-table-state-icon.is-unfrozen,
 .ml-layer-table-state-icon.is-unlocked {
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
 }
 
 .ml-layer-table-state-icon :deep(svg) {
@@ -697,7 +712,7 @@ defineExpose({
   width: 14px;
   height: 14px;
   border-radius: 2px;
-  border: 1px solid var(--el-border-color);
+  border: 1px solid var(--ml-theme-border);
   box-sizing: border-box;
 }
 
@@ -718,7 +733,7 @@ defineExpose({
   font-size: 12px;
 }
 
-.ml-layer-table-select-cell :deep(.el-select__wrapper),
+.ml-layer-table-select-cell :deep(.ant-select-selector),
 .ml-layer-table-select-cell :deep(.ml-lineweight-select__trigger) {
   min-height: 20px;
   height: 20px;
@@ -732,17 +747,21 @@ defineExpose({
   font-size: 12px;
 }
 
-.ml-layer-table-select-cell :deep(.el-input__inner),
-.ml-layer-table-name-input :deep(.el-input__inner) {
+.ml-layer-table-select-cell :deep(.ant-input),
+.ml-layer-table-select-cell :deep(.ant-input-affix-wrapper) {
   font-size: 12px;
   height: 20px;
   line-height: 20px;
 }
 
-.ml-layer-table-name-input :deep(.el-input__wrapper) {
-  min-height: 20px;
-  padding-top: 0;
-  padding-bottom: 0;
+.ml-layer-table-name-input {
+  font-size: 12px;
+  height: 20px;
+  line-height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--ml-theme-border);
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .ml-layer-table-text-input {
@@ -751,9 +770,9 @@ defineExpose({
   height: 20px;
   padding: 0 6px;
   border: 1px solid transparent;
-  border-radius: var(--el-border-radius-base);
+  border-radius: 4px;
   background: transparent;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
   font-size: inherit;
   line-height: 20px;
   outline: none;
@@ -762,8 +781,8 @@ defineExpose({
 
 .ml-layer-table-text-input:hover:not(:disabled),
 .ml-layer-table-text-input:focus:not(:disabled) {
-  border-color: var(--el-border-color);
-  background: var(--el-fill-color-blank);
+  border-color: var(--ml-theme-border);
+  background: var(--ml-theme-bg-surface);
 }
 
 .ml-layer-table-text-input:disabled {
@@ -782,37 +801,37 @@ defineExpose({
 }
 
 .ml-layer-table-current-marker {
-  color: var(--el-color-primary);
+  color: var(--ml-theme-primary);
   font-weight: 600;
 }
 
-.ml-layer-table .ml-layer-table-row--current > td.el-table__cell {
+.ml-layer-table .ml-layer-table-row--current > td.ant-table-cell {
   font-weight: 600;
 }
 
-.ml-layer-table .el-table__body tr.current-row > td.el-table__cell {
-  background-color: var(--el-color-primary-light-7) !important;
-  color: var(--el-text-color-primary);
+.ml-layer-table .ant-table-tbody tr.current-row > td.ant-table-cell {
+  background-color: var(--ml-theme-bg-active) !important;
+  color: var(--ml-theme-text-heading);
 }
 
-.ml-layer-table .el-table__body tr.current-row:hover > td.el-table__cell {
-  background-color: var(--el-color-primary-light-5) !important;
+.ml-layer-table .ant-table-tbody tr.current-row:hover > td.ant-table-cell {
+  background-color: var(--ml-theme-bg-active) !important;
 }
 
-html.dark .ml-layer-table .el-table__body tr.current-row > td.el-table__cell {
-  background-color: var(--el-color-primary-dark-2) !important;
-  color: var(--el-color-white);
+html.dark .ml-layer-table .ant-table-tbody tr.current-row > td.ant-table-cell {
+  background-color: var(--ml-theme-primary-active) !important;
+  color: #ffffff;
 }
 
 html.dark
   .ml-layer-table
-  .el-table__body
+  .ant-table-tbody
   tr.current-row:hover
-  > td.el-table__cell {
-  background-color: var(--el-color-primary) !important;
+  > td.ant-table-cell {
+  background-color: var(--ml-theme-primary) !important;
 }
 
-.ml-layer-table .ml-layer-table-row--draft > td.el-table__cell {
-  background-color: var(--el-fill-color-light);
+.ml-layer-table .ml-layer-table-row--draft > td.ant-table-cell {
+  background-color: var(--ml-theme-bg-hover);
 }
 </style>

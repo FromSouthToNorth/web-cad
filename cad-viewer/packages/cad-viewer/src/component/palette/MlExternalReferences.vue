@@ -1,145 +1,127 @@
 <template>
   <div class="ml-external-references">
     <div class="ml-external-references__toolbar">
-      <el-dropdown trigger="click" @command="handleAttachCommand">
-        <el-button
+      <a-dropdown trigger="click">
+        <a-button
           size="small"
           class="ml-external-references__attach-btn"
           :title="t('main.toolPalette.missingResources.attach')"
           :aria-label="t('main.toolPalette.missingResources.attach')"
         >
-          <el-icon :size="16"><Paperclip /></el-icon>
-          <el-icon :size="12" class="ml-external-references__attach-caret">
-            <ArrowDown />
-          </el-icon>
-        </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="dwg">
+          <PaperClipOutlined :style="{ fontSize: '16px' }" />
+          <DownOutlined :style="{ fontSize: '12px' }" class="ml-external-references__attach-caret" />
+        </a-button>
+        <template #overlay>
+          <a-menu @click="handleAttachMenuClick">
+            <a-menu-item key="dwg">
               {{ t('main.toolPalette.missingResources.attachDwg') }}
-            </el-dropdown-item>
-            <el-dropdown-item command="image">
+            </a-menu-item>
+            <a-menu-item key="image">
               {{ t('main.toolPalette.missingResources.attachImage') }}
-            </el-dropdown-item>
-          </el-dropdown-menu>
+            </a-menu-item>
+          </a-menu>
         </template>
-      </el-dropdown>
+      </a-dropdown>
     </div>
 
     <div class="ml-external-references__upper">
       <div class="ml-external-references__section-header">
         {{ t('main.toolPalette.missingResources.fileReferences') }}
       </div>
-      <el-table
-        :data="rows"
+      <a-table
+        :columns="tableColumns"
+        :data-source="rows"
         class="ml-external-references__table"
-        :empty-text="t('main.toolPalette.missingResources.empty')"
-        highlight-current-row
-        :current-row-key="selectedKey ?? undefined"
-        row-key="key"
-        @current-change="handleCurrentChange"
-        @row-dblclick="handleRowDblClick"
+        :pagination="false"
+        :row-key="(record: ExternalRefRow) => record.key"
+        :locale="{ emptyText: t('main.toolPalette.missingResources.empty') }"
+        :custom-row="customRowHandler"
+        size="small"
       >
-        <el-table-column
-          prop="name"
-          :label="t('main.toolPalette.missingResources.name')"
-          min-width="100"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          prop="statusLabel"
-          :label="t('main.toolPalette.missingResources.status')"
-          width="88"
-        >
-          <template #default="{ row }">
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'statusLabel'">
             <span
               class="ml-external-references__status"
               :class="
-                row.status === 'loaded'
+                record.status === 'loaded'
                   ? 'ml-external-references__status--loaded'
                   : 'ml-external-references__status--missing'
               "
             >
-              {{ row.statusLabel }}
+              {{ record.statusLabel }}
             </span>
           </template>
-        </el-table-column>
-        <el-table-column
-          prop="typeLabel"
-          :label="t('main.toolPalette.missingResources.type')"
-          width="88"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          :label="t('main.toolPalette.missingResources.actions')"
-          width="120"
-          align="center"
-        >
-          <template #default="{ row }">
+          <template v-else-if="column.dataIndex === 'typeLabel'">
+            <a-tooltip :title="record.typeLabel" placement="topLeft">
+              <span class="ml-external-references-ellipsis">{{ record.typeLabel }}</span>
+            </a-tooltip>
+          </template>
+          <template v-else-if="column.dataIndex === 'name'">
+            <a-tooltip :title="record.name" placement="topLeft">
+              <span class="ml-external-references-ellipsis">{{ record.name }}</span>
+            </a-tooltip>
+          </template>
+          <template v-else-if="column.dataIndex === 'actions'">
             <div class="ml-external-references__cell-actions">
-              <template v-if="row.kind === 'xref' && row.overlayId">
-                <el-checkbox
-                  :model-value="row.visible"
+              <template v-if="record.kind === 'xref' && record.overlayId">
+                <a-checkbox
+                  :checked="record.visible"
                   :aria-label="t('main.toolPalette.missingResources.visible')"
-                  @change="(v: CheckboxValueType) => handleXrefVisibility(row, v)"
+                  @change="(e: any) => handleXrefVisibility(record, e.target.checked)"
                 />
-                <el-button
-                  link
-                  type="danger"
+                <a-button
+                  type="link"
+                  danger
                   size="small"
-                  @click="handleUnloadXref(row)"
+                  @click="handleUnloadXref(record)"
                 >
                   {{ t('main.toolPalette.missingResources.unload') }}
-                </el-button>
+                </a-button>
               </template>
-              <template v-else-if="row.kind === 'xref'">
-                <el-button
-                  link
-                  type="primary"
+              <template v-else-if="record.kind === 'xref'">
+                <a-button
+                  type="link"
                   size="small"
                   :title="t('main.toolPalette.missingResources.browse')"
-                  @click="handleBrowseXref(row)"
+                  @click="handleBrowseXref(record)"
                 >
                   ...
-                </el-button>
-                <el-button
-                  link
-                  type="primary"
+                </a-button>
+                <a-button
+                  type="link"
                   size="small"
-                  @click="handleUrlXref(row)"
+                  @click="handleUrlXref(record)"
                 >
                   {{ t('main.toolPalette.missingResources.fromUrl') }}
-                </el-button>
+                </a-button>
               </template>
-              <template v-else-if="row.kind === 'image'">
-                <el-tooltip
-                  v-if="row.replacementName"
-                  :content="row.foundAt"
+              <template v-else-if="record.kind === 'image'">
+                <a-tooltip
+                  v-if="record.replacementName"
+                  :title="record.foundAt"
                   placement="top"
-                  :show-after="2000"
                 >
                   <span
                     class="ml-external-references__replace-name"
-                    @click.stop="handleBrowseImage(row)"
+                    @click.stop="handleBrowseImage(record)"
                   >
-                    {{ row.replacementName }}
+                    {{ record.replacementName }}
                   </span>
-                </el-tooltip>
-                <el-button
+                </a-tooltip>
+                <a-button
                   v-else
-                  link
-                  type="primary"
+                  type="link"
                   size="small"
                   :title="t('main.toolPalette.missingResources.replace')"
-                  @click.stop="handleBrowseImage(row)"
+                  @click.stop="handleBrowseImage(record)"
                 >
                   ...
-                </el-button>
+                </a-button>
               </template>
             </div>
           </template>
-        </el-table-column>
-      </el-table>
+        </template>
+      </a-table>
     </div>
 
     <button
@@ -223,7 +205,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowDown, Paperclip } from '@element-plus/icons-vue'
+import { DownOutlined, PaperClipOutlined } from '@ant-design/icons-vue'
 import {
   AcApDocManager,
   acapRunDatabaseEdit,
@@ -231,20 +213,8 @@ import {
   eventBus
 } from '@mlightcad/cad-simple-viewer'
 import { AcDbRasterImage } from '@mlightcad/data-model'
-import {
-  type CheckboxValueType,
-  ElButton,
-  ElCheckbox,
-  ElDropdown,
-  ElDropdownItem,
-  ElDropdownMenu,
-  ElIcon,
-  ElMessageBox,
-  ElTable,
-  ElTableColumn,
-  ElTooltip
-} from 'element-plus'
-import { computed, nextTick, ref, watch } from 'vue'
+import { Input, Modal } from 'ant-design-vue'
+import { computed, h, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import {
@@ -286,6 +256,44 @@ const fileNameFromPath = (path: string) => {
   const parts = path.replace(/\\/g, '/').split('/')
   return parts[parts.length - 1] || path
 }
+
+const tableColumns = [
+  {
+    title: () => t('main.toolPalette.missingResources.name'),
+    dataIndex: 'name',
+    key: 'name',
+    ellipsis: { showTitle: false }
+  },
+  {
+    title: () => t('main.toolPalette.missingResources.status'),
+    dataIndex: 'statusLabel',
+    key: 'statusLabel',
+    width: 88
+  },
+  {
+    title: () => t('main.toolPalette.missingResources.type'),
+    dataIndex: 'typeLabel',
+    key: 'typeLabel',
+    width: 88,
+    ellipsis: { showTitle: false }
+  },
+  {
+    title: () => t('main.toolPalette.missingResources.actions'),
+    dataIndex: 'actions',
+    key: 'actions',
+    width: 120,
+    align: 'center' as const
+  }
+]
+
+const customRowHandler = (record: ExternalRefRow) => ({
+  onClick: () => {
+    selectedKey.value = record.key
+  },
+  onDblclick: () => {
+    handleRowDblClick(record)
+  }
+})
 
 const rows = computed<ExternalRefRow[]>(() => {
   const result: ExternalRefRow[] = []
@@ -376,10 +384,6 @@ watch(
   { immediate: true }
 )
 
-const handleCurrentChange = (row: ExternalRefRow | undefined) => {
-  selectedKey.value = row?.key ?? null
-}
-
 const handleRowDblClick = (row: ExternalRefRow) => {
   if (row.kind === 'image') {
     handleBrowseImage(row)
@@ -427,13 +431,17 @@ const loadBufferAsOverlay = async (
   }
 }
 
-const handleAttachCommand = (command: string | number) => {
+const handleAttachMenuClick = ({ key }: { key: string }) => {
+  handleAttachCommand(key)
+}
+
+const handleAttachCommand = (command: string) => {
   if (command === 'dwg') {
-    // XATTACH (XA): file picker → insertion point → scale → rotation
+    // XATTACH (XA): file picker -> insertion point -> scale -> rotation
     AcApDocManager.instance.sendStringToExecute('xattach')
   } else if (command === 'image') {
     pendingImageRow.value = null
-    // IMAGEATTACH (IAT): file picker → insertion point → scale → rotation
+    // IMAGEATTACH (IAT): file picker -> insertion point -> scale -> rotation
     AcApDocManager.instance.sendStringToExecute('imageattach')
   }
 }
@@ -516,52 +524,44 @@ const handleImageFileChange = async () => {
   applyImageReplacement(row, file)
 }
 
-const handleUrlXref = async (row: ExternalRefRow) => {
-  try {
-    const { value } = await ElMessageBox.prompt(
-      t('main.toolPalette.missingResources.urlPrompt'),
-      t('main.toolPalette.missingResources.fromUrl'),
-      {
-        inputValue: row.pathName?.startsWith('http') ? row.pathName : '',
-        inputPlaceholder: 'https://...',
-        confirmButtonText: t('main.toolPalette.missingResources.load'),
-        cancelButtonText: t('dialog.baseDialog.cancel'),
-        inputValidator: value => {
-          if (!value?.trim()) {
-            return t('main.toolPalette.missingResources.urlRequired')
-          }
-          return true
-        }
-      }
-    )
-    const url = value.trim()
-    const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`)
-    }
-    const buffer = await response.arrayBuffer()
-    const fileName =
-      fileNameFromPath(new URL(url).pathname) ||
-      fileNameFromPath(row.pathName || '') ||
-      `${row.name}.dwg`
-    await loadBufferAsOverlay(row.name, fileName, buffer, url)
-  } catch (error) {
-    if (
-      error === 'cancel' ||
-      (error as { action?: string })?.action === 'cancel'
-    ) {
-      return
-    }
-    eventBus.emit('message', {
-      message: t('main.toolPalette.missingResources.loadFailed', {
-        name: row.name
+const handleUrlXref = (row: ExternalRefRow) => {
+  const urlInputValue = ref(row.pathName?.startsWith('http') ? row.pathName : '')
+
+  Modal.confirm({
+    title: t('main.toolPalette.missingResources.fromUrl'),
+    content: () =>
+      h(Input, {
+        value: urlInputValue.value,
+        'onUpdate:value': (v: string) => {
+          urlInputValue.value = v
+        },
+        placeholder: 'https://...'
       }),
-      type: 'error'
-    })
-  }
+    okText: t('main.toolPalette.missingResources.load'),
+    cancelText: t('dialog.baseDialog.cancel'),
+    onOk: async () => {
+      const value = urlInputValue.value?.trim()
+      if (!value) {
+        throw new Error(t('main.toolPalette.missingResources.urlRequired'))
+      }
+      const response = await fetch(value)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      const buffer = await response.arrayBuffer()
+      const fileName =
+        fileNameFromPath(new URL(value).pathname) ||
+        fileNameFromPath(row.pathName || '') ||
+        `${row.name}.dwg`
+      await loadBufferAsOverlay(row.name, fileName, buffer, value)
+    },
+    onCancel: () => {
+      // user cancelled
+    }
+  })
 }
 
-const handleXrefVisibility = (row: ExternalRefRow, value: CheckboxValueType) => {
+const handleXrefVisibility = (row: ExternalRefRow, value: boolean) => {
   if (!row.overlayId) return
   const visible = value === true
   AcApXrefManager.instance.setVisibleByBlockName(row.name, visible)
@@ -587,7 +587,7 @@ const handleUnloadXref = (row: ExternalRefRow) => {
   min-height: 0;
   overflow: hidden;
   font-size: 12px;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
 }
 
 .ml-external-references__toolbar {
@@ -596,7 +596,7 @@ const handleUnloadXref = (row: ExternalRefRow) => {
   flex: 0 0 auto;
   gap: 4px;
   padding: 4px 8px;
-  border-bottom: 1px solid var(--el-border-color-lighter, #ebeef5);
+  border-bottom: 1px solid var(--ml-theme-border);
 }
 
 .ml-external-references__attach-btn {
@@ -624,9 +624,9 @@ const handleUnloadXref = (row: ExternalRefRow) => {
   padding: 6px 8px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--el-text-color-primary, #303133);
-  background: var(--el-fill-color-light, rgba(0, 0, 0, 0.04));
-  border-bottom: 1px solid var(--el-border-color-lighter, #ebeef5);
+  color: var(--ml-theme-text-heading);
+  background: var(--ml-theme-bg-hover);
+  border-bottom: 1px solid var(--ml-theme-border);
 }
 
 .ml-external-references__table {
@@ -635,12 +635,19 @@ const handleUnloadXref = (row: ExternalRefRow) => {
   min-height: 0;
 }
 
-.ml-external-references__table :deep(.el-table__empty-text) {
+.ml-external-references__table :deep(.ant-table-placeholder) {
   font-size: 12px;
   line-height: 1.4;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary);
   white-space: normal;
   padding: 0 8px;
+}
+
+.ml-external-references-ellipsis {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ml-external-references__cell-actions {
@@ -658,22 +665,22 @@ const handleUnloadXref = (row: ExternalRefRow) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--el-color-primary, #409eff);
+  color: var(--ml-theme-primary);
   cursor: pointer;
   vertical-align: middle;
 }
 
 .ml-external-references__status {
   font-size: 12px;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
 }
 
 .ml-external-references__status--missing {
-  color: var(--el-color-warning);
+  color: #f59e0b;
 }
 
 .ml-external-references__status--loaded {
-  color: var(--el-color-success);
+  color: var(--ml-theme-primary);
 }
 
 .ml-external-references__splitter {
@@ -685,14 +692,14 @@ const handleUnloadXref = (row: ExternalRefRow) => {
   margin: 0;
   padding: 0;
   border: none;
-  border-top: 1px solid var(--el-border-color, #dcdfe6);
-  border-bottom: 1px solid var(--el-border-color, #dcdfe6);
-  background: var(--el-fill-color-light, rgba(0, 0, 0, 0.04));
+  border-top: 1px solid var(--ml-theme-border);
+  border-bottom: 1px solid var(--ml-theme-border);
+  background: var(--ml-theme-bg-hover);
   cursor: pointer;
 }
 
 .ml-external-references__splitter:hover {
-  background: var(--el-fill-color, rgba(0, 0, 0, 0.06));
+  background: var(--ml-theme-bg-subtle);
 }
 
 .ml-external-references__splitter-dots {
@@ -701,7 +708,7 @@ const handleUnloadXref = (row: ExternalRefRow) => {
   border-radius: 2px;
   background: radial-gradient(
     circle,
-    var(--el-text-color-secondary, #909399) 1.25px,
+    var(--ml-theme-text-secondary) 1.25px,
     transparent 1.35px
   );
   background-size: 6px 4px;
@@ -729,7 +736,7 @@ const handleUnloadXref = (row: ExternalRefRow) => {
   align-items: center;
   justify-content: center;
   padding: 8px;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary);
   text-align: center;
 }
 
@@ -742,12 +749,12 @@ const handleUnloadXref = (row: ExternalRefRow) => {
 }
 
 .ml-external-references__detail-label {
-  color: var(--el-text-color-secondary, #909399);
+  color: var(--ml-theme-text-secondary);
 }
 
 .ml-external-references__detail-value {
   min-width: 0;
   word-break: break-all;
-  color: var(--el-text-color-primary, #303133);
+  color: var(--ml-theme-text-heading);
 }
 </style>

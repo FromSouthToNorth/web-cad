@@ -3,35 +3,33 @@
     <!-- Notification Center Header -->
     <div class="ml-notification-center-header">
       <div class="ml-notification-center-title">
-        <el-icon class="ml-notification-center-icon">
-          <Bell />
-        </el-icon>
+        <BellOutlined class="ml-notification-center-icon" />
         <span>{{ titleText }}</span>
       </div>
       <div class="ml-notification-center-actions">
-        <el-tooltip
+        <a-tooltip
           v-if="notifications.length > 0"
-          :content="t('main.notification.center.clearAll')"
-          :hide-after="0"
+          :title="t('main.notification.center.clearAll')"
+          :mouseLeaveDelay="0"
         >
-          <el-button
-            text
-            circle
+          <a-button
+            type="text"
+            shape="circle"
             size="small"
             class="ml-notification-center-clear"
             @click="clearAll"
           >
-            <el-icon><Delete /></el-icon>
-          </el-button>
-        </el-tooltip>
-        <el-button
-          text
+            <DeleteOutlined />
+          </a-button>
+        </a-tooltip>
+        <a-button
+          type="text"
           size="small"
           class="ml-notification-center-close"
           @click="$emit('close')"
         >
-          <el-icon><Close /></el-icon>
-        </el-button>
+          <CloseOutlined />
+        </a-button>
       </div>
     </div>
 
@@ -41,9 +39,7 @@
         v-if="notifications.length === 0"
         class="ml-notification-center-empty"
       >
-        <el-icon class="ml-notification-center-empty-icon">
-          <Bell />
-        </el-icon>
+        <BellOutlined class="ml-notification-center-empty-icon" />
         <p>{{ t('main.notification.center.noNotifications') }}</p>
       </div>
       <div v-else class="ml-notification-list">
@@ -60,8 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { Bell, Close, Delete } from '@element-plus/icons-vue'
-import { ElButton, ElIcon, ElTooltip } from 'element-plus'
+import { BellOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -101,8 +96,8 @@ const handleAction = (action: NotificationAction) => {
   max-width: 100vw; /* never exceed the viewport width */
   box-sizing: border-box; /* include borders in width to avoid overflow */
   max-height: 500px;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color);
+  background: var(--ml-theme-bg-surface);
+  border: 1px solid var(--ml-theme-border);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 2000;
@@ -117,8 +112,8 @@ const handleAction = (action: NotificationAction) => {
   justify-content: space-between;
   padding: 5px 5px;
   height: 30px; /* fixed header height for consistency */
-  border-bottom: 1px solid var(--el-border-color);
-  background: var(--el-fill-color-light);
+  border-bottom: 1px solid var(--ml-theme-border);
+  background: var(--ml-theme-bg-hover);
   position: relative;
 }
 
@@ -128,11 +123,11 @@ const handleAction = (action: NotificationAction) => {
   gap: 8px;
   font-weight: 600;
   font-size: 14px;
-  color: var(--el-text-color-primary);
+  color: var(--ml-theme-text-primary);
 }
 
 .ml-notification-center-icon {
-  color: var(--el-color-primary);
+  color: var(--ml-theme-primary);
 }
 
 .ml-notification-center-actions {
@@ -165,7 +160,7 @@ const handleAction = (action: NotificationAction) => {
   justify-content: center;
 }
 
-.ml-notification-center-clear :deep(.el-icon) {
+.ml-notification-center-clear svg {
   font-size: 16px;
 }
 
@@ -182,7 +177,7 @@ const handleAction = (action: NotificationAction) => {
   justify-content: center;
   padding: 40px 20px;
   text-align: center;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary);
 }
 
 .ml-notification-center-empty-icon {
@@ -202,11 +197,11 @@ const handleAction = (action: NotificationAction) => {
 
 /* Dark theme adjustments */
 .dark .ml-notification-center {
-  background: var(--el-bg-color-page);
-  border-color: var(--el-border-color);
+  background: var(--ml-theme-bg-base);
+  border-color: var(--ml-theme-border);
 }
 
 .dark .ml-notification-center-header {
-  background: var(--el-fill-color-darker);
+  background: var(--ml-theme-bg-surface);
 }
 </style>

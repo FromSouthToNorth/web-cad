@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Moon, Sunny } from '@element-plus/icons-vue'
+import { BgColorsOutlined, HighlightOutlined } from '@ant-design/icons-vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -23,8 +23,8 @@ const { t } = useI18n()
 
 const themeBtnData = computed(() =>
   markComponentConfigRaw({
-    onIcon: Moon,
-    offIcon: Sunny,
+    onIcon: BgColorsOutlined,
+    offIcon: HighlightOutlined,
     onTooltip: t('main.statusBar.theme.dark'),
     offTooltip: t('main.statusBar.theme.light')
   })

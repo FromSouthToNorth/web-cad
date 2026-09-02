@@ -7,28 +7,31 @@
     @ok="handleConfirm"
     @cancel="handleClose"
   >
-    <el-row
+    <a-row
       v-for="(row, rowIndex) in icons"
       :key="rowIndex"
       style="margin-top: 10px"
       :gutter="6"
       justify="space-between"
     >
-      <el-col v-for="(col, colIndex) in row" :key="colIndex" :span="4">
-        <el-button
-          :icon="col.icon"
+      <a-col v-for="(col, colIndex) in row" :key="colIndex" :span="4">
+        <a-button
           :type="buttonType(rowIndex, colIndex)"
           @click="handleSelectPointStyle(rowIndex, colIndex)"
-          style="font-size: 25px"
-        />
-      </el-col>
-    </el-row>
+          style="font-size: 25px; padding: 4px"
+        >
+          <template #icon>
+            <component :is="col.icon" />
+          </template>
+        </a-button>
+      </a-col>
+    </a-row>
   </ml-base-dialog>
 </template>
 
 <script lang="ts" setup>
 import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { ElButton, ElCol, ElRow } from 'element-plus'
+import { Button as AButton, Col as ACol, Row as ARow } from 'ant-design-vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

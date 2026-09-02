@@ -9,56 +9,53 @@
     <!-- Overlay -->
     <div class="ml-base-dialog-overlay" @click="handleCancel"></div>
 
-    <!-- Config Provider to globally set size="small" for all Element-Plus components -->
-    <el-config-provider :size="'small'">
-      <div class="ml-base-dialog-container" :style="{ width: widthStyle }">
-        <!-- Header -->
-        <div class="ml-base-dialog-header">
-          <div class="ml-base-dialog-title">
-            <span v-if="computedIcon" class="ml-base-dialog-icon-wrapper">
-              <component :is="computedIcon" class="ml-base-dialog-icon" />
-            </span>
-            <span>{{ title }}</span>
-          </div>
-          <div class="ml-base-dialog-actions">
-            <el-button text class="ml-base-dialog-close" @click="handleCancel">
-              <el-icon><Close /></el-icon>
-            </el-button>
-          </div>
+    <div class="ml-base-dialog-container" :style="{ width: widthStyle }">
+      <!-- Header -->
+      <div class="ml-base-dialog-header">
+        <div class="ml-base-dialog-title">
+          <span v-if="computedIcon" class="ml-base-dialog-icon-wrapper">
+            <component :is="computedIcon" class="ml-base-dialog-icon" />
+          </span>
+          <span>{{ title }}</span>
         </div>
-
-        <!-- Body -->
-        <div class="ml-base-dialog-body">
-          <slot />
-        </div>
-
-        <!-- Footer -->
-        <div class="ml-base-dialog-footer">
-          <div class="ml-base-dialog-footer-actions">
-            <el-button
-              v-if="showApply"
-              :disabled="applyDisabled"
-              @click="handleApply"
-            >
-              {{ t('dialog.baseDialog.apply') }}
-            </el-button>
-            <el-button @click="handleCancel">
-              {{ t('dialog.baseDialog.cancel') }}
-            </el-button>
-            <el-button type="primary" @click="handleOk">
-              {{ t('dialog.baseDialog.ok') }}
-            </el-button>
-          </div>
+        <div class="ml-base-dialog-actions">
+          <a-button type="text" size="small" class="ml-base-dialog-close" @click="handleCancel">
+            <template #icon>
+              <CloseOutlined />
+            </template>
+          </a-button>
         </div>
       </div>
-    </el-config-provider>
-    <!-- ⬆ END Config Provider -->
+
+      <!-- Body -->
+      <div class="ml-base-dialog-body">
+        <slot />
+      </div>
+
+      <!-- Footer -->
+      <div class="ml-base-dialog-footer">
+        <div class="ml-base-dialog-footer-actions">
+          <a-button
+            v-if="showApply"
+            :disabled="applyDisabled"
+            @click="handleApply"
+          >
+            {{ t('dialog.baseDialog.apply') }}
+          </a-button>
+          <a-button @click="handleCancel">
+            {{ t('dialog.baseDialog.cancel') }}
+          </a-button>
+          <a-button type="primary" @click="handleOk">
+            {{ t('dialog.baseDialog.ok') }}
+          </a-button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Close } from '@element-plus/icons-vue'
-import { ElButton, ElConfigProvider, ElIcon } from 'element-plus'
+import { CloseOutlined } from '@ant-design/icons-vue'
 import { type Component, computed, nextTick, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -147,15 +144,15 @@ function handleCancel() {
   --ml-dialog-font-size: 12px;
   --ml-dialog-body-padding-x: 16px;
   --ml-dialog-body-padding-y: 16px;
-  --el-font-size-base: 12px;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color);
+  background: var(--ml-theme-bg-surface, #ffffff);
+  border: 1px solid var(--ml-theme-border, #e2e8f0);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   max-height: 90vh;
   overflow: hidden;
+  color: var(--ml-theme-text-primary, #18181b);
 }
 
 /* Header */
@@ -165,8 +162,8 @@ function handleCancel() {
   justify-content: space-between;
   padding: 2px 6px;
   height: 24px;
-  border-bottom: 1px solid var(--el-border-color);
-  background: var(--el-fill-color-light);
+  border-bottom: 1px solid var(--ml-theme-border, #e2e8f0);
+  background: var(--ml-theme-bg-subtle, #f1f5f9);
   position: relative;
 }
 
@@ -177,7 +174,7 @@ function handleCancel() {
   gap: 8px;
   font-weight: 600;
   font-size: var(--ml-dialog-font-size);
-  color: var(--el-text-color-primary);
+  color: var(--ml-theme-text-primary, #18181b);
   min-width: 0;
 }
 
@@ -192,7 +189,7 @@ function handleCancel() {
 .ml-base-dialog-icon {
   width: 20px;
   height: 20px;
-  color: var(--el-color-primary);
+  color: var(--ml-theme-primary, #3b82f6);
 }
 
 .ml-base-dialog-icon :deep(svg) {
@@ -209,16 +206,17 @@ function handleCancel() {
 .ml-base-dialog-close {
   position: absolute;
   top: 50%;
-  right: 8px;
+  right: 4px;
   transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 !important;
 }
 
-/* Body — horizontal/vertical content inset is shared by all dialogs */
+/* Body */
 .ml-base-dialog-body {
   padding: var(--ml-dialog-body-padding-y) var(--ml-dialog-body-padding-x);
   overflow-y: auto;
@@ -232,8 +230,8 @@ function handleCancel() {
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  border-top: 1px solid var(--el-border-color);
-  background: var(--el-bg-color);
+  border-top: 1px solid var(--ml-theme-border, #e2e8f0);
+  background: var(--ml-theme-bg-surface, #ffffff);
   padding: 4px 8px;
 }
 
@@ -245,23 +243,15 @@ function handleCancel() {
   margin-left: auto;
 }
 
-.ml-base-dialog-footer-actions :deep(.el-button) {
+.ml-base-dialog-footer-actions :deep(.ant-btn) {
   min-width: 72px;
   display: inline-flex;
   justify-content: center !important;
   text-align: center !important;
-  border: var(--el-border) !important;
-  border-color: var(
-    --el-button-border-color,
-    var(--el-border-color)
-  ) !important;
-  background-color: var(
-    --el-button-bg-color,
-    var(--el-fill-color-blank)
-  ) !important;
+  font-size: var(--ml-dialog-font-size, 12px);
 }
 
-.ml-base-dialog-footer-actions :deep(.el-button > span) {
+.ml-base-dialog-footer-actions :deep(.ant-btn > span) {
   width: 100%;
   justify-content: center !important;
   text-align: center !important;

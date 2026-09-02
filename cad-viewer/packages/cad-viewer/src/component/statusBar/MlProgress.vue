@@ -1,9 +1,9 @@
 <template>
   <div v-if="visible" class="ml-progress" :title="stageTitle">
-    <el-progress
+    <a-progress
       :text-inside="true"
       :stroke-width="20"
-      :percentage="percentage"
+      :percent="percentage"
       :format="format"
     />
   </div>
@@ -19,7 +19,6 @@ import {
   AcDbParsingTaskStats,
   AcDbProgressdEventArgs
 } from '@mlightcad/data-model'
-import { ElProgress } from 'element-plus'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

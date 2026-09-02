@@ -178,6 +178,12 @@ export default {
         quit: '退出'
       }
     },
+    propertyBar: {
+      layer: '图层',
+      color: '颜色',
+      linetype: '线型',
+      lineweight: '线宽'
+    },
     panels: {
       layers: '图层',
       blocks: '块',

@@ -7,83 +7,91 @@
     @open="handleOpen"
     @ok="handleConfirm"
   >
-    <el-form label-position="left" label-width="170px">
-      <el-form-item :label="t('dialog.quickSelectDlg.applyTo')">
-        <el-select v-model="form.applyTo" style="width: 100%">
-          <el-option
+    <a-form layout="horizontal" class="ml-quick-select-form">
+      <a-form-item :label="t('dialog.quickSelectDlg.applyTo')">
+        <a-select v-model:value="form.applyTo" style="width: 100%">
+          <a-select-option
             v-for="item in applyToOptions"
             :key="item.value"
-            :label="item.label"
             :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
+          >
+            {{ item.label }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
 
-      <el-form-item :label="t('dialog.quickSelectDlg.objectType')">
-        <el-select v-model="form.objectType" style="width: 100%">
-          <el-option
+      <a-form-item :label="t('dialog.quickSelectDlg.objectType')">
+        <a-select v-model:value="form.objectType" style="width: 100%">
+          <a-select-option
             :label="t('dialog.quickSelectDlg.allObjectTypes')"
             value="*"
-          />
-          <el-option
+          >
+            {{ t('dialog.quickSelectDlg.allObjectTypes') }}
+          </a-select-option>
+          <a-select-option
             v-for="type in objectTypeOptions"
             :key="type"
-            :label="entityTypeName(type)"
             :value="type"
-          />
-        </el-select>
-      </el-form-item>
+          >
+            {{ entityTypeName(type) }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
 
-      <el-form-item :label="t('dialog.quickSelectDlg.property')">
-        <el-select v-model="form.property" style="width: 100%">
-          <el-option
+      <a-form-item :label="t('dialog.quickSelectDlg.property')">
+        <a-select v-model:value="form.property" style="width: 100%">
+          <a-select-option
             v-for="item in propertyOptions"
             :key="item.value"
-            :label="item.label"
             :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
+          >
+            {{ item.label }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
 
-      <el-form-item :label="t('dialog.quickSelectDlg.operator')">
-        <el-select v-model="form.operator" style="width: 100%">
-          <el-option
+      <a-form-item :label="t('dialog.quickSelectDlg.operator')">
+        <a-select v-model:value="form.operator" style="width: 100%">
+          <a-select-option
             v-for="item in operatorOptions"
             :key="item.value"
-            :label="item.label"
             :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
+          >
+            {{ item.label }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
 
-      <el-form-item :label="t('dialog.quickSelectDlg.value')">
-        <el-select
-          v-model="form.value"
-          filterable
-          allow-create
-          default-first-option
+      <a-form-item :label="t('dialog.quickSelectDlg.value')">
+        <a-select
+          v-model:value="form.value"
+          show-search
+          mode="tags"
+          :max-tag-count="1"
           style="width: 100%"
         >
-          <el-option
+          <a-select-option
             v-for="item in valueOptions"
             :key="item"
-            :label="valueLabel(item)"
             :value="item"
-          />
-        </el-select>
-      </el-form-item>
+          >
+            {{ valueLabel(item) }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
 
-      <el-form-item :label="t('dialog.quickSelectDlg.howToApply')">
-        <el-select v-model="form.selectionMode" style="width: 100%">
-          <el-option
+      <a-form-item :label="t('dialog.quickSelectDlg.howToApply')">
+        <a-select v-model:value="form.selectionMode" style="width: 100%">
+          <a-select-option
             v-for="item in selectionModeOptions"
             :key="item.value"
-            :label="item.label"
             :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-    </el-form>
+          >
+            {{ item.label }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </a-form>
 
     <div class="ml-quick-select-result">
       {{
@@ -98,7 +106,13 @@
 
 <script setup lang="ts">
 import { AcDbEntity } from '@mlightcad/data-model'
-import { ElForm, ElFormItem, ElMessage, ElOption, ElSelect } from 'element-plus'
+import {
+  Form as AForm,
+  FormItem as AFormItem,
+  message,
+  Select as ASelect,
+  SelectOption as ASelectOption
+} from 'ant-design-vue'
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -128,14 +142,6 @@ const DEFAULT_FORM = {
   selectionMode: 'set' as MlQuickSelectSelectionMode
 }
 
-/**
- * Dialog form state.
- * Defaults are chosen to match common AutoCAD Quick Select behavior:
- * - apply to entire drawing
- * - default property: layer
- * - default operator: equals
- * - default apply mode: create new selection set
- */
 const form = reactive<{
   applyTo: MlQuickSelectApplyTo
   objectType: string
@@ -224,10 +230,6 @@ const valueOptions = computed(() =>
   )
 )
 
-/**
- * Total candidate object count (optionally affected by objectType filter).
- * Used by UI to show the filtering source size.
- */
 const sourceCount = computed(() =>
   getQuickSelectSourceCount(
     form.applyTo,
@@ -235,10 +237,6 @@ const sourceCount = computed(() =>
   )
 )
 
-/**
- * Live matched count preview.
- * Read-only statistic; does not mutate selection set.
- */
 const matchedCount = computed(() => {
   if (!form.value) {
     return 0
@@ -253,11 +251,6 @@ const matchedCount = computed(() => {
   })
 })
 
-/**
- * Normalize current operator when property changes.
- * Example: when switching from numeric to string property,
- * drop invalid operators such as > and <.
- */
 watch(
   () => form.property,
   () => {
@@ -269,11 +262,6 @@ watch(
   { immediate: true }
 )
 
-/**
- * Keep form.value valid when candidate value list changes:
- * - clear when no candidates
- * - fallback to first option when current value is not available
- */
 watch(
   valueOptions,
   options => {
@@ -299,19 +287,9 @@ const valueLabel = (value: string) => {
   return value
 }
 
-/**
- * Confirm action:
- * 1. basic validation (value is required)
- * 2. execute applyQuickSelect to filter and write selection set
- * 3. show result feedback
- */
 const handleConfirm = () => {
   if (!form.value) {
-    ElMessage({
-      message: t('dialog.quickSelectDlg.valueRequired'),
-      grouping: true,
-      type: 'warning'
-    })
+    message.warning(t('dialog.quickSelectDlg.valueRequired'))
     return
   }
 
@@ -324,27 +302,29 @@ const handleConfirm = () => {
     selectionMode: form.selectionMode
   })
 
-  ElMessage({
-    message: t('dialog.quickSelectDlg.selectionResult', {
+  message.success(
+    t('dialog.quickSelectDlg.selectionResult', {
       count: result.matchedCount
-    }),
-    grouping: true,
-    type: 'success'
-  })
+    })
+  )
 }
 
-/**
- * Reset dialog state every time it opens.
- * This prevents carrying values from previous Quick Select runs.
- */
 const handleOpen = () => {
   resetForm()
 }
 </script>
 
 <style scoped>
+.ml-quick-select-form :deep(.ant-form-item) {
+  margin-bottom: 8px;
+}
+
+.ml-quick-select-form :deep(.ant-form-item:last-child) {
+  margin-bottom: 0;
+}
+
 .ml-quick-select-result {
   margin-top: 6px;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary, #64748b);
 }
 </style>

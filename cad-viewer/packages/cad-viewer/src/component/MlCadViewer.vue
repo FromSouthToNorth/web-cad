@@ -37,7 +37,7 @@
   DEPENDENCIES:
   - @mlightcad/cad-simple-viewer: Core CAD functionality
   - @mlightcad/data-model: File format support
-  - Element Plus: UI components
+  - Ant Design Vue: UI components
   - Vue 3 Composition API
 -->
 
@@ -91,7 +91,7 @@ import {
   eventBus
 } from '@mlightcad/cad-simple-viewer'
 import { log } from '@mlightcad/data-model'
-import { ElConfigProvider, ElMessage } from 'element-plus'
+import { message } from 'ant-design-vue'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -207,7 +207,7 @@ const buildOpenOptions = (): AcApOpenDatabaseOptions => ({
 })
 
 const { t } = useI18n()
-const { effectiveLocale, elementPlusLocale } = useLocale(props.locale)
+const { effectiveLocale } = useLocale(props.locale)
 const {
   info,
   warning,
@@ -334,11 +334,9 @@ const openFileFromUrl = async (url: string) => {
     await AcApDocManager.instance.openUrl(url, options)
   } catch (error) {
     log.error('Failed to open file from URL:', error)
-    ElMessage({
-      message: resolveOpenFileErrorMessage(t, { fileName: url }),
-      grouping: true,
-      type: 'error',
-      showClose: true
+    message.error({
+      content: resolveOpenFileErrorMessage(t, { fileName: url }),
+      duration: 5
     })
   } finally {
     endDocumentOpening()
@@ -384,11 +382,9 @@ const openLocalFile = async (file: File) => {
       return
     }
   } catch {
-    ElMessage({
-      message: resolveOpenFileErrorMessage(t, { fileName: file.name }),
-      grouping: true,
-      type: 'error',
-      showClose: true
+    message.error({
+      content: resolveOpenFileErrorMessage(t, { fileName: file.name }),
+      duration: 5
     })
   } finally {
     fileContent = null
@@ -525,13 +521,9 @@ watch(
 
 // Handle general messages from the CAD system (info, warnings, errors)
 eventBus.on('message', params => {
-  // Show both ElMessage and notification center
-  ElMessage({
-    message: params.message,
-    grouping: true,
-    type: params.type,
-    showClose: true
-  })
+  // Show both toast message and notification center
+  const msgFn = params.type === 'success' ? message.success : params.type === 'warning' ? message.warning : params.type === 'error' ? message.error : message.info
+  msgFn({ content: params.message, duration: 5 })
 
   // Also add to notification center
   switch (params.type) {
@@ -600,11 +592,9 @@ eventBus.on('missed-data-changed', () => {
 
 // Handle failures when trying to get available fonts from the system
 eventBus.on('failed-to-get-avaiable-fonts', params => {
-  ElMessage({
-    message: t('main.message.failedToGetAvaiableFonts', { url: params.url }),
-    grouping: true,
-    type: 'error',
-    showClose: true
+  message.error({
+    content: t('main.message.failedToGetAvaiableFonts', { url: params.url }),
+    duration: 5
   })
 })
 
@@ -616,14 +606,12 @@ eventBus.on('open-local-file-started', ({ mode }) => {
 // Handle file opening failures with user-friendly error messages
 eventBus.on('failed-to-open-file', params => {
   endPendingOpen()
-  const message = resolveOpenFileErrorMessage(t, params)
-  ElMessage({
-    message,
-    grouping: true,
-    type: 'error',
-    showClose: true
+  const msgContent = resolveOpenFileErrorMessage(t, params)
+  message.error({
+    content: msgContent,
+    duration: 5
   })
-  error(resolveOpenFileErrorTitle(t, params.errorCode), message)
+  error(resolveOpenFileErrorTitle(t, params.errorCode), msgContent)
 })
 
 // Mirror AutoCAD's LAYERCLOSE behavior: only close when the layer tab is open.
@@ -651,72 +639,69 @@ const closeNotificationCenter = () => {
     :style="{ '--ml-header-height': `${headerHeightPx}px` }"
     class="ml-cad-viewer-container"
   >
-    <!-- Element Plus configuration provider for internationalization -->
-    <el-config-provider :locale="elementPlusLocale">
-      <div ref="layoutRef" class="ml-cad-layout">
-        <!-- Header section with command ribbon -->
-        <header v-if="editorRef" ref="headerRef" class="ml-cad-header">
-          <ml-ribbon-commands
-            v-if="features.isShowRibbon"
-            :current-locale="effectiveLocale"
-          />
-        </header>
+    <div ref="layoutRef" class="ml-cad-layout">
+      <!-- Header section with command ribbon -->
+      <header v-if="editorRef" ref="headerRef" class="ml-cad-header">
+        <ml-ribbon-commands
+          v-if="features.isShowRibbon"
+          :current-locale="effectiveLocale"
+        />
+      </header>
 
-        <!-- Main content area with CAD viewing tools and controls -->
-        <main class="ml-cad-main">
-          <!-- Canvas element for CAD rendering -->
-          <div
-            :class="viewerThemeClass"
-            ref="containerRef"
-            class="ml-cad-container"
-          ></div>
+      <!-- Main content area with CAD viewing tools and controls -->
+      <main class="ml-cad-main">
+        <!-- Canvas element for CAD rendering -->
+        <div
+          :class="viewerThemeClass"
+          ref="containerRef"
+          class="ml-cad-container"
+        ></div>
 
-          <!-- Display current filename at the top center -->
-          <div
-            v-if="
-              editorRef &&
-              !features.isShowRibbon &&
-              features.isShowFileName &&
-              !drawStyleToolbarVisible
-            "
-            class="ml-file-name"
-          >
-            {{ displayName }}
-          </div>
+        <!-- Display current filename at the top center -->
+        <div
+          v-if="
+            editorRef &&
+            !features.isShowRibbon &&
+            features.isShowFileName &&
+            !drawStyleToolbarVisible
+          "
+          class="ml-file-name"
+        >
+          {{ displayName }}
+        </div>
 
-          <!-- Toolbar with common CAD operations (zoom, pan, select, etc.) -->
-          <ml-tool-bars v-if="editorRef" />
+        <!-- Toolbar with common CAD operations (zoom, pan, select, etc.) -->
+        <ml-tool-bars v-if="editorRef" />
 
-          <!-- Layer manager palette and entity properties palette for controlling entity visibility and properties -->
-          <ml-palette-manager v-if="editorRef" :editor="editor" />
+        <!-- Layer manager palette and entity properties palette for controlling entity visibility and properties -->
+        <ml-palette-manager v-if="editorRef" :editor="editor" />
 
-          <!-- Dialog manager for modal dialogs and settings -->
-          <ml-dialog-manager v-if="editorRef" />
-        </main>
+        <!-- Dialog manager for modal dialogs and settings -->
+        <ml-dialog-manager v-if="editorRef" />
+      </main>
 
-        <!-- Footer section with command line and status information -->
-        <footer v-if="editorRef" class="ml-cad-footer">
-          <!-- Status bar with progress, settings, and theme controls -->
-          <ml-status-bar
-            :is-dark="isDark"
-            :toggle-dark="toggleDark"
-            @toggle-notification-center="toggleNotificationCenter"
-          />
-        </footer>
-      </div>
+      <!-- Footer section with command line and status information -->
+      <footer v-if="editorRef" class="ml-cad-footer">
+        <!-- Status bar with progress, settings, and theme controls -->
+        <ml-status-bar
+          :is-dark="isDark"
+          :toggle-dark="toggleDark"
+          @toggle-notification-center="toggleNotificationCenter"
+        />
+      </footer>
+    </div>
 
-      <!-- Hidden components for file handling and entity information -->
-      <ml-font-file-reader v-if="editorRef" />
+    <!-- Hidden components for file handling and entity information -->
+    <ml-font-file-reader v-if="editorRef" />
 
-      <!-- Entity info panel for displaying object properties -->
-      <ml-entity-info v-if="editorRef" />
+    <!-- Entity info panel for displaying object properties -->
+    <ml-entity-info v-if="editorRef" />
 
-      <!-- Notification center -->
-      <ml-notification-center
-        v-if="editorRef && showNotificationCenter"
-        @close="closeNotificationCenter"
-      />
-    </el-config-provider>
+    <!-- Notification center -->
+    <ml-notification-center
+      v-if="editorRef && showNotificationCenter"
+      @close="closeNotificationCenter"
+    />
   </div>
 </template>
 
@@ -744,11 +729,6 @@ const closeNotificationCenter = () => {
 .ml-cad-layout {
   position: relative;
   width: 100%;
-  height: 100%;
-}
-
-.ml-cad-viewer-container > .el-config-provider {
-  display: block;
   height: 100%;
 }
 
@@ -826,7 +806,7 @@ const closeNotificationCenter = () => {
   position: fixed;
   top: 20px;
   left: 50%;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
   transform: translateX(-50%);
   text-align: center;
   pointer-events: none; /* Allow mouse events to pass through to container */

@@ -1,45 +1,38 @@
 <template>
   <div class="ml-color-picker-tabs">
-    <el-tabs v-model="activeTab" :tab-position="tabPosition">
-      <el-tab-pane :label="t('dialog.colorPickerDlg.aciTabTitle')" name="aci">
+    <a-tabs v-model:activeKey="activeTabKey">
+      <a-tab-pane key="aci" :tab="t('dialog.colorPickerDlg.aciTabTitle')">
         <div class="ml-color-picker-tabs-panel-body">
           <MlColorIndexPicker
             :model-value="aciIndex"
             @update:modelValue="onAciChange"
           />
         </div>
-      </el-tab-pane>
-      <el-tab-pane :label="t('dialog.colorPickerDlg.rgbTabTitle')" name="rgb">
+      </a-tab-pane>
+      <a-tab-pane key="rgb" :tab="t('dialog.colorPickerDlg.rgbTabTitle')">
         <div class="ml-color-picker-tabs-panel-body">
-          <ElColorPickerPanel v-model="hexColor" />
+          <a-color-picker v-model:value="hexColor" />
         </div>
-      </el-tab-pane>
-    </el-tabs>
+      </a-tab-pane>
+    </a-tabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import 'element-plus/es/components/color-picker-panel/style/css'
-
 import { AcCmColor } from '@mlightcad/data-model'
-import { ElTabPane, ElTabs } from 'element-plus'
-import ElColorPickerPanel from 'element-plus/es/components/color-picker-panel/index'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MlColorIndexPicker from './MlColorIndexPicker.vue'
 
 type TabName = 'aci' | 'rgb'
-type TabPosition = 'top' | 'right' | 'bottom' | 'left'
 
 const props = withDefaults(
   defineProps<{
     modelValue?: AcCmColor
-    tabPosition?: TabPosition
   }>(),
   {
-    modelValue: undefined,
-    tabPosition: 'top'
+    modelValue: undefined
   }
 )
 
@@ -51,6 +44,13 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const activeTab = ref<TabName>('aci')
+/** antdv `<a-tabs>` uses a string `activeKey`; bridge to {@link activeTab}. */
+const activeTabKey = computed({
+  get: () => activeTab.value,
+  set: (key: string) => {
+    if (key === 'aci' || key === 'rgb') activeTab.value = key
+  }
+})
 const aciIndex = ref<number>(256)
 const hexColor = ref('#ffffff')
 const syncingFromProps = ref(false)

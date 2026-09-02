@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <div v-loading="loading" class="ml-character-map-dialog__body">
+    <a-spin :spinning="loading" class="ml-character-map-dialog__body">
       <div
         v-if="!gridCodes.length && !loading"
         class="ml-character-map-dialog__empty"
@@ -59,23 +59,23 @@
           </div>
         </div>
       </template>
-    </div>
+    </a-spin>
 
     <div class="ml-character-map-dialog__inline-footer">
       <span class="ml-character-map-dialog__inline-footer-label">{{
         t('main.ribbon.mtext.characterMap.charsToCopy')
       }}</span>
-      <el-input
-        v-model="copyBuffer"
+      <a-input
+        v-model:value="copyBuffer"
         class="ml-character-map-dialog__inline-footer-input"
-        clearable
+        allow-clear
       />
-      <el-button @click="appendActiveToBuffer">{{
+      <a-button @click="appendActiveToBuffer">{{
         t('main.ribbon.mtext.characterMap.select')
-      }}</el-button>
-      <el-button @click="copyBufferToClipboard">{{
+      }}</a-button>
+      <a-button @click="copyBufferToClipboard">{{
         t('main.ribbon.mtext.characterMap.copy')
-      }}</el-button>
+      }}</a-button>
     </div>
   </ml-base-dialog>
 
@@ -112,7 +112,7 @@
  */
 import { AcApFontUtil, type ShxParserFont } from '@mlightcad/cad-simple-viewer'
 import { useEventListener } from '@vueuse/core'
-import { ElButton, ElInput, ElMessage, vLoading } from 'element-plus'
+import { Button as AButton, Input as AInput, message, Spin as ASpin } from 'ant-design-vue'
 import { computed, nextTick, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -517,10 +517,7 @@ async function copyBufferToClipboard() {
   try {
     await navigator.clipboard.writeText(copyBuffer.value)
   } catch {
-    ElMessage({
-      type: 'warning',
-      message: t('main.ribbon.mtext.characterMap.copyFailed')
-    })
+    message.warning(t('main.ribbon.mtext.characterMap.copyFailed'))
   }
 }
 
@@ -573,7 +570,7 @@ function handleBaseCancel() {
 .ml-character-map-dialog__font-label {
   flex: 0 0 auto;
   font-size: 13px;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-secondary, #64748b);
 }
 
 .ml-character-map-dialog__font-select {
@@ -588,7 +585,7 @@ function handleBaseCancel() {
 .ml-character-map-dialog__empty {
   padding: 24px;
   text-align: center;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary, #64748b);
   font-size: 13px;
 }
 
@@ -608,9 +605,9 @@ function handleBaseCancel() {
   box-sizing: border-box;
   height: 28px;
   padding: 0;
-  border: 1px solid var(--el-border-color-lighter);
+  border: 1px solid var(--ml-theme-border, #e2e8f0);
   border-radius: 2px;
-  background: var(--el-fill-color-blank);
+  background: var(--ml-theme-bg-surface, #ffffff);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -618,11 +615,11 @@ function handleBaseCancel() {
 }
 
 .ml-character-map-dialog__cell:hover {
-  background: var(--el-fill-color-light);
+  background: var(--ml-theme-bg-hover, #f1f5f9);
 }
 
 .ml-character-map-dialog__cell.is-active {
-  outline: 2px solid var(--el-color-primary);
+  outline: 2px solid var(--ml-theme-primary, #3b82f6);
   outline-offset: -1px;
   z-index: 1;
 }
@@ -638,7 +635,7 @@ function handleBaseCancel() {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--el-text-color-primary);
+  color: var(--ml-theme-text-primary, #18181b);
 }
 
 .ml-character-map-dialog__cell-shx :deep(svg) {
@@ -657,7 +654,7 @@ function handleBaseCancel() {
 .ml-character-map-dialog__inline-footer-label {
   flex: 0 0 auto;
   font-size: 13px;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-secondary, #64748b);
 }
 
 .ml-character-map-dialog__inline-footer-input {
@@ -671,11 +668,11 @@ function handleBaseCancel() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-darker);
+  background: var(--ml-theme-bg-surface, #ffffff);
+  border: 1px solid var(--ml-theme-border, #e2e8f0);
   border-radius: 2px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-  color: var(--el-text-color-primary);
+  color: var(--ml-theme-text-primary, #18181b);
 }
 
 .ml-character-map-magnifier__shx {

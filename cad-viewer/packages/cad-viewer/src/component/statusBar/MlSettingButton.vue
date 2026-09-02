@@ -1,73 +1,52 @@
 <template>
-  <el-tooltip :content="t('main.statusBar.setting.tooltip')" :hide-after="0">
-    <el-dropdown trigger="click" @command="handleCommand">
-      <el-button class="ml-setting-button" :icon="Setting" />
-      <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item
-            :icon="features.isShowStats ? Check : ''"
-            command="isShowStats"
-          >
+  <a-tooltip :title="t('main.statusBar.setting.tooltip')" :mouse-leave-delay="0">
+    <a-dropdown :trigger="['click']">
+      <a-button class="ml-setting-button">
+        <template #icon><SettingOutlined /></template>
+      </a-button>
+      <template #overlay>
+        <a-menu @click="handleMenuClick">
+          <a-menu-item key="isShowStats">
+            <CheckOutlined v-if="features.isShowStats" style="margin-right: 8px;" />
             {{ t('main.statusBar.setting.stats') }}
-          </el-dropdown-item>
-          <el-dropdown-item
-            :icon="features.isShowCommandLine ? Check : ''"
-            command="isShowCommandLine"
-          >
+          </a-menu-item>
+          <a-menu-item key="isShowCommandLine">
+            <CheckOutlined v-if="features.isShowCommandLine" style="margin-right: 8px;" />
             {{ t('main.statusBar.setting.commandLine') }}
-          </el-dropdown-item>
-          <el-dropdown-item
-            :icon="features.isShowFileName ? Check : ''"
-            command="isShowFileName"
-          >
+          </a-menu-item>
+          <a-menu-item key="isShowFileName">
+            <CheckOutlined v-if="features.isShowFileName" style="margin-right: 8px;" />
             {{ t('main.statusBar.setting.fileName') }}
-          </el-dropdown-item>
-          <el-dropdown-item
-            :icon="features.isShowEntityInfo ? Check : ''"
-            command="isShowEntityInfo"
-          >
+          </a-menu-item>
+          <a-menu-item key="isShowEntityInfo">
+            <CheckOutlined v-if="features.isShowEntityInfo" style="margin-right: 8px;" />
             {{ t('main.statusBar.setting.entityInfo') }}
-          </el-dropdown-item>
-          <el-dropdown-item
-            :icon="features.isShowRibbon ? Check : ''"
-            command="isShowRibbon"
-          >
+          </a-menu-item>
+          <a-menu-item key="isShowRibbon">
+            <CheckOutlined v-if="features.isShowRibbon" style="margin-right: 8px;" />
             {{ t('main.statusBar.setting.ribbon') }}
-          </el-dropdown-item>
-          <el-dropdown-item
-            :icon="features.isShowLanguageSelector ? Check : ''"
-            command="isShowLanguageSelector"
-          >
+          </a-menu-item>
+          <a-menu-item key="isShowLanguageSelector">
+            <CheckOutlined v-if="features.isShowLanguageSelector" style="margin-right: 8px;" />
             {{ t('main.statusBar.setting.languageSelector') }}
-          </el-dropdown-item>
-          <el-dropdown-item
-            :icon="features.isShowCoordinate ? Check : ''"
-            command="isShowCoordinate"
-          >
+          </a-menu-item>
+          <a-menu-item key="isShowCoordinate">
+            <CheckOutlined v-if="features.isShowCoordinate" style="margin-right: 8px;" />
             {{ t('main.statusBar.setting.coordinate') }}
-          </el-dropdown-item>
-          <el-dropdown-item
-            :icon="features.isShowToolbar ? Check : ''"
-            command="isShowToolbar"
-          >
+          </a-menu-item>
+          <a-menu-item key="isShowToolbar">
+            <CheckOutlined v-if="features.isShowToolbar" style="margin-right: 8px;" />
             {{ t('main.statusBar.setting.toolbar') }}
-          </el-dropdown-item>
-        </el-dropdown-menu>
+          </a-menu-item>
+        </a-menu>
       </template>
-    </el-dropdown>
-  </el-tooltip>
+    </a-dropdown>
+  </a-tooltip>
 </template>
 
 <script lang="ts" setup>
-import { Check, Setting } from '@element-plus/icons-vue'
+import { CheckOutlined, SettingOutlined } from '@ant-design/icons-vue'
 import { AcApSettingManager, AcApSettings } from '@mlightcad/cad-simple-viewer'
-import {
-  ElButton,
-  ElDropdown,
-  ElDropdownItem,
-  ElDropdownMenu,
-  ElTooltip
-} from 'element-plus'
 import { useI18n } from 'vue-i18n'
 
 import { useSettings } from '../../composable'
@@ -75,7 +54,8 @@ import { useSettings } from '../../composable'
 const { t } = useI18n()
 const features = useSettings()
 
-const handleCommand = (command: keyof AcApSettings) => {
+const handleMenuClick = ({ key }: { key: string }) => {
+  const command = key as keyof AcApSettings
   if (command == 'isShowCoordinate') {
     features.isShowCoordinate = !features.isShowCoordinate
     AcApSettingManager.instance.isShowCoordinate = features.isShowCoordinate

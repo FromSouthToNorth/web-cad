@@ -29,242 +29,225 @@
             </span>
           </div>
         </div>
-        <el-button
+        <a-button
           class="ml-att-edit-dlg__select-block"
           :disabled="isSelectingBlock"
           @click="handleSelectBlock"
         >
-          <el-icon class="ml-att-edit-dlg__select-icon">
-            <component :is="selectIcon" />
-          </el-icon>
+          <template #icon>
+            <component :is="selectIcon" class="ml-att-edit-dlg__select-icon" />
+          </template>
           {{ t('dialog.attEditDlg.selectBlock') }}
-        </el-button>
+        </a-button>
       </div>
 
-      <el-tabs v-model="activeTab" class="ml-att-edit-dlg__tabs">
-        <el-tab-pane
-          :label="t('dialog.attEditDlg.tabAttribute')"
-          name="attribute"
+      <a-tabs v-model:activeKey="activeTab" class="ml-att-edit-dlg__tabs">
+        <a-tab-pane
+          :tab="t('dialog.attEditDlg.tabAttribute')"
+          key="attribute"
         >
-          <el-table
-            :data="rows"
-            height="120"
-            highlight-current-row
-            :current-row-key="selectedObjectId || undefined"
-            row-key="objectId"
+          <a-table
+            :data-source="rows"
+            :columns="attributeColumns"
+            :scroll="{ y: 120 }"
+            :row-key="(r: AttributeRow) => r.objectId"
+            :custom-row="attributeCustomRow"
+            :pagination="false"
+            size="small"
             class="ml-att-edit-dlg__table"
-            @current-change="handleRowChange"
-          >
-            <el-table-column
-              prop="tag"
-              :label="t('dialog.attEditDlg.colTag')"
-              min-width="100"
-              show-overflow-tooltip
-            />
-            <el-table-column
-              prop="prompt"
-              :label="t('dialog.attEditDlg.colPrompt')"
-              min-width="120"
-              show-overflow-tooltip
-            />
-            <el-table-column
-              prop="value"
-              :label="t('dialog.attEditDlg.colValue')"
-              min-width="100"
-              show-overflow-tooltip
-            />
-          </el-table>
+          />
 
-          <el-form
-            label-position="left"
-            label-width="72px"
+          <a-form
+            layout="horizontal"
+            :label-col="{ style: { width: '72px' } }"
             class="ml-att-edit-dlg__value-form"
           >
-            <el-form-item :label="t('dialog.attEditDlg.value')">
-              <el-input
-                v-model="valueDraft"
+            <a-form-item :label="t('dialog.attEditDlg.value')">
+              <a-input
+                v-model:value="valueDraft"
                 :disabled="!currentRow || currentRow.isConst"
                 @input="markDirty"
               />
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
+            </a-form-item>
+          </a-form>
+        </a-tab-pane>
 
-        <el-tab-pane
-          :label="t('dialog.attEditDlg.tabTextOptions')"
-          name="text"
+        <a-tab-pane
+          :tab="t('dialog.attEditDlg.tabTextOptions')"
+          key="text"
         >
-          <el-form
-            label-position="left"
-            label-width="120px"
+          <a-form
+            layout="horizontal"
+            :label-col="{ style: { width: '120px' } }"
             class="ml-att-edit-dlg__form"
             :disabled="!currentRow || currentRow.isConst"
           >
-            <el-form-item :label="t('dialog.attEditDlg.textStyle')">
-              <el-select
-                v-model="textForm.styleName"
-                filterable
+            <a-form-item :label="t('dialog.attEditDlg.textStyle')">
+              <a-select
+                v-model:value="textForm.styleName"
+                show-search
+                :filter-option="filterOptionByLabel"
                 class="ml-att-edit-dlg__control"
                 @change="markDirty"
               >
-                <el-option
+                <a-select-option
                   v-for="name in textStyleNames"
                   :key="name"
-                  :label="name"
                   :value="name"
-                />
-              </el-select>
-            </el-form-item>
+                >
+                  {{ name }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
 
-            <el-form-item
+            <a-form-item
               :label="t('dialog.attEditDlg.justification')"
               class="ml-att-edit-dlg__justify-row"
             >
               <div class="ml-att-edit-dlg__inline-row">
-                <el-select
-                  v-model="textForm.justification"
+                <a-select
+                  v-model:value="textForm.justification"
                   class="ml-att-edit-dlg__justify-select"
                   @change="markDirty"
                 >
-                  <el-option
+                  <a-select-option
                     v-for="opt in justificationOptions"
                     :key="opt.value"
-                    :label="opt.label"
                     :value="opt.value"
-                  />
-                </el-select>
-                <el-checkbox v-model="textForm.backwards" disabled>
+                  >
+                    {{ opt.label }}
+                  </a-select-option>
+                </a-select>
+                <a-checkbox v-model:checked="textForm.backwards" disabled>
                   {{ t('dialog.attEditDlg.backwards') }}
-                </el-checkbox>
-                <el-checkbox v-model="textForm.upsideDown" disabled>
+                </a-checkbox>
+                <a-checkbox v-model:checked="textForm.upsideDown" disabled>
                   {{ t('dialog.attEditDlg.upsideDown') }}
-                </el-checkbox>
+                </a-checkbox>
               </div>
-            </el-form-item>
+            </a-form-item>
 
             <div class="ml-att-edit-dlg__pair-grid">
-              <el-form-item :label="t('dialog.attEditDlg.height')">
-                <el-input-number
-                  v-model="textForm.height"
+              <a-form-item :label="t('dialog.attEditDlg.height')">
+                <a-input-number
+                  v-model:value="textForm.height"
                   :min="0"
                   :step="0.1"
-                  controls-position="right"
                   class="ml-att-edit-dlg__control"
                   @change="markDirty"
                 />
-              </el-form-item>
-              <el-form-item :label="t('dialog.attEditDlg.widthFactor')">
-                <el-input-number
-                  v-model="textForm.widthFactor"
+              </a-form-item>
+              <a-form-item :label="t('dialog.attEditDlg.widthFactor')">
+                <a-input-number
+                  v-model:value="textForm.widthFactor"
                   :min="0.01"
                   :step="0.1"
-                  controls-position="right"
                   class="ml-att-edit-dlg__control"
                   @change="markDirty"
                 />
-              </el-form-item>
-              <el-form-item :label="t('dialog.attEditDlg.rotation')">
-                <el-input-number
-                  v-model="textForm.rotationDeg"
+              </a-form-item>
+              <a-form-item :label="t('dialog.attEditDlg.rotation')">
+                <a-input-number
+                  v-model:value="textForm.rotationDeg"
                   :step="1"
-                  controls-position="right"
                   class="ml-att-edit-dlg__control"
                   @change="markDirty"
                 />
-              </el-form-item>
-              <el-form-item :label="t('dialog.attEditDlg.obliqueAngle')">
-                <el-input-number
-                  v-model="textForm.obliqueDeg"
+              </a-form-item>
+              <a-form-item :label="t('dialog.attEditDlg.obliqueAngle')">
+                <a-input-number
+                  v-model:value="textForm.obliqueDeg"
                   :step="1"
-                  controls-position="right"
                   class="ml-att-edit-dlg__control"
                   @change="markDirty"
                 />
-              </el-form-item>
+              </a-form-item>
             </div>
 
             <div class="ml-att-edit-dlg__annotative-row">
               <div class="ml-att-edit-dlg__annotative-check-wrap">
-                <el-checkbox v-model="textForm.annotative" disabled>
+                <a-checkbox v-model:checked="textForm.annotative" disabled>
                   {{ t('dialog.attEditDlg.annotative') }}
-                </el-checkbox>
+                </a-checkbox>
               </div>
-              <el-form-item
+              <a-form-item
                 :label="t('dialog.attEditDlg.boundaryWidth')"
                 class="ml-att-edit-dlg__boundary-item"
               >
-                <el-input
-                  model-value=""
+                <a-input
+                  :value="''"
                   disabled
                   class="ml-att-edit-dlg__control"
                 />
-              </el-form-item>
+              </a-form-item>
             </div>
-          </el-form>
-        </el-tab-pane>
+          </a-form>
+        </a-tab-pane>
 
-        <el-tab-pane
-          :label="t('dialog.attEditDlg.tabProperties')"
-          name="properties"
+        <a-tab-pane
+          :tab="t('dialog.attEditDlg.tabProperties')"
+          key="properties"
         >
-          <el-form
-            label-position="left"
-            label-width="120px"
+          <a-form
+            layout="horizontal"
+            :label-col="{ style: { width: '120px' } }"
             class="ml-att-edit-dlg__form"
             :disabled="!currentRow || currentRow.isConst"
           >
-            <el-form-item :label="t('dialog.attEditDlg.layer')">
-              <el-select
-                v-model="propForm.layer"
-                filterable
+            <a-form-item :label="t('dialog.attEditDlg.layer')">
+              <a-select
+                v-model:value="propForm.layer"
+                show-search
+                :filter-option="filterOptionByLabel"
                 class="ml-att-edit-dlg__control"
                 @change="markDirty"
               >
-                <el-option
+                <a-select-option
                   v-for="layer in layerOptions"
                   :key="layer.value"
-                  :label="layer.name"
                   :value="layer.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item :label="t('dialog.attEditDlg.linetype')">
+                >
+                  {{ layer.name }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+            <a-form-item :label="t('dialog.attEditDlg.linetype')">
               <ml-line-type-select
                 v-model="propForm.lineType"
                 :options="lineTypeOptions"
                 class="ml-att-edit-dlg__control"
                 @change="markDirty"
               />
-            </el-form-item>
+            </a-form-item>
             <div class="ml-att-edit-dlg__pair-grid">
-              <el-form-item :label="t('dialog.attEditDlg.color')">
+              <a-form-item :label="t('dialog.attEditDlg.color')">
                 <ml-color-dropdown
                   :model-value="propColor"
                   :display-color="colorDisplay"
                   class="ml-att-edit-dlg__control"
                   @update:model-value="handleColorChange"
                 />
-              </el-form-item>
-              <el-form-item :label="t('dialog.attEditDlg.lineweight')">
+              </a-form-item>
+              <a-form-item :label="t('dialog.attEditDlg.lineweight')">
                 <ml-line-weight-select
                   v-model="propForm.lineWeight"
                   class="ml-att-edit-dlg__control"
                   @change="markDirty"
                 />
-              </el-form-item>
+              </a-form-item>
             </div>
-            <el-form-item :label="t('dialog.attEditDlg.plotStyle')">
-              <el-select
-                model-value="ByLayer"
+            <a-form-item :label="t('dialog.attEditDlg.plotStyle')">
+              <a-select
+                :value="'ByLayer'"
                 disabled
                 class="ml-att-edit-dlg__control"
               >
-                <el-option label="ByLayer" value="ByLayer" />
-              </el-select>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-      </el-tabs>
+                <a-select-option value="ByLayer">ByLayer</a-select-option>
+              </a-select>
+            </a-form-item>
+          </a-form>
+        </a-tab-pane>
+      </a-tabs>
     </div>
   </ml-base-dialog>
 </template>
@@ -282,20 +265,19 @@ import {
   AcGiLineWeight
 } from '@mlightcad/data-model'
 import {
-  ElButton,
-  ElCheckbox,
-  ElForm,
-  ElFormItem,
-  ElIcon,
-  ElInput,
-  ElInputNumber,
-  ElOption,
-  ElSelect,
-  ElTable,
-  ElTableColumn,
-  ElTabPane,
-  ElTabs
-} from 'element-plus'
+  Button as AButton,
+  Checkbox as ACheckbox,
+  Form as AForm,
+  FormItem as AFormItem,
+  Input as AInput,
+  InputNumber as AInputNumber,
+  Select as ASelect,
+  SelectOption as ASelectOption,
+  Table as ATable,
+  Tabs as ATabs,
+  TabPane as ATabPane
+} from 'ant-design-vue'
+import type { TableColumnsType } from 'ant-design-vue'
 import { computed, nextTick, reactive, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -553,6 +535,43 @@ const colorDisplay = computed(() => {
   }
   return color.cssColor || '#8a8a8a'
 })
+
+/** antdv table column definitions for the attribute list. */
+const attributeColumns: TableColumnsType<AttributeRow> = [
+  {
+    title: () => t('dialog.attEditDlg.colTag'),
+    dataIndex: 'tag',
+    width: 100,
+    ellipsis: true
+  },
+  {
+    title: () => t('dialog.attEditDlg.colPrompt'),
+    dataIndex: 'prompt',
+    width: 120,
+    ellipsis: true
+  },
+  {
+    title: () => t('dialog.attEditDlg.colValue'),
+    dataIndex: 'value',
+    width: 100,
+    ellipsis: true
+  }
+]
+
+/** antdv `customRow`: highlight selected + emit click. */
+function attributeCustomRow(record: AttributeRow) {
+  const isSelected = record.objectId === selectedObjectId.value
+  return {
+    onClick: () => handleRowChange(record),
+    class: { 'ml-att-edit-dlg__table-row--active': isSelected }
+  }
+}
+
+/** antdv `show-search` filter: match label against the typed input. */
+function filterOptionByLabel(input: string, option: { label?: string }) {
+  const label = option?.label ?? ''
+  return String(label).toLowerCase().includes(input.toLowerCase())
+}
 
 watch(valueDraft, value => {
   if (suppressSync.value) return
@@ -910,7 +929,7 @@ async function handleSelectBlock() {
 }
 
 .ml-att-edit-dlg__meta-label {
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary, #64748b);
   flex: 0 0 auto;
 }
 
@@ -936,6 +955,14 @@ async function handleSelectBlock() {
 .ml-att-edit-dlg__table {
   width: 100%;
   margin-bottom: 10px;
+}
+
+.ml-att-edit-dlg__table :deep(.ml-att-edit-dlg__table-row--active) {
+  background: var(--ml-theme-bg-active, #dbeafe) !important;
+}
+
+.ml-att-edit-dlg__table :deep(.ml-att-edit-dlg__table-row--active > td) {
+  background: var(--ml-theme-bg-active, #dbeafe) !important;
 }
 
 .ml-att-edit-dlg__value-form,
@@ -982,15 +1009,15 @@ async function handleSelectBlock() {
   margin-bottom: 0 !important;
 }
 
-.ml-att-edit-dlg :deep(.el-form-item) {
+.ml-att-edit-dlg :deep(.ant-form-item) {
   margin-bottom: 4px;
 }
 
-.ml-att-edit-dlg :deep(.el-tabs__header) {
-  margin-bottom: 4px;
+.ml-att-edit-dlg :deep(.ant-tabs-tabs) {
+  margin-bottom: 0;
 }
 
-.ml-att-edit-dlg :deep(.el-tabs__content) {
+.ml-att-edit-dlg :deep(.ant-tabs-content) {
   padding-top: 6px;
 }
 </style>

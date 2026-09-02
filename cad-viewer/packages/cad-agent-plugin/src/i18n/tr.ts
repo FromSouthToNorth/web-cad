@@ -12,9 +12,7 @@ export const agentTr = {
   close: 'Kapat',
   provider: 'Sağlayıcı',
   providerDeepseek: 'DeepSeek',
-  providerDeepseekVl: 'DeepSeek VL (görsel)',
-  providerDeepseekVlHint:
-    'OpenAI uyumlu bir görsel uç nokta kullanır (varsayılan: SiliconFlow). Kendi barındırdığınız vLLM için Taban URL alanını sunucunuza ayarlayın, ör. http://127.0.0.1:8000/v1.',
+  providerKimi: 'Kimi',
   providerOpenai: 'OpenAI',
   providerAnthropic: 'Anthropic',
   providerOpenaiCompatible: 'OpenAI Uyumlu',

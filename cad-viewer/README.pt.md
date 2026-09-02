@@ -86,9 +86,6 @@ pnpm install
 ```bash
 # Iniciar o visualizador completo (cad-viewer)
 pnpm dev
-
-# Ou iniciar o visualizador simples
-pnpm dev:simple
 ```
 
 ### Build
@@ -165,13 +162,13 @@ Ele fornece:
 - **Ferramentas CAD Fase 1** — `get_drawing_context`; `draw_line`, `draw_circle`, `draw_arc`, `draw_rectangle`, `draw_polyline`, `draw_text`; `set_current_layer`, `create_layer`, `zoom_extents`
 - Strings de UI em **inglês / chinês / turco / tcheco** via a camada i18n do plugin
 
-O app completo Vue [`cad-viewer`](packages/cad-viewer) registra o agente automaticamente quando o pacote está instalado (aba da paleta). O [`cad-simple-viewer-example`](packages/cad-simple-viewer-example) o conecta em uma aba dock via `cad-simple-ui-plugin`. Apps host chamam `registerLazyAgentPlugin` e `setAgentPaletteOpener` para montar o painel onde desejarem.
+O app completo Vue [`cad-viewer`](packages/cad-viewer) registra o agente automaticamente quando o pacote está instalado (aba da paleta). Apps host baseados em `cad-simple-viewer` podem conectá-lo em uma aba dock via `cad-simple-ui-plugin`; eles chamam `registerLazyAgentPlugin` e `setAgentPaletteOpener` para montar o painel onde desejarem.
 
 → **Instalação, registro e lista de ferramentas:** [packages/cad-agent-plugin/README.md](packages/cad-agent-plugin/README.md)
 
 ### Plugins de exportação (HTML / PDF / SVG)
 
-Esses plugins adicionam comandos de exportação (e importação PDF) ao mesmo gerenciador de plugins. São **lazy-loaded** para que o peso inicial da página permaneça pequeno. A demo [`cad-simple-viewer-example`](packages/cad-simple-viewer-example) registra os três plugins de exportação, `cad-simple-ui-plugin` e `cad-agent-plugin`; o app completo [`cad-viewer`](packages/cad-viewer) registra os plugins de exportação e o plugin do agente (quando instalado) em seu bootstrap.
+Esses plugins adicionam comandos de exportação (e importação PDF) ao mesmo gerenciador de plugins. São **lazy-loaded** para que o peso inicial da página permaneça pequeno. O app completo [`cad-viewer`](packages/cad-viewer) registra os plugins de exportação e o plugin do agente (quando instalado) em seu bootstrap.
 
 - **HTML** — visualizador offline de arquivo único para compartilhamento e arquivamento: [packages/cad-html-plugin/README.md](packages/cad-html-plugin/README.md)  
   (CLI headless usando o mesmo pipeline: [packages/cad-simple-viewer-cli/README.md](packages/cad-simple-viewer-cli/README.md))

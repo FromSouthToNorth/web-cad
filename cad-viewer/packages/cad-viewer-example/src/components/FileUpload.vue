@@ -4,9 +4,7 @@
       <div class="upload-main">
         <section class="upload-hero">
           <div class="upload-icon">
-            <el-icon :size="20">
-              <UploadFilled />
-            </el-icon>
+            <inbox-outlined />
           </div>
           <div class="upload-hero-text">
             <h1 class="upload-title">{{ $t('fileUpload.title') }}</h1>
@@ -17,37 +15,35 @@
         </section>
 
         <div class="upload-actions">
-          <button
-            type="button"
+          <a-button
+            type="primary"
+            size="large"
+            block
             class="new-drawing-button"
             @click="handleNewDrawing"
           >
+            <template #icon><file-add-outlined /></template>
             {{ $t('fileUpload.newDrawing') }}
-          </button>
+          </a-button>
 
           <p class="upload-divider" aria-hidden="true">
             <span>{{ $t('fileUpload.or') }}</span>
           </p>
 
-          <el-upload
+          <a-upload-dragger
             class="upload-dropzone"
-            drag
-            :auto-upload="false"
-            accept=".dwg,.dxf"
-            :on-change="handleFileChange"
+            accept=".dxf"
+            :show-upload-list="false"
             :before-upload="beforeUpload"
           >
-            <div class="dropzone-content">
-              <p class="dropzone-title">
-                {{ $t('fileUpload.dropFile') }}
-                <span class="dropzone-link">{{ $t('fileUpload.browse') }}</span>
-              </p>
-              <div class="format-tags">
-                <span class="format-tag">DWG</span>
-                <span class="format-tag">DXF</span>
-              </div>
+            <p class="dropzone-title">
+              {{ $t('fileUpload.dropFile') }}
+              <span class="dropzone-link">{{ $t('fileUpload.browse') }}</span>
+            </p>
+            <div class="format-tags">
+              <span class="format-tag">DXF</span>
             </div>
-          </el-upload>
+          </a-upload-dragger>
         </div>
       </div>
 
@@ -59,144 +55,114 @@
         <div class="settings-grid">
           <div class="setting-block setting-block--full">
             <h3 class="setting-label">{{ $t('fileUpload.initialView') }}</h3>
-            <div
+            <a-radio-group
+              v-model:value="selectedOpenViewMode"
+              size="small"
+              button-style="solid"
               class="pill-segment"
-              role="radiogroup"
               :aria-label="$t('fileUpload.initialView')"
             >
-              <button
+              <a-radio-button
                 v-for="option in openViewModes"
                 :key="option.value"
-                type="button"
-                class="pill-option"
-                :class="{ 'is-active': selectedOpenViewMode === option.value }"
-                role="radio"
-                :aria-checked="selectedOpenViewMode === option.value"
+                :value="option.value"
                 :title="option.description"
-                @click="selectedOpenViewMode = option.value"
               >
                 {{ option.label }}
-              </button>
-            </div>
+              </a-radio-button>
+            </a-radio-group>
           </div>
 
           <div class="setting-block setting-block--full">
             <h3 class="setting-label">{{ $t('fileUpload.accessMode') }}</h3>
-            <div
+            <a-radio-group
+              v-model:value="selectedMode"
+              size="small"
+              button-style="solid"
               class="pill-segment"
-              role="radiogroup"
               :aria-label="$t('fileUpload.accessMode')"
             >
-              <button
+              <a-radio-button
                 v-for="mode in accessModes"
                 :key="mode.value"
-                type="button"
-                class="pill-option"
-                :class="{ 'is-active': selectedMode === mode.value }"
-                role="radio"
-                :aria-checked="selectedMode === mode.value"
+                :value="mode.value"
                 :title="mode.description"
-                @click="selectedMode = mode.value"
               >
                 {{ mode.label }}
-              </button>
-            </div>
+              </a-radio-button>
+            </a-radio-group>
           </div>
 
           <div class="setting-block">
             <h3 class="setting-label">{{ $t('fileUpload.textRendering') }}</h3>
-            <div
+            <a-radio-group
+              v-model:value="textRenderingChoice"
+              size="small"
+              button-style="solid"
               class="pill-segment"
-              role="radiogroup"
               :aria-label="$t('fileUpload.textRendering')"
             >
-              <button
-                type="button"
-                class="pill-option"
-                :class="{ 'is-active': !useMainThreadDraw }"
-                role="radio"
-                :aria-checked="!useMainThreadDraw"
+              <a-radio-button
+                value="worker"
                 :title="$t('fileUpload.textRenderingModes.workerDesc')"
-                @click="useMainThreadDraw = false"
               >
                 {{ $t('fileUpload.textRenderingModes.worker') }}
-              </button>
-              <button
-                type="button"
-                class="pill-option"
-                :class="{ 'is-active': useMainThreadDraw }"
-                role="radio"
-                :aria-checked="useMainThreadDraw"
+              </a-radio-button>
+              <a-radio-button
+                value="mainThread"
                 :title="$t('fileUpload.textRenderingModes.mainThreadDesc')"
-                @click="useMainThreadDraw = true"
               >
                 {{ $t('fileUpload.textRenderingModes.mainThread') }}
-              </button>
-            </div>
+              </a-radio-button>
+            </a-radio-group>
           </div>
 
           <div class="setting-block">
             <h3 class="setting-label">{{ $t('fileUpload.progressive') }}</h3>
-            <div
+            <a-radio-group
+              v-model:value="progressiveChoice"
+              size="small"
+              button-style="solid"
               class="pill-segment"
-              role="radiogroup"
               :aria-label="$t('fileUpload.progressive')"
             >
-              <button
-                type="button"
-                class="pill-option"
-                :class="{ 'is-active': progressiveRendering }"
-                role="radio"
-                :aria-checked="progressiveRendering"
+              <a-radio-button
+                value="on"
                 :title="$t('fileUpload.progressiveModes.onDesc')"
-                @click="progressiveRendering = true"
               >
                 {{ $t('fileUpload.progressiveModes.on') }}
-              </button>
-              <button
-                type="button"
-                class="pill-option"
-                :class="{ 'is-active': !progressiveRendering }"
-                role="radio"
-                :aria-checked="!progressiveRendering"
+              </a-radio-button>
+              <a-radio-button
+                value="off"
                 :title="$t('fileUpload.progressiveModes.offDesc')"
-                @click="progressiveRendering = false"
               >
                 {{ $t('fileUpload.progressiveModes.off') }}
-              </button>
-            </div>
+              </a-radio-button>
+            </a-radio-group>
           </div>
 
           <div class="setting-block">
             <h3 class="setting-label">{{ $t('fileUpload.nonPlottable') }}</h3>
-            <div
+            <a-radio-group
+              v-model:value="nonPlottableChoice"
+              size="small"
+              button-style="solid"
               class="pill-segment"
-              role="radiogroup"
               :aria-label="$t('fileUpload.nonPlottable')"
             >
-              <button
-                type="button"
-                class="pill-option"
-                :class="{ 'is-active': !drawNoPlotLayers }"
-                role="radio"
-                :aria-checked="!drawNoPlotLayers"
+              <a-radio-button
+                value="hide"
                 :title="$t('fileUpload.nonPlottableModes.hideDesc')"
-                @click="drawNoPlotLayers = false"
               >
                 {{ $t('fileUpload.nonPlottableModes.hide') }}
-              </button>
-              <button
-                type="button"
-                class="pill-option"
-                :class="{ 'is-active': drawNoPlotLayers }"
-                role="radio"
-                :aria-checked="drawNoPlotLayers"
+              </a-radio-button>
+              <a-radio-button
+                value="show"
                 :title="$t('fileUpload.nonPlottableModes.showDesc')"
-                @click="drawNoPlotLayers = true"
               >
                 {{ $t('fileUpload.nonPlottableModes.show') }}
-              </button>
-            </div>
+              </a-radio-button>
+            </a-radio-group>
           </div>
         </div>
       </section>
@@ -205,11 +171,10 @@
 </template>
 
 <script setup lang="ts">
-import { UploadFilled } from '@element-plus/icons-vue'
+import { FileAddOutlined, InboxOutlined } from '@ant-design/icons-vue'
 import { AcApOpenViewMode, AcEdOpenMode } from '@mlightcad/cad-simple-viewer'
 import { log } from '@mlightcad/data-model'
-import type { UploadFile, UploadProps } from 'element-plus'
-import { ElIcon, ElUpload } from 'element-plus'
+import type { UploadProps } from 'ant-design-vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -282,19 +247,48 @@ const accessModes = computed(() => [
   }
 ])
 
-const handleFileChange: UploadProps['onChange'] = (uploadFile: UploadFile) => {
-  if (uploadFile.raw) {
-    if (isValidFile(uploadFile.raw)) {
-      props.onFileSelect(
-        uploadFile.raw,
-        selectedMode.value,
-        useMainThreadDraw.value,
-        drawNoPlotLayers.value,
-        progressiveRendering.value,
-        resolveOpenViewMode()
-      )
-    }
+const textRenderingChoice = computed({
+  get: () => (useMainThreadDraw.value ? 'mainThread' : 'worker'),
+  set: value => {
+    useMainThreadDraw.value = value === 'mainThread'
   }
+})
+
+const progressiveChoice = computed({
+  get: () => (progressiveRendering.value ? 'on' : 'off'),
+  set: value => {
+    progressiveRendering.value = value === 'on'
+  }
+})
+
+const nonPlottableChoice = computed({
+  get: () => (drawNoPlotLayers.value ? 'show' : 'hide'),
+  set: value => {
+    drawNoPlotLayers.value = value === 'show'
+  }
+})
+
+const isValidFile = (file: File): boolean => {
+  const validExtensions = ['.dxf']
+  const fileName = file.name.toLowerCase()
+  return validExtensions.some(ext => fileName.endsWith(ext))
+}
+
+const beforeUpload: UploadProps['beforeUpload'] = file => {
+  if (!isValidFile(file as File)) {
+    log.warn('Invalid file type. Please upload DXF files.')
+    return false
+  }
+  props.onFileSelect(
+    file as File,
+    selectedMode.value,
+    useMainThreadDraw.value,
+    drawNoPlotLayers.value,
+    progressiveRendering.value,
+    resolveOpenViewMode()
+  )
+  // Selection is handled by the app (switches to the viewer); never upload.
+  return false
 }
 
 const handleNewDrawing = () => {
@@ -305,20 +299,6 @@ const handleNewDrawing = () => {
     progressiveRendering.value,
     resolveOpenViewMode()
   )
-}
-
-const beforeUpload: UploadProps['beforeUpload'] = (rawFile: File) => {
-  if (!isValidFile(rawFile)) {
-    log.warn('Invalid file type. Please upload DWG or DXF files.')
-    return false
-  }
-  return true
-}
-
-const isValidFile = (file: File): boolean => {
-  const validExtensions = ['.dwg', '.dxf']
-  const fileName = file.name.toLowerCase()
-  return validExtensions.some(ext => fileName.endsWith(ext))
 }
 </script>
 
@@ -366,6 +346,7 @@ const isValidFile = (file: File): boolean => {
   border-radius: 10px;
   background: var(--ml-theme-primary);
   color: var(--ml-theme-on-primary);
+  font-size: 18px;
 }
 
 .upload-hero-text {
@@ -395,29 +376,8 @@ const isValidFile = (file: File): boolean => {
 }
 
 .new-drawing-button {
-  display: block;
-  width: 100%;
-  padding: 10px 14px;
-  border: none;
-  border-radius: 10px;
-  background: var(--ml-theme-primary);
-  color: var(--ml-theme-on-primary);
-  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  cursor: pointer;
-  transition:
-    transform 0.15s ease,
-    background-color 0.2s ease;
-}
-
-.new-drawing-button:hover {
-  background: var(--ml-theme-primary-hover);
-}
-
-.new-drawing-button:active {
-  background: var(--ml-theme-primary-active);
-  transform: translateY(1px);
 }
 
 .upload-divider {
@@ -445,40 +405,14 @@ const isValidFile = (file: File): boolean => {
   box-sizing: border-box;
 }
 
-.upload-dropzone :deep(.el-upload) {
-  display: block;
-  width: 100%;
-}
-
-.upload-dropzone :deep(.el-upload-dragger) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  box-sizing: border-box;
+.upload-dropzone :deep(.ant-upload-dragger) {
   padding: 14px 12px;
-  border: 1.5px dashed var(--ml-theme-border);
   border-radius: 10px;
   background: var(--ml-theme-bg-input);
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
-}
-
-.upload-dropzone :deep(.el-upload-dragger:hover) {
-  border-color: var(--ml-theme-primary);
-  background: var(--ml-theme-bg-active);
-}
-
-.dropzone-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
 }
 
 .dropzone-title {
-  margin: 0;
+  margin: 0 0 6px;
   font-size: 13px;
   font-weight: 600;
   color: var(--ml-theme-text-primary);
@@ -491,6 +425,7 @@ const isValidFile = (file: File): boolean => {
 
 .format-tags {
   display: flex;
+  justify-content: center;
   gap: 6px;
 }
 
@@ -558,34 +493,36 @@ const isValidFile = (file: File): boolean => {
   overflow: hidden;
 }
 
-.pill-option {
+.pill-segment :deep(.ant-radio-button-wrapper) {
   flex: 1;
-  padding: 6px 8px;
+  padding-inline: 8px;
+  text-align: center;
+  white-space: nowrap;
   border: none;
-  background: transparent;
+  box-shadow: none;
   font-size: 11px;
   font-weight: 600;
   color: var(--ml-theme-text-secondary);
-  cursor: pointer;
-  text-align: center;
-  white-space: nowrap;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+  background: transparent;
+  line-height: 26px;
 }
 
-.pill-option:not(:last-child) {
+.pill-segment :deep(.ant-radio-button-wrapper:not(:first-child)::before) {
+  display: none;
+}
+
+.pill-segment :deep(.ant-radio-button-wrapper:not(:last-child)) {
   border-right: 1px solid var(--ml-theme-border);
 }
 
-.pill-option:hover:not(.is-active) {
-  background: var(--ml-theme-bg-hover);
+.pill-segment :deep(.ant-radio-button-wrapper:hover) {
   color: var(--ml-theme-text-primary);
 }
 
-.pill-option.is-active {
+.pill-segment :deep(.ant-radio-button-wrapper-checked) {
   background: var(--ml-theme-bg-active);
   color: var(--ml-theme-primary-hover);
+  box-shadow: none;
 }
 
 /* Narrow viewports: stack upload + settings as two vertical rows */

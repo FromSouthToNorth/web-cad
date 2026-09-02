@@ -1,58 +1,63 @@
 <template>
-  <div id="app-root">
-    <!-- Upload screen when no drawing is open -->
-    <div v-if="!showViewer" class="upload-screen">
-      <button
-        type="button"
-        class="theme-toggle"
-        :aria-label="
-          theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
-        "
-        @click="toggleTheme"
-      >
-        {{ theme === 'dark' ? '🌙 Dark' : '☀️ Light' }}
-      </button>
-      <FileUpload
-        @file-select="handleFileSelect"
-        @new-drawing="handleNewDrawing"
-      />
-    </div>
+  <a-config-provider :theme="antdThemeConfig">
+    <a-app>
+      <div id="app-root">
+        <!-- Upload screen when no drawing is open -->
+        <div v-if="!showViewer" class="upload-screen">
+          <button
+            type="button"
+            class="theme-toggle"
+            :aria-label="
+              theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+            "
+            @click="toggleTheme"
+          >
+            {{ theme === 'dark' ? '🌙 Dark' : '☀️ Light' }}
+          </button>
+          <FileUpload
+            @file-select="handleFileSelect"
+            @new-drawing="handleNewDrawing"
+          />
+        </div>
 
-    <!-- CAD viewer when a file is selected or a new drawing is created -->
-    <div v-else>
-      <MlCadViewer
-        :local-file="store.selectedFile ?? undefined"
-        :mode="selectedMode"
-        :use-main-thread-draw="useMainThreadDraw"
-        :draw-no-plot-layers="drawNoPlotLayers"
-        :progressive-rendering="progressiveRendering"
-        :open-view-mode="openViewMode"
-        :theme="theme"
-        @create="onViewerCreate"
-        :base-url="BASE_URL"
-      />
-    </div>
-  </div>
+        <!-- Ant Design Vue AutoCAD-style shell when a file is selected
+             or a new drawing is created -->
+        <AntdCadViewer
+          v-else
+          :local-file="store.selectedFile ?? undefined"
+          :is-new-drawing="store.isNewDrawing"
+          :mode="selectedMode"
+          :use-main-thread-draw="useMainThreadDraw"
+          :draw-no-plot-layers="drawNoPlotLayers"
+          :progressive-rendering="progressiveRendering"
+          :open-view-mode="openViewMode"
+          :theme="theme"
+          :base-url="BASE_URL"
+          @create="onViewerCreate"
+          @toggle-theme="toggleTheme"
+        />
+      </div>
+    </a-app>
+  </a-config-provider>
 </template>
 
 <script setup lang="ts">
-// import { AcApSettingManager } from '@mlightcad/cad-simple-viewer'
+import { FontManager } from '@mlightcad/mtext-renderer'
 import {
   AcApDocManager,
   AcApOpenViewMode,
   AcEdCommandStack,
   AcEdOpenMode
 } from '@mlightcad/cad-simple-viewer'
-import { MlCadViewer } from '@mlightcad/cad-viewer'
 import { registerInvertSelPlugin } from '@mlightcad/cad-invertsel-plugin/register'
 import { registerLayerCtxPlugin } from '@mlightcad/cad-layerctx-plugin/register'
-import { log } from '@mlightcad/data-model'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import { AcApQuitCmd } from './commands'
 import FileUpload from './components/FileUpload.vue'
-import { initializeLocale } from './locale'
+import AntdCadViewer from './shell/AntdCadViewer.vue'
 import { store } from './store'
+import { buildAntdTheme } from './theme'
 
 type UiTheme = 'light' | 'dark'
 
@@ -84,12 +89,13 @@ const applyThemeToPage = (value: UiTheme) => {
 
 watch(theme, applyThemeToPage, { immediate: true })
 
+const antdThemeConfig = computed(() => buildAntdTheme(theme.value))
+
 const toggleTheme = () => {
   theme.value = theme.value === 'dark' ? 'light' : 'dark'
 }
 
 const initialize = () => {
-  initializeLocale()
   if (import.meta.env.DEV) {
     ;(
       window as Window & { AcApDocManager?: typeof AcApDocManager }
@@ -118,13 +124,6 @@ const initialize = () => {
   void registerLayerCtxPlugin(AcApDocManager.instance.pluginManager)
 }
 
-// Decide whether to show command line vertical toolbar at the right side,
-// performance stats, coordinates in status bar, etc.
-// AcApSettingManager.instance.isShowCommandLine = false
-// AcApSettingManager.instance.isShowToolbar = false
-// AcApSettingManager.instance.isShowStats = false
-// AcApSettingManager.instance.isShowCoordinate = false
-
 const BASE_URL = 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/'
 
 const showViewer = computed(
@@ -137,23 +136,19 @@ const drawNoPlotLayers = ref(false)
 const progressiveRendering = ref(true)
 const openViewMode = ref<AcApOpenViewMode | undefined>(undefined)
 
-const createNewDrawing = async () => {
-  const success = await AcApDocManager.instance.newDocument({
-    mode: selectedMode.value,
-    drawNoPlotLayers: drawNoPlotLayers.value,
-    progressiveRendering: progressiveRendering.value,
-    ...(openViewMode.value != null ? { openViewMode: openViewMode.value } : {})
-  })
-  if (!success) {
-    log.error('Failed to create new drawing')
-  }
-}
-
 const onViewerCreate = async () => {
   initialize()
-  if (store.isNewDrawing) {
-    await nextTick()
-    await createNewDrawing()
+
+  // Load local hztxt.shx font for Chinese text rendering
+  try {
+    const fontResponse = await fetch('./fonts/hztxt.shx')
+    const fontData = await fontResponse.arrayBuffer()
+    await FontManager.instance.cacheFont(fontData, 'hztxt.shx')
+
+    // Set hztxt as the primary default font to avoid simsun fallback warnings
+    FontManager.instance.setDefaultFonts(['hztxt'])
+  } catch (error) {
+    console.warn('Failed to load hztxt.shx font:', error)
   }
 }
 

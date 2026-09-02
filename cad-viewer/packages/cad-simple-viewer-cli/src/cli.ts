@@ -17,11 +17,11 @@ function parseMode(value: string): CadViewerCliOpenMode {
 program
   .name('cad-simple-viewer-cli')
   .description(
-    'AcCoreConsole-style headless CAD CLI: open a DXF/DWG (or blank drawing) and run a .scr command script'
+    'AcCoreConsole-style headless CAD CLI: open a DXF (or blank drawing) and run a .scr command script'
   )
   .option(
     '-i, --input <file-or-url>',
-    'Input .dxf/.dwg path or http(s) URL (like AcCoreConsole /i). Omit to start from a blank ISO template'
+    'Input .dxf path or http(s) URL (like AcCoreConsole /i). Omit to start from a blank ISO template'
   )
   .requiredOption(
     '-s, --script <file>',

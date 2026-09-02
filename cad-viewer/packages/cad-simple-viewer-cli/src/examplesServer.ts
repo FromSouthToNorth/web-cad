@@ -175,9 +175,9 @@ function assertIsFile(filePath: string, label: string) {
       throw new Error(`${label} is not a valid URL: ${filePath}`)
     }
     const ext = path.extname(pathname).toLowerCase()
-    if (ext !== '.dxf' && ext !== '.dwg') {
+    if (ext !== '.dxf') {
       throw new Error(
-        `${label} URL must end with .dxf or .dwg: ${filePath}`
+        `${label} URL must end with .dxf: ${filePath}`
       )
     }
     return
@@ -187,8 +187,8 @@ function assertIsFile(filePath: string, label: string) {
     throw new Error(`${label} must be a file: ${filePath}`)
   }
   const ext = path.extname(filePath).toLowerCase()
-  if (ext !== '.dxf' && ext !== '.dwg') {
-    throw new Error(`${label} must be a .dxf or .dwg file: ${filePath}`)
+  if (ext !== '.dxf') {
+    throw new Error(`${label} must be a .dxf file: ${filePath}`)
   }
 }
 
@@ -240,7 +240,7 @@ async function handleRun(options: RunOptions): Promise<{
   if (inputKind === 'file') {
     inputPath = inputPath ?? resolveFixture(catalog)
     if (!inputPath) {
-      throw new Error('This example requires an input .dxf / .dwg path.')
+      throw new Error('This example requires an input .dxf path.')
     }
     assertIsFile(inputPath, 'Input drawing')
   } else if (inputKind === 'directory') {
@@ -337,7 +337,7 @@ async function handleCustomRun(options: CustomRunOptions): Promise<{
     const catalog = await readCatalog()
     inputPath = inputPath ?? resolveFixture(catalog)
     if (!inputPath) {
-      throw new Error('Custom script with input requires a .dxf / .dwg path.')
+      throw new Error('Custom script with input requires a .dxf path.')
     }
     assertIsFile(inputPath, 'Input drawing')
   }

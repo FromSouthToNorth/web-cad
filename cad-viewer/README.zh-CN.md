@@ -86,9 +86,6 @@ pnpm install
 ```bash
 # 启动完整版查看器（cad-viewer）
 pnpm dev
-
-# 或启动简易版查看器
-pnpm dev:simple
 ```
 
 ### 构建
@@ -165,13 +162,13 @@ CAD-Viewer 在 [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer) 中�
 - **一期 CAD 工具** — `get_drawing_context`；`draw_line`、`draw_circle`、`draw_arc`、`draw_rectangle`、`draw_polyline`、`draw_text`；`set_current_layer`、`create_layer`、`zoom_extents`
 - **中/英** 界面文案，通过插件 i18n 层提供
 
-完整 Vue 版 [`cad-viewer`](packages/cad-viewer) 在安装该包后会自动注册智能体（调色板标签页）。[`cad-simple-viewer-example`](packages/cad-simple-viewer-example) 通过 `cad-simple-ui-plugin` 将其接入停靠面板。宿主应用可调用 `registerLazyAgentPlugin` 与 `setAgentPaletteOpener`，自行决定面板挂载位置。
+完整 Vue 版 [`cad-viewer`](packages/cad-viewer) 在安装该包后会自动注册智能体（调色板标签页）。基于 `cad-simple-viewer` 的宿主应用可通过 `cad-simple-ui-plugin` 将其接入停靠面板，并调用 `registerLazyAgentPlugin` 与 `setAgentPaletteOpener` 自行决定面板挂载位置。
 
 → **安装、注册方式与工具列表：** [packages/cad-agent-plugin/README.md](packages/cad-agent-plugin/README.md)
 
 ### 导出类插件（HTML / PDF / SVG）
 
-以下插件向同一插件管理器注册导出（及 PDF 导入）命令，并采用**懒加载**以控制首屏体积。[`cad-simple-viewer-example`](packages/cad-simple-viewer-example) 示例会注册全部三个导出插件、`cad-simple-ui-plugin` 以及 `cad-agent-plugin`；完整 [`cad-viewer`](packages/cad-viewer) 应用在启动时注册导出类插件，并在安装时注册智能体插件。
+以下插件向同一插件管理器注册导出（及 PDF 导入）命令，并采用**懒加载**以控制首屏体积。完整 [`cad-viewer`](packages/cad-viewer) 应用在启动时注册导出类插件，并在安装时注册智能体插件。
 
 - **HTML** — 单文件离线查看器，便于分享与归档：[packages/cad-html-plugin/README.md](packages/cad-html-plugin/README.md)  
   （相同管线的无头 CLI：[packages/cad-simple-viewer-cli/README.md](packages/cad-simple-viewer-cli/README.md)）

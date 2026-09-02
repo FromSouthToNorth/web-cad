@@ -2,6 +2,8 @@ import { expect, test, type Page } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
+import { uploadFixture } from '../helpers/fileUpload'
+
 const currentDir = path.dirname(fileURLToPath(import.meta.url))
 const fixturePath = path.resolve(
   currentDir,
@@ -9,12 +11,6 @@ const fixturePath = path.resolve(
   'fixtures',
   'minimal-line.dxf'
 )
-
-async function uploadFixture(page: Page) {
-  const fileInput = page.locator('input[type="file"]').first()
-  await expect(fileInput).toBeAttached()
-  await fileInput.setInputFiles(fixturePath)
-}
 
 /**
  * Counts non-background canvas pixels. Used as a coarse signal that newly
@@ -63,7 +59,7 @@ test('drawn lines appear immediately without panning the view', async ({
   page
 }) => {
   await page.goto('/')
-  await uploadFixture(page)
+  await uploadFixture(page, fixturePath)
   await expect(page.locator('.ml-cad-container')).toBeVisible({
     timeout: 30000
   })

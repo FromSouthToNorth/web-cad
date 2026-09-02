@@ -65,17 +65,17 @@ await registerSimpleUiPlugin(AcApDocManager.instance.pluginManager, {
 })
 ```
 
-### Example app pattern (`cad-simple-viewer-example`)
+### Lazy initialization pattern
 
-The [vanilla example](../cad-simple-viewer-example) **defers viewer and plugin initialization until the user opens a file** (local upload or predefined sample). That keeps the first paint lightweight:
+For a lightweight first paint, you can **defer viewer and plugin initialization until the user opens a file** (local upload or predefined sample):
 
 1. Page load — only file picker UI; no `AcApDocManager` yet.
 2. First open — `acedApplyUiTheme`, `AcApDocManager.createInstance`, lazy export plugins, then `registerSimpleUiPlugin`.
 3. Subsequent opens — reuse the same viewer instance.
 
-You can adopt the same pattern or load the plugin at startup (see Quick start above). Both are supported.
+You can adopt this pattern or load the plugin at startup (see Quick start above). Both are supported.
 
-The default toolbar does not include every command the old inline demo had (for example pickbox and line-weight toggles). Add them with `appendItems` when needed:
+The default toolbar does not include every command (for example pickbox and line-weight toggles). Add them with `appendItems` when needed:
 
 ```typescript
 toolbar: {
@@ -238,8 +238,6 @@ plugin.setToolbarItems(
   })
 )
 ```
-
-See `cad-simple-viewer-example` (`demoToolbarPresets.ts`) for a working layout switcher prepended to the **viewer toolbar** (via `createToolbarLayoutSwitcher` + `setToolbarItems`). The example dev toolbar also includes a layout dropdown that calls the same preset helpers.
 
 ### `AcExToolbarItem` fields
 
@@ -535,5 +533,4 @@ Omit the layer button from `items` if you do not want the layer dock UI or `laye
 
 ## See also
 
-- [cad-simple-viewer-example](../cad-simple-viewer-example) — vanilla TypeScript demo (lazy init on first file open; uses `registerSimpleUiPlugin`)
 - [cad-viewer](../cad-viewer) — full Vue + Element Plus application shell

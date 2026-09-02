@@ -1,0 +1,687 @@
+/* ============================================================
+ * Ant Design Vue CAD shell — AutoCAD-style layout skin.
+ * Colors follow the --ml-theme-* tokens so light/dark themes
+ * stay in sync with the viewer core.
+ * ============================================================ */
+
+.antd-cad-provider {
+  display: block;
+  height: 100%;
+}
+
+.antd-cad-provider .ant-app {
+  height: 100%;
+}
+
+.antd-cad-shell {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--ml-theme-bg-base);
+  color: var(--ml-theme-text-primary);
+}
+
+/* Engine busy-indicator host; the engine forces position: relative itself. */
+.antd-cad-layout-host {
+  height: 100%;
+}
+
+.antd-cad-layout {
+  height: 100%;
+  background: transparent;
+}
+
+/* ── header / ribbon ─────────────────────────────────────────── */
+
+.antd-cad-header {
+  padding: 0 !important;
+  height: auto !important;
+  line-height: normal !important;
+  background: var(--ml-theme-bg-surface) !important;
+  border-bottom: 1px solid var(--ml-theme-border);
+  flex: 0 0 auto;
+}
+
+.antd-ribbon-top {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 34px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--ml-theme-border-subtle);
+}
+
+.antd-ribbon-file {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.antd-ribbon-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.antd-ribbon-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.antd-ribbon-tab {
+  border: none;
+  background: transparent;
+  padding: 0 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ml-theme-text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.antd-ribbon-tab:hover {
+  color: var(--ml-theme-text-primary);
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-ribbon-tab.is-active {
+  color: var(--ml-theme-primary);
+  border-bottom-color: var(--ml-theme-primary);
+}
+
+.antd-ribbon-right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.antd-ribbon-quick.ant-btn {
+  width: 30px;
+  height: 26px;
+  padding: 0;
+}
+
+.antd-ribbon-locale {
+  width: 104px;
+  margin-left: 4px;
+}
+
+.antd-ribbon-panels {
+  display: flex;
+  align-items: stretch;
+  min-height: 58px;
+  padding: 3px 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.antd-ribbon-group {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding: 0 6px;
+  border-right: 1px solid var(--ml-theme-border-subtle);
+}
+
+.antd-ribbon-group:last-child {
+  border-right: none;
+}
+
+.antd-ribbon-group-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ml-theme-text-muted);
+  text-align: center;
+  padding: 2px 0 3px;
+}
+
+.antd-ribbon-group-buttons {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+}
+
+.antd-ribbon-button.ant-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 52px;
+  height: auto;
+  min-height: 46px;
+  padding: 3px 2px;
+  border-radius: 6px;
+}
+
+.antd-ribbon-button .antd-ribbon-button-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.antd-ribbon-button .antd-ribbon-button-label {
+  font-size: 10.5px;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+}
+
+/* ── siders / panels ─────────────────────────────────────────── */
+
+.antd-cad-body {
+  background: transparent;
+}
+
+/* Sider wrapper hosts the ant-layout-sider plus a drag-handle resizer.
+   It must size to the inner sider so ant-layout flex treats it like a
+   plain sider column. */
+.antd-cad-sider-wrapper {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+}
+
+.antd-cad-sider-wrapper-left {
+  /* Inner sider paints the surface background + right border; the
+     resizer sits just outside that border. */
+}
+
+.antd-cad-sider-wrapper-right {
+  /* Right wrapper: resizer on the left edge, sider on the right. */
+}
+
+.antd-cad-sider.ant-layout-sider {
+  background: var(--ml-theme-bg-surface);
+  border-right: 1px solid var(--ml-theme-border);
+  overflow: hidden;
+}
+
+/* Drag handle. 4px hit-target on the border, visually a thin line
+   that highlights on hover. */
+.antd-cad-sider-resizer {
+  position: relative;
+  flex: 0 0 auto;
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 3;
+  transition: background-color 0.15s;
+}
+
+.antd-cad-sider-resizer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 1px;
+  width: 2px;
+  background: transparent;
+  transition: background-color 0.15s;
+}
+
+.antd-cad-sider-resizer:hover::after {
+  background: var(--ml-theme-primary);
+}
+
+/* Left resizer sits to the right of the left sider (after its border). */
+.antd-cad-sider-resizer-left {
+  margin-right: -1px;
+}
+
+/* Right resizer sits to the left of the right sider (before its border). */
+.antd-cad-sider-resizer-right {
+  margin-left: -1px;
+}
+
+/* Ant Design wraps sider content in .ant-layout-sider-children;
+   make it a flex column so the tab-nav + panel-body stack
+   correctly and the panel-body can flex to fill remaining space. */
+.antd-cad-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.antd-cad-sider-right.ant-layout-sider {
+  border-right: none;
+  border-left: 1px solid var(--ml-theme-border);
+}
+
+/* The <a-tabs> component only provides the tab *headers* (nav).
+   Actual panel content is rendered as a sibling .antd-cad-panel-body,
+   NOT inside the tab panes. So the tabs root must NOT claim full
+   height — it should only be as tall as its nav bar. */
+.antd-cad-panel-tabs {
+  flex: 0 0 auto;
+}
+
+.antd-cad-panel-tabs .ant-tabs-nav {
+  margin: 0;
+  padding: 0 4px;
+}
+
+/* The built-in content holder is unused (panes are empty); hide it
+   so it never steals space from the real panel body. */
+.antd-cad-panel-tabs .ant-tabs-content-holder {
+  display: none;
+}
+
+.antd-cad-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 34px;
+  padding: 0 8px 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ml-theme-text-heading);
+  border-bottom: 1px solid var(--ml-theme-border-subtle);
+  flex-shrink: 0;
+}
+
+.antd-cad-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make third-party panel roots participate in the flex chain
+   instead of relying on height: 100% (whose reference may be a
+   flex-sized parent without an explicit height). */
+.antd-cad-panel-body > .cad-search-panel-root {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
+/* ── search panel (theme overrides) ──────────────────────────── */
+
+/* The search plugin ships Element-Plus CSS variables that are not
+   defined in the Ant Design shell. Override with our own tokens so
+   colours stay consistent across light / dark themes. */
+.antd-cad-panel-body .cad-search-panel-root {
+  color: var(--ml-theme-text-primary);
+}
+
+.antd-cad-panel-body .cad-search-input {
+  border-color: var(--ml-theme-border);
+  background: var(--ml-theme-bg-base);
+  color: var(--ml-theme-text-primary);
+}
+
+.antd-cad-panel-body .cad-search-input::placeholder {
+  color: var(--ml-theme-text-muted);
+}
+
+.antd-cad-panel-body .cad-search-input:focus {
+  border-color: var(--ml-theme-primary);
+}
+
+.antd-cad-panel-body .cad-search-clear {
+  color: var(--ml-theme-text-secondary);
+}
+
+.antd-cad-panel-body .cad-search-clear:hover {
+  color: var(--ml-theme-text-primary);
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-cad-panel-body .cad-search-status,
+.antd-cad-panel-body .cad-search-hint {
+  color: var(--ml-theme-text-secondary);
+}
+
+.antd-cad-panel-body .cad-search-result:hover {
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-cad-panel-body .cad-search-result-active,
+.antd-cad-panel-body .cad-search-result-active:hover {
+  background: color-mix(in srgb, var(--ml-theme-primary) 12%, transparent);
+}
+
+.antd-cad-panel-body .cad-search-result-text {
+  color: var(--ml-theme-text-primary);
+}
+
+.antd-cad-panel-body .cad-search-result-text mark {
+  color: var(--ml-theme-primary);
+}
+
+.antd-cad-panel-body .cad-search-result-meta {
+  color: var(--ml-theme-text-secondary);
+}
+
+.antd-cad-panel-body .cad-search-result-type {
+  border-color: var(--ml-theme-border);
+}
+
+/* ── layer panel ─────────────────────────────────────────────── */
+
+.antd-layer-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.antd-layer-panel-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 6px 4px;
+  flex-shrink: 0;
+}
+
+.antd-layer-panel-toolbar .ant-input-affix-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.antd-layer-panel-current {
+  padding: 2px 10px 4px;
+  font-size: 11.5px;
+  color: var(--ml-theme-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.antd-layer-table {
+  flex: 1;
+  min-height: 0;
+}
+
+.antd-layer-table .ant-table {
+  font-size: 12px;
+}
+
+.antd-layer-table .ant-table-cell {
+  padding: 2px 4px !important;
+}
+
+.antd-layer-row-current .antd-layer-name {
+  font-weight: 700;
+  color: var(--ml-theme-primary);
+}
+
+.antd-layer-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.antd-layer-color {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--ml-theme-border);
+}
+
+.antd-layer-color-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid var(--ml-theme-border);
+  cursor: pointer;
+  padding: 0;
+}
+
+.antd-layer-color-picker {
+  padding: 4px;
+}
+
+.antd-layer-native-color {
+  width: 100%;
+  height: 32px;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.antd-layer-linetype {
+  font-size: 11px;
+  color: var(--ml-theme-text-secondary);
+}
+
+/* ── blocks panel ────────────────────────────────────────────── */
+
+.antd-blocks-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px;
+}
+
+.antd-blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.antd-block-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border: 1px solid var(--ml-theme-border);
+  border-radius: 8px;
+  background: var(--ml-theme-bg-surface);
+  cursor: pointer;
+}
+
+.antd-block-item:hover {
+  border-color: var(--ml-theme-primary);
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-block-preview {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.antd-block-preview-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--ml-theme-text-muted);
+}
+
+.antd-block-name {
+  max-width: 100%;
+  font-size: 11px;
+  color: var(--ml-theme-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── properties panel ────────────────────────────────────────── */
+
+.antd-properties-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 6px 8px;
+}
+
+.antd-properties-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 2px 4px 6px;
+}
+
+.antd-properties-type {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ml-theme-text-heading);
+}
+
+.antd-properties-count {
+  font-size: 11px;
+  color: var(--ml-theme-text-muted);
+}
+
+.antd-properties-group {
+  margin-bottom: 8px;
+}
+
+.antd-properties-group-title {
+  padding: 3px 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ml-theme-text-heading);
+  background: var(--ml-theme-bg-subtle);
+  border-radius: 4px;
+  margin-bottom: 2px;
+}
+
+.antd-properties-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 4px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--ml-theme-border-subtle);
+}
+
+.antd-properties-label {
+  flex: 0 0 46%;
+  min-width: 0;
+  color: var(--ml-theme-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.antd-properties-value {
+  flex: 1;
+  min-width: 0;
+  color: var(--ml-theme-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── content / canvas ────────────────────────────────────────── */
+
+.antd-cad-content {
+  position: relative;
+  padding: 0 !important;
+  min-width: 0;
+  min-height: 0;
+  background: transparent;
+}
+
+.antd-cad-canvas-host {
+  position: absolute;
+  inset: 0;
+}
+
+/* ── footer / status bar ─────────────────────────────────────── */
+
+.antd-cad-footer {
+  padding: 0 !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  background: var(--ml-theme-bg-surface) !important;
+  border-top: 1px solid var(--ml-theme-border);
+  flex: 0 0 auto;
+}
+
+.antd-status-bar {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 8px;
+  padding: 0 6px;
+  font-size: 12px;
+}
+
+.antd-status-bar-layouts {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  height: 100%;
+  gap: 2px;
+}
+
+.antd-status-layout-tab {
+  border: none;
+  background: transparent;
+  padding: 0 10px;
+  font-size: 11.5px;
+  color: var(--ml-theme-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.antd-status-layout-tab:hover {
+  background: var(--ml-theme-bg-hover);
+  color: var(--ml-theme-text-primary);
+}
+
+.antd-status-layout-tab.is-active {
+  color: var(--ml-theme-primary);
+  font-weight: 600;
+}
+
+.antd-status-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.antd-status-coords {
+  min-width: 200px;
+  padding: 0 8px;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ml-theme-text-secondary);
+  white-space: nowrap;
+}
+
+.antd-status-toggle.ant-btn {
+  width: 26px;
+  height: 22px;
+  padding: 0;
+}
+
+.antd-status-toggle.ant-btn.is-active {
+  color: var(--ml-theme-primary);
+}
+
+/* ── engine command line (centered floating) ─── */
+
+.ml-cad-container .ml-cli-container {
+  bottom: 10px;
+  z-index: 5;
+}
+
+.ml-cad-container .ml-cli-bar {
+  height: 30px;
+}

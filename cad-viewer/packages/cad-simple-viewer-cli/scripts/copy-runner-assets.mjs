@@ -5,9 +5,6 @@ import { fileURLToPath } from 'node:url'
 import {
   DATA_MODEL_PACKAGE,
   DXF_PARSER_WORKER_FILE,
-  LIBREDWG_CONVERTER_PACKAGE,
-  LIBREDWG_PARSER_WASM_FILE,
-  LIBREDWG_PARSER_WORKER_FILE,
   MTEXT_RENDERER_PACKAGE,
   MTEXT_RENDERER_WORKER_FILE
 } from '../../../tools/worker-assets.mjs'
@@ -45,25 +42,8 @@ function copy(from, to) {
   copyFileSync(from, to)
 }
 
-function copyIfExists(from, to) {
-  if (!existsSync(from)) {
-    console.log(`Skipped (not found): ${from}`)
-    return
-  }
-  copyFileSync(from, to)
-}
-
 mkdirSync(workersDir, { recursive: true })
 
-const libredwgDist = join(pkgRoot(LIBREDWG_CONVERTER_PACKAGE), 'dist')
-copy(
-  join(libredwgDist, LIBREDWG_PARSER_WORKER_FILE),
-  join(workersDir, LIBREDWG_PARSER_WORKER_FILE)
-)
-copyIfExists(
-  join(libredwgDist, LIBREDWG_PARSER_WASM_FILE),
-  join(workersDir, LIBREDWG_PARSER_WASM_FILE)
-)
 copy(
   join(pkgRoot(MTEXT_RENDERER_PACKAGE), 'dist', MTEXT_RENDERER_WORKER_FILE),
   join(workersDir, MTEXT_RENDERER_WORKER_FILE)

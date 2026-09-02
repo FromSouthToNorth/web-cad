@@ -2,6 +2,8 @@ import { expect, test, type Page } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
+import { uploadFixture } from '../helpers/fileUpload'
+
 const currentDir = path.dirname(fileURLToPath(import.meta.url))
 const shapeFixturePath = path.resolve(
   currentDir,
@@ -10,14 +12,8 @@ const shapeFixturePath = path.resolve(
   'shape-entity.dxf'
 )
 
-async function uploadFixture(page: Page, filePath: string) {
-  const fileInput = page.locator('input[type="file"]').first()
-  await expect(fileInput).toBeAttached()
-  await fileInput.setInputFiles(filePath)
-}
-
 async function waitForViewer(page: Page) {
-  await expect(page.locator('.ml-cad-viewer-container')).toBeVisible({
+  await expect(page.locator('.antd-cad-shell')).toBeVisible({
     timeout: 30000
   })
   await expect(page.locator('.ml-cad-container canvas').first()).toBeVisible()

@@ -12,9 +12,7 @@ export const agentCs = {
   close: 'Zavřít',
   provider: 'Poskytovatel',
   providerDeepseek: 'DeepSeek',
-  providerDeepseekVl: 'DeepSeek VL (vizuální)',
-  providerDeepseekVlHint:
-    'Používá vizuální endpoint kompatibilní s OpenAI (výchozí: SiliconFlow). Pro vlastní vLLM nastavte Základní URL na svůj server, např. http://127.0.0.1:8000/v1.',
+  providerKimi: 'Kimi',
   providerOpenai: 'OpenAI',
   providerAnthropic: 'Anthropic',
   providerOpenaiCompatible: 'Kompatibilní s OpenAI',

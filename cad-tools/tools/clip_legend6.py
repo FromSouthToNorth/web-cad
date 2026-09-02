@@ -6,9 +6,9 @@ from ezdxf.addons import Importer
 
 JOBS = [
     (r"cad/dxf/6#煤采掘工程平面图（2025.05）.dxf",
-     r"cad-viewer/packages/cad-simple-viewer-example/public/testdata/legend6_orig.dxf"),
+     r"cad/dxf/legend6_orig.dxf"),
     (r"cad/dxf/processed/6#煤采掘工程平面图（2025.05）.dxf",
-     r"cad-viewer/packages/cad-simple-viewer-example/public/testdata/legend6_new.dxf"),
+     r"cad/dxf/legend6_new.dxf"),
 ]
 
 # 图例表格范围(标签集中在 x 37413496-37413553, y 4262510-4262929)

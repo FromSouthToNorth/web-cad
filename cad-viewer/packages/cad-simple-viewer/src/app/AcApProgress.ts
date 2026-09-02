@@ -54,7 +54,7 @@ export interface AcApProgressOptions {
   /**
    * Whether to show the mlightcad icon inside the spinner ring and the
    * brand wordmark beneath it.
-   * @defaultValue `true`
+   * @defaultValue `false`
    */
   showBrand?: boolean
 }
@@ -137,7 +137,7 @@ export class AcApProgress {
    * @param options - Optional {@link AcApProgressOptions} controlling appearance & behavior
    */
   constructor(options: AcApProgressOptions = {}) {
-    const showBrand = options.showBrand ?? true
+    const showBrand = options.showBrand ?? false
     this.options = {
       size: options.size ?? (showBrand ? '72px' : '48px'),
       borderWidth: options.borderWidth ?? (showBrand ? '4px' : '5px'),

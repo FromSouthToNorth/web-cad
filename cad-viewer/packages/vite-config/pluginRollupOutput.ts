@@ -75,6 +75,17 @@ function matchThreePackage(id: string): boolean {
   )
 }
 
+/** Match Ant Design Vue and its supporting packages. */
+function matchAntdPackage(id: string): boolean {
+  const normalized = id.replace(/\\/g, '/')
+  return (
+    normalized.includes('/node_modules/ant-design-vue/') ||
+    normalized.includes('/node_modules/.pnpm/ant-design-vue@') ||
+    normalized.includes('/node_modules/@ant-design/') ||
+    normalized.includes('/node_modules/.pnpm/@ant-design+')
+  )
+}
+
 /**
  * Groups monorepo packages into predictable Rollup chunks for example app builds.
  */
@@ -89,6 +100,10 @@ export const exampleManualChunks: ManualChunksOption = (id: string) => {
       return undefined
     }
     return pluginId
+  }
+
+  if (matchAntdPackage(id)) {
+    return 'antd'
   }
 
   if (matchThreePackage(id)) {

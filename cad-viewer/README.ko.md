@@ -86,9 +86,6 @@ pnpm install
 ```bash
 # 전체 기능 뷰어(cad-viewer) 시작
 pnpm dev
-
-# 또는 간단한 뷰어 시작
-pnpm dev:simple
 ```
 
 ### 빌드
@@ -165,13 +162,13 @@ CAD-Viewer는 [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer)의 �
 - **1단계 CAD 도구** — `get_drawing_context`; `draw_line`, `draw_circle`, `draw_arc`, `draw_rectangle`, `draw_polyline`, `draw_text`; `set_current_layer`, `create_layer`, `zoom_extents`
 - 플러그인 i18n 레이어를 통한 **영어 / 중국어 / 터키어 / 체코어** UI 문자열
 
-전체 Vue [`cad-viewer`](packages/cad-viewer) 앱은 패키지가 설치되면 에이전트를 자동 등록합니다(팔레트 탭). [`cad-simple-viewer-example`](packages/cad-simple-viewer-example)은 `cad-simple-ui-plugin`을 통해 도킹 탭에 연결합니다. 호스트 앱은 `registerLazyAgentPlugin`과 `setAgentPaletteOpener`를 호출하여 원하는 위치에 패널을 마운트합니다.
+전체 Vue [`cad-viewer`](packages/cad-viewer) 앱은 패키지가 설치되면 에이전트를 자동 등록합니다(팔레트 탭). `cad-simple-viewer` 기반 호스트 앱은 `cad-simple-ui-plugin`을 통해 도킹 탭에 연결하고 `registerLazyAgentPlugin`과 `setAgentPaletteOpener`를 호출하여 원하는 위치에 패널을 마운트할 수 있습니다.
 
 → **설치, 등록, 도구 목록:** [packages/cad-agent-plugin/README.md](packages/cad-agent-plugin/README.md)
 
 ### 내보내기 플러그인(HTML / PDF / SVG)
 
-이 플러그인들은 동일한 플러그인 관리자에 내보내기(및 PDF 가져오기) 명령을 추가합니다. **지연 로딩**되어 초기 페이지 용량을 작게 유지합니다. [`cad-simple-viewer-example`](packages/cad-simple-viewer-example) 데모는 세 내보내기 플러그인, `cad-simple-ui-plugin`, `cad-agent-plugin`을 모두 등록합니다. 전체 [`cad-viewer`](packages/cad-viewer) 앱은 부트스트랩에서 내보내기 플러그인과(설치 시) 에이전트 플러그인을 등록합니다.
+이 플러그인들은 동일한 플러그인 관리자에 내보내기(및 PDF 가져오기) 명령을 추가합니다. **지연 로딩**되어 초기 페이지 용량을 작게 유지합니다. 전체 [`cad-viewer`](packages/cad-viewer) 앱은 부트스트랩에서 내보내기 플러그인과(설치 시) 에이전트 플러그인을 등록합니다.
 
 - **HTML** — 공유 및 아카이브용 단일 파일 오프라인 뷰어: [packages/cad-html-plugin/README.md](packages/cad-html-plugin/README.md)  
   (동일 파이프라인의 헤드리스 CLI: [packages/cad-simple-viewer-cli/README.md](packages/cad-simple-viewer-cli/README.md))

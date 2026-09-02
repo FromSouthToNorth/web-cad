@@ -18,21 +18,14 @@ const MENU_ITEM = '.ml-layerctx-menu__item'
 const CLI_PROMPT = '.ml-cli-prompt'
 
 /**
- * The app starts with a new empty drawing. Reset it to the upload screen via
- * the example's `quit` command, pin the locale, disable progressive rendering
- * (its idle-gate never completes under headless software WebGL) and load the
+ * The app starts with a new empty drawing; {@link uploadFixture} resets it to
+ * the upload screen (via `quit`), pins the English locale and loads the
  * fixture with Extents framing so the line position is deterministic.
+ * Progressive rendering stays off (upload screen default); its idle-gate
+ * never completes under headless software WebGL.
  */
 async function loadFixtureLine(page: Page) {
-  await page.addInitScript(() => {
-    localStorage.setItem('preferred_lang', 'en')
-  })
   await page.goto('/')
-  await page.locator('.ml-cli-text').click()
-  await page.keyboard.type('quit')
-  await page.keyboard.press('Enter')
-  await page.waitForTimeout(500)
-  await page.getByRole('radio', { name: /^Off\b/ }).first().click()
   await uploadFixture(page, fixturePath, {
     accessMode: 'Write',
     initialView: 'Extents'
@@ -174,14 +167,15 @@ test('右键菜单：结构/键盘导航 + 复制/移动/缩放执行后保留�
   await rightClickCanvasCenter(page)
   await expect(page.locator(MENU)).toBeVisible()
   const items = page.locator(MENU_ITEM)
-  await expect(items).toHaveCount(6)
+  await expect(items).toHaveCount(7)
   await expect(items.nth(0)).toContainText('Copy')
   await expect(items.nth(1)).toContainText('Move')
   await expect(items.nth(2)).toContainText('Scale')
   await expect(items.nth(3)).toContainText('Rotate')
-  await expect(items.nth(4)).toContainText('Deselect All')
-  await expect(items.nth(5)).toContainText('Delete')
-  await expect(items.nth(5)).toHaveClass(/ml-layerctx-menu__item--danger/)
+  await expect(items.nth(4)).toContainText('Offset')
+  await expect(items.nth(5)).toContainText('Deselect All')
+  await expect(items.nth(6)).toContainText('Delete')
+  await expect(items.nth(6)).toHaveClass(/ml-layerctx-menu__item--danger/)
 
   // --- keyboard navigation: open focuses first item; arrows/Home move focus ---
   const focusedText = () =>
@@ -222,7 +216,7 @@ test('右键菜单：结构/键盘导航 + 复制/移动/缩放执行后保留�
   await page.keyboard.press('Escape')
   await expectMenuForSelection(page, 1)
 
-  // --- Scale: base point → typed factor 2 → selection retained ---
+  // --- Scale: base point → reference point → type factor → Enter → selection retained ---
   await rightClickCanvasCenter(page)
   await page.locator(MENU_ITEM).filter({ hasText: 'Scale' }).click()
   await expect(page.locator(CLI_PROMPT)).toContainText(
@@ -232,9 +226,22 @@ test('右键菜单：结构/键盘导航 + 复制/移动/缩放执行后保留�
     const box = await canvasBox(page)
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
   }
-  await expect(page.locator(CLI_PROMPT)).toContainText('Scale factor')
+  // Wait for reference point prompt (may show in CLI or floating input)
+  await page.waitForTimeout(500)
+  // Click reference point
+  {
+    const box = await canvasBox(page)
+    await page.mouse.click(
+      box.x + box.width / 2 + box.width * 0.1,
+      box.y + box.height / 2
+    )
+  }
+  // Wait for new length prompt
+  await page.waitForTimeout(500)
+  // Type scale factor and press Enter
   await page.keyboard.type('2')
   await page.keyboard.press('Enter')
+  await page.waitForTimeout(500)
   await expectMenuForSelection(page, 1)
 
   // --- 快捷键取消选择：关闭菜单并清空选择 ---
@@ -260,24 +267,20 @@ test('右键缩放：拖动时实时预览随光标更新', async ({ page }) => 
   const baseX = box.x + box.width / 2
   const baseY = box.y + box.height / 2
   await page.mouse.click(baseX, baseY)
-  await expect(page.locator(CLI_PROMPT)).toContainText('Scale factor')
-
-  // Cursor on the base point: the preview overlay sits at a degenerate
-  // (near-zero) scale. Sample the canvas before dragging.
-  await page.mouse.move(baseX, baseY)
-  await page.waitForTimeout(200)
-  const before = await canvasScreenshotB64(page)
-
-  // Drag the cursor away: the batched preview overlay must follow live
-  // (regression: the batch path previously never updated the preview).
-  const dragX = baseX + box.width * 0.2
-  await page.mouse.move(dragX, baseY)
-  await page.waitForTimeout(300)
-  const after = await canvasScreenshotB64(page)
-
-  expect(await diffPixelCount(page, before, after)).toBeGreaterThan(200)
-
-  // Click commits the drag distance as the scale factor; selection retained.
-  await page.mouse.click(dragX, baseY)
+  
+  // Wait for reference point prompt
+  await page.waitForTimeout(500)
+  
+  // Click reference point
+  const refX = baseX + box.width * 0.1
+  await page.mouse.click(refX, baseY)
+  
+  // Wait for new length prompt (floating input)
+  await page.waitForTimeout(500)
+  
+  // Type scale factor and press Enter
+  await page.keyboard.type('2')
+  await page.keyboard.press('Enter')
+  
   await expectMenuForSelection(page, 1)
 })

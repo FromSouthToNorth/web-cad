@@ -1,25 +1,5 @@
 <template>
   <div class="antd-property-bar">
-    <!-- Layer selector -->
-    <a-select
-      v-model:value="currentLayer"
-      class="antd-property-bar-select antd-property-bar-layer"
-      :options="layerOptions"
-      :placeholder="t('shell.propertyBar.layer')"
-      :disabled="props.disabled"
-      @change="onLayerChange"
-    >
-      <template #optionLabel="option">
-        <span v-if="option" class="antd-property-bar-layer-option">
-          <span
-            class="antd-property-bar-color-dot"
-            :style="{ background: layerColorFor(option.value) }"
-          />
-          <span class="antd-property-bar-option-label">{{ option.value }}</span>
-        </span>
-      </template>
-    </a-select>
-
     <!-- Color selector -->
     <a-dropdown
       :trigger="['click']"
@@ -61,7 +41,7 @@
     <!-- Linetype selector -->
     <a-select
       v-model:value="currentLinetype"
-      class="antd-property-bar-select antd-property-bar-linetype"
+      class="antd-ribbon-select antd-property-bar-linetype"
       :options="linetypeOptions"
       :placeholder="t('shell.propertyBar.linetype')"
       :disabled="props.disabled"
@@ -73,12 +53,18 @@
           <span>{{ option.value }}</span>
         </span>
       </template>
+      <template #option="option">
+        <span class="antd-property-bar-linetype-option">
+          <span class="antd-property-bar-linetype-preview" :class="`lt-${option.value}`" />
+          <span>{{ option.label ?? option.value }}</span>
+        </span>
+      </template>
     </a-select>
 
     <!-- Lineweight selector -->
     <a-select
       v-model:value="currentLineweight"
-      class="antd-property-bar-select antd-property-bar-lineweight"
+      class="antd-ribbon-select antd-property-bar-lineweight"
       :options="lineweightOptions"
       :placeholder="t('shell.propertyBar.lineweight')"
       :disabled="props.disabled"
@@ -90,14 +76,10 @@
 <script setup lang="ts">
 import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
 import {
-  type LayerInfo,
-  useLayers
-} from '@mlightcad/cad-viewer'
-import {
   AcCmColor,
   type AcDbDatabase,
   AcGiLineWeight} from '@mlightcad/data-model'
-import { computed, effectScope, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
@@ -119,84 +101,6 @@ function db(): AcDbDatabase | undefined {
   } catch {
     return undefined
   }
-}
-
-// ── Layers ─────────────────────────────────────────────────────────
-
-// This bar mounts before the engine bootstraps so the disabled shell chrome
-// is visible during startup, which means the AcApDocManager singleton does
-// not exist yet at setup time. Bind useLayers once it appears (same retry
-// pattern as useDocument), running it inside this component's effect scope
-// so its onScopeDispose cleanup stays tied to the component.
-const layerBindings = shallowRef<ReturnType<typeof useLayers>>()
-
-const layers = computed(
-  () => (layerBindings.value?.layers ?? []) as unknown as LayerInfo[]
-)
-const currentLayerName = computed(
-  () => layerBindings.value?.currentLayerName.value ?? ''
-)
-
-function setCurrentLayer(name: string) {
-  layerBindings.value?.setCurrentLayer(name)
-}
-
-// An attached (non-detached) scope is disposed automatically when this
-// component unmounts, which runs useLayers' onScopeDispose cleanup.
-const bindScope = effectScope()
-let bindTimer: ReturnType<typeof setInterval> | undefined
-
-function stopBindTimer() {
-  if (bindTimer != null) {
-    clearInterval(bindTimer)
-    bindTimer = undefined
-  }
-}
-
-function tryBindLayers(): boolean {
-  let manager: AcApDocManager
-  try {
-    manager = editor()
-  } catch {
-    return false
-  }
-  layerBindings.value = bindScope.run(() => useLayers(manager)) ?? undefined
-  return true
-}
-
-function ensureLayersBound() {
-  if (tryBindLayers() || bindTimer != null) return
-  bindTimer = setInterval(() => {
-    if (tryBindLayers()) stopBindTimer()
-  }, 50)
-}
-
-onUnmounted(stopBindTimer)
-ensureLayersBound()
-
-const currentLayer = ref<string>(currentLayerName.value ?? '')
-
-watch(currentLayerName, name => {
-  if (name) currentLayer.value = name
-})
-
-const layerOptions = computed(() =>
-  layers.value.map((l: LayerInfo) => ({ value: l.name, label: l.name }))
-)
-
-function layerColorFor(name: string): string {
-  const layer = layers.value.find((l: LayerInfo) => l.name === name)
-  if (!layer) return '#888'
-  try {
-    return (layer.color as unknown as { cssColor?: string }).cssColor ?? '#888'
-  } catch {
-    return '#888'
-  }
-}
-
-function onLayerChange(value: string) {
-  if (props.disabled) return
-  setCurrentLayer(value)
 }
 
 // ── Colors ─────────────────────────────────────────────────────────

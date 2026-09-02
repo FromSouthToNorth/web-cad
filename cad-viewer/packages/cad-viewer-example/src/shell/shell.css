@@ -60,7 +60,7 @@
   align-items: center;
   height: 30px;
   padding: 0 6px;
-  gap: 0;
+  gap: 6px;
   border-bottom: 1px solid var(--ml-theme-border-subtle);
 }
 
@@ -166,18 +166,12 @@
   width: 96px;
 }
 
-/* ── tab bar ─────────────────────────────────────────────────── */
-
-.antd-ribbon-tab-bar {
-  display: flex;
-  align-items: stretch;
-  height: 28px;
-  padding: 0 6px;
-}
+/* ── tabs (merged into the QAT row) ──────────────────────────── */
 
 .antd-ribbon-tabs {
   display: flex;
   align-items: stretch;
+  align-self: stretch;
   gap: 0;
   flex: 1;
   min-width: 0;
@@ -225,31 +219,28 @@
   border-radius: 0 0 2px 2px;
 }
 
-/* ── property bar ────────────────────────────────────────────── */
+/* ── property bar (embedded in the Properties panel) ─────────── */
 
+/* Panel-internal 2×2 grid: layer+color on row 1, linetype+lineweight
+ * on row 2, matching AutoCAD's quick property controls. */
 .antd-property-bar {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-bottom: 1px solid var(--ml-theme-border-subtle);
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  scrollbar-width: none;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-content: center;
+  justify-items: stretch;
+  gap: 4px 6px;
+  padding-right: 4px;
+  flex-shrink: 0;
 }
 
-.antd-property-bar::-webkit-scrollbar {
-  display: none;
-}
-
-.antd-property-bar-select {
+.antd-ribbon-select {
   min-width: 110px !important;
   max-width: 160px;
   height: 26px !important;
   font-size: 12px !important;
 }
 
-.antd-property-bar-select .ant-select-selector {
+.antd-ribbon-select .ant-select-selector {
   height: 26px !important;
   border-color: var(--ml-theme-border) !important;
   background: var(--ml-theme-bg-base) !important;
@@ -258,34 +249,29 @@
   border-radius: 3px !important;
 }
 
-.antd-property-bar-select .ant-select-selection-item {
+.antd-ribbon-select .ant-select-selection-item {
   line-height: 24px !important;
   color: var(--ml-theme-text-primary) !important;
 }
 
-.antd-property-bar-select .ant-select-arrow {
+.antd-ribbon-select .ant-select-arrow {
   color: var(--ml-theme-text-muted) !important;
 }
 
-.antd-property-bar-layer {
-  min-width: 130px !important;
-}
-
-.antd-property-bar-linetype {
-  min-width: 130px !important;
-}
-
-.antd-property-bar-lineweight {
-  min-width: 90px !important;
+/* Layer select lives in the Layer panel, beside the layer tools */
+.antd-layer-select {
+  align-self: center;
+  min-width: 140px !important;
 }
 
 /* Layer option with color dot */
-.antd-property-bar-layer-option {
+.antd-layer-select-option {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
+/* Shared color dot (layer options + color menu items) */
 .antd-property-bar-color-dot {
   width: 10px;
   height: 10px;
@@ -294,10 +280,20 @@
   border: 1px solid var(--ml-theme-border);
 }
 
-.antd-property-bar-option-label {
+.antd-layer-select-option-label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.antd-property-bar-linetype {
+  min-width: 120px !important;
+}
+
+/* Lineweight spans the full property-bar width on its own row */
+.antd-property-bar-lineweight {
+  min-width: 90px !important;
+  grid-column: 1 / -1;
 }
 
 /* Color swatch button */
@@ -464,7 +460,6 @@
   padding: 4px 6px 2px;
   overflow-x: auto;
   scrollbar-width: thin;
-  border-top: 1px solid var(--ml-theme-border-subtle);
 }
 
 /* ── panel ───────────────────────────────────────────────────── */
@@ -499,6 +494,42 @@
   text-align: center;
   padding: 2px 0 1px;
   flex-shrink: 0;
+}
+
+/* Title doubles as the dropdown trigger for the panel's small tools */
+button.antd-ribbon-panel-title--dropdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.12s, color 0.12s;
+}
+
+button.antd-ribbon-panel-title--dropdown:hover {
+  background: var(--ml-theme-bg-hover);
+  color: var(--ml-theme-text-secondary);
+}
+
+button.antd-ribbon-panel-title--dropdown:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.antd-ribbon-panel-title-arrow {
+  display: inline-flex;
+  align-items: center;
+  font-size: 6px;
+}
+
+.antd-ribbon-dropdown-option-keytip {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--ml-theme-text-muted);
 }
 
 /* ── ribbon buttons ──────────────────────────────────────────── */

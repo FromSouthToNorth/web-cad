@@ -8,8 +8,8 @@
  *   Insert, Review, Measure, View are dedicated workflow tabs.
  *
  * Within each panel, `size: 'large'` items render as 48×56 icon+label
- * buttons (the primary tools); `size: 'small'` items render as 24×24
- * icon-only buttons arranged in a wrapping grid.
+ * buttons (the primary tools); `size: 'small'` items collapse into the
+ * panel-title dropdown.
  */
 import {
   ClearOutlined,
@@ -19,10 +19,12 @@ import {
   EyeInvisibleOutlined,
   EyeOutlined,
   FileAddOutlined,
+  FolderOpenOutlined,
   FontSizeOutlined,
   HighlightOutlined,
   LineOutlined,
   PictureOutlined,
+  RedoOutlined,
   ReloadOutlined,
   RotateRightOutlined,
   SaveOutlined,
@@ -30,6 +32,7 @@ import {
   SwapOutlined,
   RobotFilled,
   ToolOutlined,
+  UndoOutlined,
   UnlockOutlined
 } from '@ant-design/icons-vue'
 import type { Component } from 'vue'
@@ -122,10 +125,10 @@ function dropdown(
 // ── QAT ──────────────────────────────────────────────────────────────
 
 export const qatItems: QatItemDef[] = [
-  { id: 'qnew', command: 'qnew', label: 'New' },
-  { id: 'open', command: 'open', label: 'Open' },
-  { id: 'undo', command: 'undo', label: 'Undo' },
-  { id: 'redo', command: 'redo', label: 'Redo' }
+  { id: 'qnew', command: 'qnew', icon: FileAddOutlined, label: 'New' },
+  { id: 'open', command: 'open', icon: FolderOpenOutlined, label: 'Open' },
+  { id: 'undo', command: 'undo', icon: UndoOutlined, label: 'Undo' },
+  { id: 'redo', command: 'redo', icon: RedoOutlined, label: 'Redo' }
 ]
 
 // ── File menu ────────────────────────────────────────────────────────

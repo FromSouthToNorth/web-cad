@@ -4,8 +4,8 @@ import type { Component } from 'vue'
  * AutoCAD-style ribbon data model.
  *
  * Every ribbon tab contains panels; each panel holds a flat list of items
- * that may be large (icon + label, the primary tools) or small (icon only,
- * secondary tools arranged in a wrapping grid).  Items can also be dropdown
+ * that may be large (icon + label, the primary tools) or small (secondary
+ * tools collapsed into the panel-title dropdown).  Items can also be dropdown
  * buttons (a large main action with a popup menu of variants).
  */
 

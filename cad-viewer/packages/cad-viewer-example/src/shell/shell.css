@@ -42,18 +42,137 @@
   flex: 0 0 auto;
 }
 
-.antd-ribbon-top {
+/* ── ribbon root ─────────────────────────────────────────────── */
+
+.antd-ribbon {
+  display: flex;
+  flex-direction: column;
+}
+
+.antd-ribbon.is-collapsed .antd-ribbon-panels {
+  display: none;
+}
+
+/* ── QAT row ─────────────────────────────────────────────────── */
+
+.antd-ribbon-qat-row {
   display: flex;
   align-items: center;
-  gap: 4px;
-  height: 34px;
-  padding: 0 8px;
+  height: 30px;
+  padding: 0 6px;
+  gap: 0;
   border-bottom: 1px solid var(--ml-theme-border-subtle);
 }
 
-.antd-ribbon-file {
-  font-weight: 600;
-  letter-spacing: 0.02em;
+.antd-qat {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.antd-qat-app-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ml-theme-text-primary);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.antd-qat-app-btn:hover {
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-qat-app-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.antd-qat-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--ml-theme-border-subtle);
+  margin: 0 4px;
+}
+
+.antd-qat-btn.ant-btn,
+.antd-qat-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ml-theme-text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.antd-qat-btn:hover {
+  background: var(--ml-theme-bg-hover);
+  color: var(--ml-theme-text-primary);
+}
+
+.antd-qat-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.antd-qat-file-menu {
+  min-width: 160px;
+  padding: 4px;
+  background: var(--ml-theme-bg-surface);
+  border: 1px solid var(--ml-theme-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.antd-qat-file-item {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ml-theme-text-primary);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+
+.antd-qat-file-item:hover {
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-ribbon-qat-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.antd-ribbon-locale {
+  width: 96px;
+}
+
+/* ── tab bar ─────────────────────────────────────────────────── */
+
+.antd-ribbon-tab-bar {
+  display: flex;
+  align-items: stretch;
+  height: 28px;
+  padding: 0 6px;
 }
 
 .antd-ribbon-tabs {
@@ -80,6 +199,8 @@
   cursor: pointer;
   border-bottom: 2px solid transparent;
   white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+  position: relative;
 }
 
 .antd-ribbon-tab:hover {
@@ -92,84 +213,338 @@
   border-bottom-color: var(--ml-theme-primary);
 }
 
-.antd-ribbon-right {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
+/* Contextual tabs get a colored strip above the tab label */
+.antd-ribbon-tab.is-contextual::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 2px;
+  right: 2px;
+  height: 3px;
+  background: var(--tab-context-color, var(--ml-theme-primary));
+  border-radius: 0 0 2px 2px;
 }
 
-.antd-ribbon-quick.ant-btn {
-  width: 30px;
-  height: 26px;
-  padding: 0;
-}
-
-.antd-ribbon-locale {
-  width: 104px;
-  margin-left: 4px;
-}
+/* ── panel area ──────────────────────────────────────────────── */
 
 .antd-ribbon-panels {
   display: flex;
   align-items: stretch;
-  min-height: 58px;
-  padding: 3px 6px;
+  min-height: 88px;
+  padding: 4px 6px 2px;
   overflow-x: auto;
   scrollbar-width: thin;
+  border-top: 1px solid var(--ml-theme-border-subtle);
 }
 
-.antd-ribbon-group {
+/* ── panel ───────────────────────────────────────────────────── */
+
+.antd-ribbon-panel {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  padding: 0 6px;
+  padding: 0 8px;
   border-right: 1px solid var(--ml-theme-border-subtle);
 }
 
-.antd-ribbon-group:last-child {
+.antd-ribbon-panel:last-child {
   border-right: none;
 }
 
-.antd-ribbon-group-title {
+.antd-ribbon-panel-items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+}
+
+.antd-ribbon-panel-title {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ml-theme-text-muted);
   text-align: center;
-  padding: 2px 0 3px;
+  padding: 2px 0 1px;
+  flex-shrink: 0;
 }
 
-.antd-ribbon-group-buttons {
-  display: flex;
-  align-items: stretch;
-  gap: 2px;
-}
+/* ── ribbon buttons ──────────────────────────────────────────── */
 
-.antd-ribbon-button.ant-btn {
+/* Large button: 48×56 with icon + stacked label */
+.antd-ribbon-button--large {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
-  width: 52px;
-  height: auto;
-  min-height: 46px;
-  padding: 3px 2px;
-  border-radius: 6px;
+  gap: 2px;
+  width: 48px;
+  min-height: 56px;
+  padding: 4px 2px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ml-theme-text-primary);
+  cursor: pointer;
+  transition: background-color 0.12s;
 }
 
-.antd-ribbon-button .antd-ribbon-button-icon {
-  font-size: 15px;
+.antd-ribbon-button--large:hover {
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-ribbon-button--large:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.antd-ribbon-button--large .antd-ribbon-button-icon {
+  font-size: 20px;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
 }
 
-.antd-ribbon-button .antd-ribbon-button-label {
-  font-size: 10.5px;
+/* SVG icons need explicit sizing */
+.antd-ribbon-button--large .antd-ribbon-button-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── SVG icon theme adaptation ─────────────────────────────────
+ * CAD SVGs were authored for Element Plus and use:
+ *   fill="var(--el-color-primary)"  → accent dots / handles
+ *   stroke="currentColor"           → shapes that inherit color
+ *   (no fill/stroke)                → default black fill
+ *
+ * We remap everything to the --ml-theme-* palette so icons render
+ * correctly in both light and dark themes without modifying the SVG
+ * source files.
+ */
+
+/* 1. Replace the Element-Plus variable with the shell's primary color.
+ *    --el-color-primary is never defined in the Ant Design shell, so the
+ *    fill would otherwise be empty/transparent. */
+.antd-ribbon-button-icon svg [fill="var(--el-color-primary)"],
+.antd-ribbon-dropdown-icon svg [fill="var(--el-color-primary)"] {
+  fill: var(--ml-theme-primary);
+}
+
+/* 2. Paths/shapes that omit fill default to black — invisible on dark bg.
+ *    Force them to inherit the button's text colour. */
+.antd-ribbon-button-icon svg path:not([fill]),
+.antd-ribbon-button-icon svg rect:not([fill]),
+.antd-ribbon-button-icon svg circle:not([fill]),
+.antd-ribbon-button-icon svg polygon:not([fill]),
+.antd-ribbon-button-icon svg line:not([stroke]),
+.antd-ribbon-dropdown-icon svg path:not([fill]),
+.antd-ribbon-dropdown-icon svg rect:not([fill]),
+.antd-ribbon-dropdown-icon svg circle:not([fill]),
+.antd-ribbon-dropdown-icon svg polygon:not([fill]),
+.antd-ribbon-dropdown-icon svg line:not([stroke]) {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+/* 3. Strokes that use currentColor already inherit correctly — but set a
+ *    fallback stroke colour for shapes that specify fill only. */
+.antd-ribbon-button-icon svg [fill]:not([stroke]),
+.antd-ribbon-dropdown-icon svg [fill]:not([stroke]) {
+  stroke: currentColor;
+}
+
+.antd-ribbon-button--large .antd-ribbon-button-label {
+  font-size: 10px;
   line-height: 1.15;
   text-align: center;
   white-space: normal;
+  word-break: break-word;
+  max-width: 46px;
+}
+
+/* Small button: 24×24 icon only */
+.antd-ribbon-button--small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ml-theme-text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.12s, color 0.12s;
+}
+
+.antd-ribbon-button--small:hover {
+  background: var(--ml-theme-bg-hover);
+  color: var(--ml-theme-text-primary);
+}
+
+.antd-ribbon-button--small:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.antd-ribbon-button--small .antd-ribbon-button-icon {
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.antd-ribbon-button--small .antd-ribbon-button-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── dropdown button ─────────────────────────────────────────── */
+
+.antd-ribbon-dropdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  min-height: 56px;
+  padding: 2px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ml-theme-text-primary);
+  cursor: pointer;
+  transition: background-color 0.12s;
+  position: relative;
+}
+
+.antd-ribbon-dropdown:hover {
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-ribbon-dropdown.is-disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.antd-ribbon-dropdown-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  width: 100%;
+}
+
+.antd-ribbon-dropdown-icon {
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+}
+
+.antd-ribbon-dropdown-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.antd-ribbon-dropdown-label {
+  font-size: 10px;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+  max-width: 50px;
+}
+
+.antd-ribbon-dropdown-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: var(--ml-theme-text-muted);
+  padding: 1px 0;
+  cursor: pointer;
+}
+
+.antd-ribbon-dropdown-arrow:hover {
+  color: var(--ml-theme-text-primary);
+}
+
+.antd-ribbon-dropdown-menu {
+  min-width: 160px;
+  padding: 4px;
+  background: var(--ml-theme-bg-surface);
+  border: 1px solid var(--ml-theme-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.antd-ribbon-dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ml-theme-text-primary);
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+
+.antd-ribbon-dropdown-option:hover {
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-ribbon-dropdown-option-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  width: 20px;
+}
+
+.antd-ribbon-dropdown-option-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.antd-ribbon-dropdown-option-label {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── enhanced tooltip ────────────────────────────────────────── */
+
+.antd-ribbon-tooltip {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.antd-ribbon-tooltip-title {
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+.antd-ribbon-tooltip-shortcut {
+  font-size: 11px;
+  opacity: 0.7;
 }
 
 /* ── siders / panels ─────────────────────────────────────────── */
@@ -178,23 +553,11 @@
   background: transparent;
 }
 
-/* Sider wrapper hosts the ant-layout-sider plus a drag-handle resizer.
-   It must size to the inner sider so ant-layout flex treats it like a
-   plain sider column. */
 .antd-cad-sider-wrapper {
   position: relative;
   flex: 0 0 auto;
   display: flex;
   align-items: stretch;
-}
-
-.antd-cad-sider-wrapper-left {
-  /* Inner sider paints the surface background + right border; the
-     resizer sits just outside that border. */
-}
-
-.antd-cad-sider-wrapper-right {
-  /* Right wrapper: resizer on the left edge, sider on the right. */
 }
 
 .antd-cad-sider.ant-layout-sider {
@@ -203,8 +566,6 @@
   overflow: hidden;
 }
 
-/* Drag handle. 4px hit-target on the border, visually a thin line
-   that highlights on hover. */
 .antd-cad-sider-resizer {
   position: relative;
   flex: 0 0 auto;
@@ -230,19 +591,14 @@
   background: var(--ml-theme-primary);
 }
 
-/* Left resizer sits to the right of the left sider (after its border). */
 .antd-cad-sider-resizer-left {
   margin-right: -1px;
 }
 
-/* Right resizer sits to the left of the right sider (before its border). */
 .antd-cad-sider-resizer-right {
   margin-left: -1px;
 }
 
-/* Ant Design wraps sider content in .ant-layout-sider-children;
-   make it a flex column so the tab-nav + panel-body stack
-   correctly and the panel-body can flex to fill remaining space. */
 .antd-cad-sider .ant-layout-sider-children {
   display: flex;
   flex-direction: column;
@@ -254,10 +610,6 @@
   border-left: 1px solid var(--ml-theme-border);
 }
 
-/* The <a-tabs> component only provides the tab *headers* (nav).
-   Actual panel content is rendered as a sibling .antd-cad-panel-body,
-   NOT inside the tab panes. So the tabs root must NOT claim full
-   height — it should only be as tall as its nav bar. */
 .antd-cad-panel-tabs {
   flex: 0 0 auto;
 }
@@ -267,8 +619,6 @@
   padding: 0 4px;
 }
 
-/* The built-in content holder is unused (panes are empty); hide it
-   so it never steals space from the real panel body. */
 .antd-cad-panel-tabs .ant-tabs-content-holder {
   display: none;
 }
@@ -294,9 +644,6 @@
   flex-direction: column;
 }
 
-/* Make third-party panel roots participate in the flex chain
-   instead of relying on height: 100% (whose reference may be a
-   flex-sized parent without an explicit height). */
 .antd-cad-panel-body > .cad-search-panel-root {
   flex: 1;
   min-height: 0;
@@ -305,9 +652,6 @@
 
 /* ── search panel (theme overrides) ──────────────────────────── */
 
-/* The search plugin ships Element-Plus CSS variables that are not
-   defined in the Ant Design shell. Override with our own tokens so
-   colours stay consistent across light / dark themes. */
 .antd-cad-panel-body .cad-search-panel-root {
   color: var(--ml-theme-text-primary);
 }

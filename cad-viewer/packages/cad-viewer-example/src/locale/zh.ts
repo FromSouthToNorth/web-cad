@@ -87,6 +87,7 @@ export default {
         circle: '圆',
         arc: '圆弧',
         ellipse: '椭圆',
+        rect: '矩形',
         rectangle: '矩形',
         polygon: '多边形',
         spline: '样条曲线',
@@ -126,6 +127,7 @@ export default {
         regen: '重生成',
         invertSelect: '反选',
         search: '对象搜索',
+        agent: 'CAD 助手',
         switchBg: '切换背景',
         insertBlock: '插入块',
         attachImage: '附着图像',
@@ -151,6 +153,17 @@ export default {
         zoomWindow: '窗口缩放',
         zoomOut: '缩放',
         pan: '平移'
+      },
+      option: {
+        circleCR: '圆心, 半径',
+        circleCD: '圆心, 直径',
+        circle2P: '两点',
+        circle3P: '三点',
+        circleTTR: '切点, 切点, 半径',
+        circleTTT: '切点, 切点, 切点',
+        arc3P: '三点',
+        arcCSE: '圆心, 起点, 端点',
+        arcCSA: '圆心, 起点, 角度'
       },
       file: {
         qnew: '新建图纸',

@@ -95,9 +95,9 @@ function handleSelect(value: string) {
   overflow-y: auto;
   box-sizing: border-box;
   padding: 10px;
-  border: 1px solid var(--ml-rb-border, var(--el-border-color));
+  border: 1px solid var(--ml-rb-border, var(--ml-theme-border));
   border-radius: 2px;
-  background: var(--ml-rb-panel-bg, var(--el-fill-color-lighter));
+  background: var(--ml-rb-panel-bg, var(--ml-theme-bg-subtle));
 
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -113,21 +113,21 @@ function handleSelect(value: string) {
   padding: 8px 4px;
   border: 1px solid transparent;
   background: transparent;
-  color: var(--ml-rb-tab-text, var(--el-text-color-primary));
+  color: var(--ml-rb-tab-text, var(--ml-theme-text-heading));
   cursor: pointer;
 }
 
 .ml-hatch-pattern-panel__item:hover {
-  background: var(--ml-rb-hover-bg, var(--el-fill-color));
+  background: var(--ml-rb-hover-bg, var(--ml-theme-bg-subtle));
 }
 
 .ml-hatch-pattern-panel__item.is-active {
-  border-color: var(--ml-rb-active-border, var(--el-border-color-darker));
-  background: var(--ml-rb-active-bg, var(--el-fill-color-dark));
+  border-color: var(--ml-rb-active-border, var(--ml-theme-border));
+  background: var(--ml-rb-active-bg, var(--ml-theme-bg-subtle));
 }
 
 .ml-hatch-pattern-panel__item:focus-visible {
-  outline: 1px solid var(--ml-rb-active, var(--el-color-primary));
+  outline: 1px solid var(--ml-rb-active, var(--ml-theme-primary));
   outline-offset: 1px;
 }
 
@@ -140,7 +140,7 @@ function handleSelect(value: string) {
   width: 52px;
   height: 52px;
   box-sizing: border-box;
-  border: 1px solid var(--ml-rb-border-strong, var(--el-border-color-dark));
+  border: 1px solid var(--ml-rb-border-strong, var(--ml-theme-border));
   background-color: #f6f8fb;
 }
 

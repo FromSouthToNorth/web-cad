@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import {
-  ChatLineSquare,
-  Delete,
-  EditPen,
-  Hide,
-  Right,
-  Stamp,
-  View
-} from '@element-plus/icons-vue'
+  DeleteOutlined,
+  EditOutlined,
+  EyeInvisibleOutlined,
+  EyeOutlined,
+  MessageOutlined,
+  RightOutlined,
+  TagOutlined
+} from '@ant-design/icons-vue'
 import {
   AcApDocManager,
   AcEdOpenMode,
@@ -88,12 +88,12 @@ const visibilityToggle = (
   toggle: {
     value: visible,
     on: {
-      icon: View,
+      icon: EyeOutlined,
       text: show.text,
       description: show.description
     },
     off: {
-      icon: Hide,
+      icon: EyeInvisibleOutlined,
       text: hide.text,
       description: hide.description
     }
@@ -224,13 +224,13 @@ const verticalToolbarData = computed(() => {
           description: t('main.verticalToolbar.markupCloud.description')
         },
         {
-          icon: ChatLineSquare,
+          icon: MessageOutlined,
           text: t('main.verticalToolbar.markupCallout.text'),
           command: 'markupcallout',
           description: t('main.verticalToolbar.markupCallout.description')
         },
         {
-          icon: EditPen,
+          icon: EditOutlined,
           text: t('main.verticalToolbar.markupText.text'),
           command: 'markuptext',
           description: t('main.verticalToolbar.markupText.description')
@@ -248,13 +248,13 @@ const verticalToolbarData = computed(() => {
           description: t('main.verticalToolbar.markupCircle.description')
         },
         {
-          icon: Right,
+          icon: RightOutlined,
           text: t('main.verticalToolbar.markupArrow.text'),
           command: 'markuparrow',
           description: t('main.verticalToolbar.markupArrow.description')
         },
         {
-          icon: Stamp,
+          icon: TagOutlined,
           text: t('main.verticalToolbar.markupStamp.text'),
           command: 'markupstamp',
           description: t('main.verticalToolbar.markupStamp.description')
@@ -278,7 +278,7 @@ const verticalToolbarData = computed(() => {
           }
         ),
         {
-          icon: Delete,
+          icon: DeleteOutlined,
           text: t('main.verticalToolbar.clearMarkups.text'),
           command: 'clearmarkups',
           description: t('main.verticalToolbar.clearMarkups.description')

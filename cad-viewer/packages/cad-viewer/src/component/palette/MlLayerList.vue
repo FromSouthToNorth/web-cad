@@ -4,22 +4,22 @@
       <span class="ml-layer-manager-current" :title="currentLayerLabel">
         {{ currentLayerLabel }}
       </span>
-      <el-input
-        v-model="searchText"
-        clearable
+      <a-input
+        v-model:value="searchText"
+        allow-clear
         size="small"
         class="ml-layer-manager-search"
         :placeholder="t('main.toolPalette.layerManager.searchPlaceholder')"
       >
         <template #prefix>
-          <el-icon><Search /></el-icon>
+          <SearchOutlined />
         </template>
-      </el-input>
+      </a-input>
     </div>
 
     <div class="ml-layer-manager-toolbar">
-      <el-button
-        text
+      <a-button
+        type="text"
         size="small"
         class="ml-layer-manager-toolbar-btn"
         :class="{
@@ -30,12 +30,12 @@
         :aria-pressed="filterPanelVisible"
         @click="filterPanelVisible = !filterPanelVisible"
       >
-        <el-icon :size="16"><Filter /></el-icon>
-      </el-button>
+        <FilterOutlined :style="{ fontSize: '16px' }" />
+      </a-button>
       <span class="ml-layer-manager-toolbar-sep" aria-hidden="true" />
       <div class="ml-layer-manager-toolbar-layer-actions">
-        <el-button
-          text
+        <a-button
+          type="text"
           size="small"
           class="ml-layer-manager-toolbar-btn"
           :title="t('main.toolPalette.layerManager.toolbar.newLayer')"
@@ -46,9 +46,9 @@
           <span class="ml-layer-manager-toolbar-icon" aria-hidden="true">
             <component :is="layerNew" />
           </span>
-        </el-button>
-        <el-button
-          text
+        </a-button>
+        <a-button
+          type="text"
           size="small"
           class="ml-layer-manager-toolbar-btn"
           :title="t('main.toolPalette.layerManager.toolbar.deleteLayer')"
@@ -59,9 +59,9 @@
           <span class="ml-layer-manager-toolbar-icon" aria-hidden="true">
             <component :is="layerDelete" />
           </span>
-        </el-button>
-        <el-button
-          text
+        </a-button>
+        <a-button
+          type="text"
           size="small"
           class="ml-layer-manager-toolbar-btn"
           :title="t('main.toolPalette.layerManager.toolbar.setCurrent')"
@@ -72,7 +72,7 @@
           <span class="ml-layer-manager-toolbar-icon" aria-hidden="true">
             <component :is="layerSetCurrent" />
           </span>
-        </el-button>
+        </a-button>
       </div>
     </div>
 
@@ -86,18 +86,18 @@
             {{ t('main.toolPalette.layerManager.filters') }}
           </span>
           <div class="ml-layer-manager-filter-panel-actions">
-            <el-button
-              text
+            <a-button
+              type="text"
               size="small"
               class="ml-layer-manager-toolbar-btn"
               :title="t('main.toolPalette.layerManager.toolbar.newFilter')"
               :aria-label="t('main.toolPalette.layerManager.toolbar.newFilter')"
               @click="handleNewFilter"
             >
-              <el-icon :size="16"><Plus /></el-icon>
-            </el-button>
-            <el-button
-              text
+              <PlusOutlined :style="{ fontSize: '16px' }" />
+            </a-button>
+            <a-button
+              type="text"
               size="small"
               class="ml-layer-manager-toolbar-btn"
               :title="t('main.toolPalette.layerManager.toolbar.newFilterGroup')"
@@ -106,20 +106,19 @@
               "
               @click="handleNewFilterGroup"
             >
-              <el-icon :size="16"><FolderAdd /></el-icon>
-            </el-button>
+              <FolderAddOutlined :style="{ fontSize: '16px' }" />
+            </a-button>
           </div>
         </div>
-        <el-tree
+        <a-tree
           ref="filterTreeRef"
           class="ml-layer-manager-filter-tree"
-          :data="filterTreeData"
-          node-key="id"
-          highlight-current
+          :tree-data="filterTreeData"
+          :field-names="{ key: 'id', title: 'label', children: 'children' }"
+          :selected-keys="selectedFilterId ? [selectedFilterId] : []"
           default-expand-all
-          :expand-on-click-node="false"
-          :current-node-key="selectedFilterId"
-          @node-click="handleFilterNodeClick"
+          :expand-on-click="false"
+          @select="handleFilterTreeSelect"
         />
       </div>
 
@@ -144,25 +143,18 @@
 
 <script setup lang="ts">
 import {
-  Filter,
-  FolderAdd,
-  Plus,
-  Search
-} from '@element-plus/icons-vue'
+  FilterOutlined,
+  FolderAddOutlined,
+  PlusOutlined,
+  SearchOutlined
+} from '@ant-design/icons-vue'
 import {
   AcApDocManager,
   AcApLayerService
 } from '@mlightcad/cad-simple-viewer'
 import { AcCmColor, AcCmTransparency } from '@mlightcad/data-model'
-import {
-  ElButton,
-  ElIcon,
-  ElInput,
-  ElMessage,
-  ElMessageBox,
-  ElTree
-} from 'element-plus'
-import { computed, nextTick, ref, watch } from 'vue'
+import { Input, message, Modal, Tree } from 'ant-design-vue'
+import { computed, h, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import {
@@ -228,7 +220,7 @@ const searchText = ref('')
 const filterPanelVisible = ref(false)
 /** Selected layer name (stable across table row identity refreshes). */
 const selectedLayerName = ref<string | null>(null)
-const filterTreeRef = ref<InstanceType<typeof ElTree>>()
+const filterTreeRef = ref<InstanceType<typeof Tree> | null>(null)
 const layerTableRef = ref<InstanceType<typeof MlLayerTable>>()
 /** When true, an inline new-layer row is shown below the current layer. */
 const isDraftingNewLayer = ref(false)
@@ -238,17 +230,8 @@ let cancellingDraft = false
 /** Prevents re-entrant commit while creating the layer. */
 let committingDraft = false
 
-const syncFilterTreeSelection = async () => {
-  await nextTick()
-  filterTreeRef.value?.setCurrentKey(selectedFilterId.value)
-}
-
-watch(selectedFilterId, () => {
-  void syncFilterTreeSelection()
-})
-
-watch(filterPanelVisible, visible => {
-  if (visible) void syncFilterTreeSelection()
+watch(filterPanelVisible, () => {
+  // selection is managed via computed selectedKeys
 })
 
 const currentLayerLabel = computed(() =>
@@ -349,20 +332,20 @@ watch(displayedLayers, rows => {
   }
 })
 
-const handleFilterNodeClick = (node: FilterTreeNode) => {
-  selectedFilterId.value = node.id
+const handleFilterTreeSelect = (_selectedKeys: string[], info: { node: FilterTreeNode }) => {
+  if (info.node?.id) {
+    selectedFilterId.value = info.node.id
+  }
 }
 
 const handleRowDbClick = (row: MlLayerTableRow) => {
   const isSuccess = props.editor.curView.zoomToFitLayer(row.name)
   if (isSuccess) {
-    ElMessage({
-      message: t('main.toolPalette.layerManager.layerList.zoomToLayer', {
+    message.success(
+      t('main.toolPalette.layerManager.layerList.zoomToLayer', {
         layer: row.name
-      }),
-      grouping: true,
-      type: 'success'
-    })
+      })
+    )
   }
 }
 
@@ -424,23 +407,38 @@ const selectedLayerNamesForFilter = () => {
     .map(layer => layer.name)
 }
 
-const promptName = async (
+const promptName = (
   title: string,
-  message: string,
+  promptMessage: string,
   defaultValue = ''
-) => {
-  try {
-    const { value } = await ElMessageBox.prompt(message, title, {
-      confirmButtonText: t('main.toolPalette.layerManager.prompts.confirm'),
-      cancelButtonText: t('main.toolPalette.layerManager.prompts.cancel'),
-      inputValue: defaultValue,
-      inputPattern: /\S+/,
-      inputErrorMessage: message
+): Promise<string | null> => {
+  return new Promise<string | null>(resolve => {
+    const inputValue = ref(defaultValue)
+
+    Modal.confirm({
+      title,
+      content: () =>
+        h(Input, {
+          value: inputValue.value,
+          'onUpdate:value': (v: string) => {
+            inputValue.value = v
+          },
+          placeholder: promptMessage
+        }),
+      okText: t('main.toolPalette.layerManager.prompts.confirm'),
+      cancelText: t('main.toolPalette.layerManager.prompts.cancel'),
+      onOk: async () => {
+        const value = inputValue.value?.trim()
+        if (!value) {
+          throw new Error(promptMessage)
+        }
+        resolve(value)
+      },
+      onCancel: () => {
+        resolve(null)
+      }
     })
-    return value.trim()
-  } catch {
-    return null
-  }
+  })
 }
 
 const handleNewFilter = async () => {
@@ -452,21 +450,19 @@ const handleNewFilter = async () => {
 
   const created = createNamedFilter(selectedLayerNamesForFilter(), name)
   if (!created) {
-    ElMessage({
-      message: t('main.toolPalette.layerManager.messages.filterExists', {
+    message.warning(
+      t('main.toolPalette.layerManager.messages.filterExists', {
         name
-      }),
-      type: 'warning'
-    })
+      })
+    )
     return
   }
 
-  ElMessage({
-    message: t('main.toolPalette.layerManager.messages.filterCreated', {
+  message.success(
+    t('main.toolPalette.layerManager.messages.filterCreated', {
       name: created
-    }),
-    type: 'success'
-  })
+    })
+  )
 }
 
 const handleNewFilterGroup = async () => {
@@ -478,21 +474,19 @@ const handleNewFilterGroup = async () => {
 
   const created = createGroupFilter(name)
   if (!created) {
-    ElMessage({
-      message: t('main.toolPalette.layerManager.messages.filterExists', {
+    message.warning(
+      t('main.toolPalette.layerManager.messages.filterExists', {
         name
-      }),
-      type: 'warning'
-    })
+      })
+    )
     return
   }
 
-  ElMessage({
-    message: t('main.toolPalette.layerManager.messages.filterCreated', {
+  message.success(
+    t('main.toolPalette.layerManager.messages.filterCreated', {
       name: created
-    }),
-    type: 'success'
-  })
+    })
+  )
 }
 
 const suggestNewLayerName = () => {
@@ -529,10 +523,9 @@ const commitDraftLayer = () => {
 
   const db = props.editor.curDocument?.database
   if (!db) {
-    ElMessage({
-      message: t('main.toolPalette.layerManager.messages.layerCreateFailed'),
-      type: 'error'
-    })
+    message.error(
+      t('main.toolPalette.layerManager.messages.layerCreateFailed')
+    )
     cancelDraftLayer()
     return
   }
@@ -541,20 +534,18 @@ const commitDraftLayer = () => {
   try {
     const result = new AcApLayerService(db).createLayers([name])
     if (result.existed.includes(name)) {
-      ElMessage({
-        message: t('main.toolPalette.layerManager.messages.layerExists', {
+      message.warning(
+        t('main.toolPalette.layerManager.messages.layerExists', {
           name
-        }),
-        type: 'warning'
-      })
+        })
+      )
       void focusDraftInput()
       return
     }
     if (result.created <= 0) {
-      ElMessage({
-        message: t('main.toolPalette.layerManager.messages.layerCreateFailed'),
-        type: 'error'
-      })
+      message.error(
+        t('main.toolPalette.layerManager.messages.layerCreateFailed')
+      )
       cancelDraftLayer()
       return
     }
@@ -562,12 +553,11 @@ const commitDraftLayer = () => {
     isDraftingNewLayer.value = false
     draftLayerName.value = ''
     selectedLayerName.value = name
-    ElMessage({
-      message: t('main.toolPalette.layerManager.messages.layerCreated', {
+    message.success(
+      t('main.toolPalette.layerManager.messages.layerCreated', {
         name
-      }),
-      type: 'success'
-    })
+      })
+    )
   } finally {
     committingDraft = false
   }
@@ -580,10 +570,9 @@ const handleNewLayer = () => {
   }
 
   if (!props.editor.curDocument?.database) {
-    ElMessage({
-      message: t('main.toolPalette.layerManager.messages.layerCreateFailed'),
-      type: 'error'
-    })
+    message.error(
+      t('main.toolPalette.layerManager.messages.layerCreateFailed')
+    )
     return
   }
 
@@ -596,57 +585,50 @@ const handleNewLayer = () => {
 const handleDeleteLayer = () => {
   const layer = selectedLayer.value
   if (!layer) {
-    ElMessage({
-      message: t('main.toolPalette.layerManager.messages.selectLayerFirst'),
-      type: 'warning'
-    })
+    message.warning(
+      t('main.toolPalette.layerManager.messages.selectLayerFirst')
+    )
     return
   }
 
   const db = props.editor.curDocument?.database
   if (!db) {
-    ElMessage({
-      message: t('main.toolPalette.layerManager.messages.layerDeleteFailed', {
+    message.error(
+      t('main.toolPalette.layerManager.messages.layerDeleteFailed', {
         name: layer.name
-      }),
-      type: 'error'
-    })
+      })
+    )
     return
   }
 
   const result = new AcApLayerService(db).deleteLayer(layer.name)
   if (!result.ok) {
-    let message = t('main.toolPalette.layerManager.messages.layerDeleteFailed', {
+    let msg = t('main.toolPalette.layerManager.messages.layerDeleteFailed', {
       name: layer.name
     })
     if (result.reason === 'layer_0') {
-      message = t('main.toolPalette.layerManager.messages.cannotDeleteLayer0')
+      msg = t('main.toolPalette.layerManager.messages.cannotDeleteLayer0')
     } else if (result.reason === 'current_layer') {
-      message = t('main.toolPalette.layerManager.messages.cannotDeleteCurrent')
+      msg = t('main.toolPalette.layerManager.messages.cannotDeleteCurrent')
     }
-    ElMessage({
-      message,
-      type: 'warning'
-    })
+    message.warning(msg)
     return
   }
 
   selectedLayerName.value = null
-  ElMessage({
-    message: t('main.toolPalette.layerManager.messages.layerDeleted', {
+  message.success(
+    t('main.toolPalette.layerManager.messages.layerDeleted', {
       name: layer.name
-    }),
-    type: 'success'
-  })
+    })
+  )
 }
 
 const handleSetCurrent = () => {
   const layerName = selectedLayerName.value
   if (!layerName) {
-    ElMessage({
-      message: t('main.toolPalette.layerManager.messages.selectLayerFirst'),
-      type: 'warning'
-    })
+    message.warning(
+      t('main.toolPalette.layerManager.messages.selectLayerFirst')
+    )
     return
   }
 
@@ -654,16 +636,19 @@ const handleSetCurrent = () => {
   // AcApLayerStore.setCurrentLayer (undo is handled inside the service).
   const ok = setCurrentLayer(layerName)
 
-  ElMessage({
-    message: ok
-      ? t('main.toolPalette.layerManager.messages.setCurrentSuccess', {
-          name: layerName
-        })
-      : t('main.toolPalette.layerManager.messages.setCurrentFailed', {
-          name: layerName
-        }),
-    type: ok ? 'success' : 'error'
-  })
+  if (ok) {
+    message.success(
+      t('main.toolPalette.layerManager.messages.setCurrentSuccess', {
+        name: layerName
+      })
+    )
+  } else {
+    message.error(
+      t('main.toolPalette.layerManager.messages.setCurrentFailed', {
+        name: layerName
+      })
+    )
+  }
 }
 </script>
 
@@ -693,7 +678,7 @@ const handleSetCurrent = () => {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 12px;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
 }
 
 .ml-layer-manager-search {
@@ -707,7 +692,7 @@ const handleSetCurrent = () => {
   gap: 2px;
   padding: 2px 2px 2px;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  border-bottom: 1px solid var(--ml-theme-border);
 }
 
 .ml-layer-manager-toolbar-btn {
@@ -729,14 +714,14 @@ const handleSetCurrent = () => {
 }
 
 .ml-layer-manager-toolbar-btn--active {
-  color: var(--el-color-primary);
+  color: var(--ml-theme-primary);
 }
 
 .ml-layer-manager-toolbar-icon {
   display: inline-flex;
   width: 16px;
   height: 16px;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
 }
 
 .ml-layer-manager-toolbar-icon :deep(svg) {
@@ -748,7 +733,7 @@ const handleSetCurrent = () => {
   width: 1px;
   height: 16px;
   margin: 0 4px;
-  background: var(--el-border-color);
+  background: var(--ml-theme-border);
 }
 
 .ml-layer-manager-body {
@@ -765,7 +750,7 @@ const handleSetCurrent = () => {
   width: 180px;
   flex-shrink: 0;
   min-height: 0;
-  border-right: 1px solid var(--el-border-color-lighter);
+  border-right: 1px solid var(--ml-theme-border);
   overflow: hidden;
 }
 
@@ -776,7 +761,7 @@ const handleSetCurrent = () => {
   gap: 4px;
   padding: 4px 6px;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  border-bottom: 1px solid var(--ml-theme-border);
 }
 
 .ml-layer-manager-filter-panel-actions {
@@ -788,7 +773,7 @@ const handleSetCurrent = () => {
 
 .ml-layer-manager-filters-title {
   font-size: 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -803,8 +788,8 @@ const handleSetCurrent = () => {
   font-size: 12px;
 }
 
-.ml-layer-manager-filter-tree .el-tree-node__content {
-  height: 26px;
+.ml-layer-manager-filter-tree :deep(.ant-tree-treenode) {
+  min-height: 26px;
 }
 
 .ml-layer-manager-list {

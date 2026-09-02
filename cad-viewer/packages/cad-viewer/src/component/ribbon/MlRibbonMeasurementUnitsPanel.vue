@@ -1,44 +1,42 @@
 <template>
-  <el-form
-    label-position="left"
-    label-width="auto"
+  <a-form
+    layout="horizontal"
     class="ml-ribbon-measure-units"
     size="small"
   >
-    <el-form-item :label="typeLabel">
-      <el-select
-        :model-value="unitType"
+    <a-form-item :label="typeLabel">
+      <a-select
+        :value="unitType"
         class="ml-ribbon-measure-units__control"
-        @update:model-value="emit('update:unitType', $event)"
+        @change="emit('update:unitType', $event)"
       >
-        <el-option
+        <a-select-option
           v-for="opt in unitOptions"
           :key="opt.value"
           :label="opt.label"
           :value="opt.value"
         />
-      </el-select>
-    </el-form-item>
-    <el-form-item :label="precisionLabel">
-      <el-select
-        :model-value="precision"
+      </a-select>
+    </a-form-item>
+    <a-form-item :label="precisionLabel">
+      <a-select
+        :value="precision"
         class="ml-ribbon-measure-units__control"
-        @update:model-value="emit('update:precision', $event)"
+        @change="emit('update:precision', $event)"
       >
-        <el-option
+        <a-select-option
           v-for="opt in precisionOptions"
           :key="opt.value"
           :label="opt.label"
           :value="opt.value"
         />
-      </el-select>
-    </el-form-item>
-  </el-form>
+      </a-select>
+    </a-form-item>
+  </a-form>
 </template>
 
 <script setup lang="ts">
 import { AcDbAngleUnits, AcDbLinearUnits } from '@mlightcad/data-model'
-import { ElForm, ElFormItem, ElOption, ElSelect } from 'element-plus'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -138,15 +136,15 @@ const precisionOptions = computed(() =>
   --ml-ribbon-measure-units-scale: var(--ml-rb-scale, 1);
 }
 
-.ml-ribbon-measure-units :deep(.el-form-item) {
+.ml-ribbon-measure-units :deep(.ant-form-item) {
   margin-bottom: calc(4px * var(--ml-ribbon-measure-units-scale));
 }
 
-.ml-ribbon-measure-units :deep(.el-form-item:last-child) {
+.ml-ribbon-measure-units :deep(.ant-form-item:last-child) {
   margin-bottom: 0;
 }
 
-.ml-ribbon-measure-units :deep(.el-form-item__label) {
+.ml-ribbon-measure-units :deep(.ant-form-item-label) {
   font-size: calc(11px * var(--ml-ribbon-measure-units-scale));
   padding-right: calc(6px * var(--ml-ribbon-measure-units-scale));
 }

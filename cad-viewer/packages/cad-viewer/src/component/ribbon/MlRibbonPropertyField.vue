@@ -85,7 +85,7 @@ const fieldStyle = computed(() =>
   width: var(--ml-ribbon-property-icon-size);
   height: var(--ml-ribbon-property-icon-size);
   flex: 0 0 var(--ml-ribbon-property-icon-size);
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary);
 }
 
 .ml-ribbon-property-field__icon :deep(svg) {
@@ -116,8 +116,8 @@ const fieldStyle = computed(() =>
   max-width: var(--ml-ribbon-property-column-width);
 }
 
-.ml-ribbon-property-field__control :deep(.el-select),
-.ml-ribbon-property-field__control :deep(.el-dropdown) {
+.ml-ribbon-property-field__control :deep(.ant-select),
+.ml-ribbon-property-field__control :deep(.ant-dropdown) {
   width: 100%;
 }
 </style>

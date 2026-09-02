@@ -1,60 +1,44 @@
 <template>
-  <el-button-group class="ml-polar-tracking-button">
-    <el-tooltip :content="tooltip" :hide-after="0">
-      <el-button
+  <div class="ml-polar-tracking-button">
+    <a-tooltip :title="tooltip" :mouse-leave-delay="0">
+      <a-button
         class="ml-polar-tracking-button__toggle"
-        :icon="polarTracking"
         :style="{ color: iconColor }"
         @click="togglePolarTracking"
-      />
-    </el-tooltip>
-    <el-dropdown
-      trigger="click"
-      popper-class="ml-polar-tracking-popper"
-      @command="handleCommand"
+      >
+        <template #icon><component :is="polarTracking" /></template>
+      </a-button>
+    </a-tooltip>
+    <a-dropdown
+      :trigger="['click']"
+      :overlay-class-name="'ml-polar-tracking-popper'"
     >
-      <el-button class="ml-polar-tracking-button__arrow">
-        <el-icon>
-          <ArrowDown />
-        </el-icon>
-      </el-button>
-      <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item
+      <a-button class="ml-polar-tracking-button__arrow">
+        <DownOutlined />
+      </a-button>
+      <template #overlay>
+        <a-menu @click="handleMenuClick">
+          <a-menu-item
             v-for="increment in polarIncrements"
-            :key="increment"
-            :command="increment"
-            :icon="
-              isSamePolarIncrement(currentPolarang, increment)
-                ? Check
-                : undefined
-            "
+            :key="String(increment)"
           >
+            <CheckOutlined v-if="isSamePolarIncrement(currentPolarang, increment)" style="margin-right: 8px;" />
             {{ formatPolarIncrementMenuLabel(increment) }}
-          </el-dropdown-item>
-        </el-dropdown-menu>
+          </a-menu-item>
+        </a-menu>
       </template>
-    </el-dropdown>
-  </el-button-group>
+    </a-dropdown>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { ArrowDown, Check } from '@element-plus/icons-vue'
+import { CheckOutlined, DownOutlined } from '@ant-design/icons-vue'
 import {
   AcApDocManager,
   POLARMODE_POLAR_TRACKING,
   togglePolarTracking as togglePolarTrackingSysVar
 } from '@mlightcad/cad-simple-viewer'
 import { AcDbSysVarManager } from '@mlightcad/data-model'
-import {
-  ElButton,
-  ElButtonGroup,
-  ElDropdown,
-  ElDropdownItem,
-  ElDropdownMenu,
-  ElIcon,
-  ElTooltip
-} from 'element-plus'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -81,7 +65,7 @@ const isEnabled = computed(
 )
 
 const iconColor = computed(() =>
-  isEnabled.value ? 'var(--el-color-primary)' : 'var(--el-text-color-regular)'
+  isEnabled.value ? 'var(--ml-theme-primary)' : 'var(--ml-theme-text-primary)'
 )
 
 const tooltip = computed(() =>
@@ -103,8 +87,8 @@ const setPolarang = (increment: number) => {
   )
 }
 
-const handleCommand = (command: number) => {
-  setPolarang(command)
+const handleMenuClick = ({ key }: { key: string }) => {
+  setPolarang(Number(key))
 }
 </script>
 
@@ -131,7 +115,7 @@ const handleCommand = (command: number) => {
   min-width: 10px;
 }
 
-.ml-polar-tracking-button__arrow :deep(.el-icon) {
+.ml-polar-tracking-button__arrow :deep(.anticon) {
   font-size: 10px;
 }
 </style>

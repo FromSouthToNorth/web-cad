@@ -1,14 +1,14 @@
 <template>
   <div class="ml-linetype-select">
-    <el-select
-      :model-value="resolvedModelValue"
+    <a-select
+      :value="resolvedModelValue"
       :disabled="props.disabled || !resolvedOptions.length"
       :placeholder="props.placeholder"
       class="ml-linetype-select__control"
       style="width: 100%"
       @change="onSelect"
     >
-      <template #label>
+      <template #optionLabel>
         <div
           v-if="selectedOption"
           class="ml-linetype-item ml-linetype-item--selected"
@@ -35,10 +35,9 @@
         </div>
       </template>
 
-      <el-option
+      <a-select-option
         v-for="item in resolvedOptions"
         :key="item.value"
-        :label="item.label"
         :value="item.value"
       >
         <div class="ml-linetype-item">
@@ -55,14 +54,13 @@
           </span>
           <span class="ml-linetype-text">{{ item.label }}</span>
         </div>
-      </el-option>
-    </el-select>
+      </a-select-option>
+    </a-select>
   </div>
 </template>
 
 <script setup lang="ts">
 import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { ElOption, ElSelect } from 'element-plus'
 import {
   type Component,
   computed,
@@ -174,7 +172,7 @@ onUnmounted(() => {
   width: 16px;
   height: 16px;
   flex: 0 0 16px;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary);
 }
 
 .ml-linetype-select__control {
@@ -182,10 +180,10 @@ onUnmounted(() => {
   min-width: 0;
 }
 
-.ml-linetype-select :deep(.el-select__wrapper),
-.ml-linetype-select :deep(.el-select__selection),
-.ml-linetype-select :deep(.el-select__selected-item),
-.ml-linetype-select :deep(.el-select__placeholder) {
+.ml-linetype-select :deep(.ant-select),
+.ml-linetype-select :deep(.ant-select-selector),
+.ml-linetype-select :deep(.ant-select-selection-item),
+.ml-linetype-select :deep(.ant-select-selection-placeholder) {
   width: 100%;
   min-width: 0;
 }

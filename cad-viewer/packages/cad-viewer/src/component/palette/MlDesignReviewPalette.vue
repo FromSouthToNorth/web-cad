@@ -1,136 +1,107 @@
 <template>
   <div class="ml-design-review">
     <div class="ml-design-review-toolbar">
-      <el-input
-        v-model="search"
-        clearable
+      <a-input
+        v-model:value="search"
+        allow-clear
         size="small"
         class="ml-design-review-search"
         :placeholder="t('main.toolPalette.designReview.searchPlaceholder')"
       />
-      <el-button
+      <a-button
         size="small"
         :disabled="markups.length === 0"
         @click="clearAll"
       >
         {{ t('main.toolPalette.designReview.clear') }}
-      </el-button>
+      </a-button>
     </div>
 
-    <el-table
-      :data="filtered"
+    <a-table
+      :columns="tableColumns"
+      :data-source="filtered"
       class="ml-design-review-table"
       size="small"
-      highlight-current-row
+      :pagination="false"
       table-layout="fixed"
-      :current-row-key="selectedId"
-      row-key="id"
-      :empty-text="t('main.toolPalette.designReview.empty')"
-      @row-click="handleRowClick"
+      :row-key="(record: any) => record.id"
+      :locale="{ emptyText: t('main.toolPalette.designReview.empty') }"
+      :custom-row="customRow"
     >
-      <el-table-column
-        prop="type"
-        :label="t('main.toolPalette.designReview.type')"
-        width="88"
-      />
-      <el-table-column
-        prop="status"
-        :label="t('main.toolPalette.designReview.status')"
-        width="96"
-      />
-      <el-table-column
-        prop="author"
-        :label="t('main.toolPalette.designReview.author')"
-        min-width="72"
-        :show-overflow-tooltip="{ showAfter: 1000 }"
-      />
-      <el-table-column
-        :label="t('main.toolPalette.designReview.summary')"
-        min-width="100"
-        :show-overflow-tooltip="{ showAfter: 1000 }"
-      >
-        <template #default="{ row }">
-          {{ row.text || row.comment || '—' }}
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.dataIndex === 'summary'">
+          <a-tooltip :title="record.text || record.comment || '—'" placement="topLeft">
+            <span class="ml-design-review-ellipsis">{{ record.text || record.comment || '—' }}</span>
+          </a-tooltip>
         </template>
-      </el-table-column>
-    </el-table>
+      </template>
+    </a-table>
 
     <div v-if="selected && detailsOpen" class="ml-design-review-detail">
       <div class="ml-design-review-detail-header">
         <div class="ml-design-review-detail-title">
           {{ t('main.toolPalette.designReview.details') }}
         </div>
-        <el-button
-          text
-          circle
+        <a-button
+          type="text"
+          shape="circle"
           size="small"
           class="ml-design-review-detail-close"
           :title="t('main.toolPalette.designReview.closeDetails')"
           :aria-label="t('main.toolPalette.designReview.closeDetails')"
           @click="closeDetails"
         >
-          <el-icon><Close /></el-icon>
-        </el-button>
+          <CloseOutlined />
+        </a-button>
       </div>
-      <el-form label-position="top" size="small" class="ml-design-review-detail-form">
-        <el-form-item :label="t('main.toolPalette.designReview.status')">
-          <el-select
-            :model-value="selected.status"
-            @update:model-value="(v: string) => patchStatus(v)"
+      <a-form layout="vertical" size="small" class="ml-design-review-detail-form">
+        <a-form-item :label="t('main.toolPalette.designReview.status')">
+          <a-select
+            :value="selected.status"
+            @change="(v: string) => patchStatus(v)"
           >
-            <el-option
+            <a-select-option
               v-for="s in statuses"
               :key="s"
-              :label="statusLabel(s)"
               :value="s"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('main.toolPalette.designReview.author')">
-          <el-input :model-value="selected.author" disabled />
-        </el-form-item>
-        <el-form-item :label="t('main.toolPalette.designReview.label')">
-          <el-input
-            v-model="draftText"
+            >
+              {{ statusLabel(s) }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item :label="t('main.toolPalette.designReview.author')">
+          <a-input :value="selected.author" disabled />
+        </a-form-item>
+        <a-form-item :label="t('main.toolPalette.designReview.label')">
+          <a-input
+            v-model:value="draftText"
             @blur="commitText"
             @keydown.enter="onLabelEnter"
           />
-        </el-form-item>
-        <el-form-item :label="t('main.toolPalette.designReview.comment')">
-          <el-input
-            v-model="draftComment"
-            type="textarea"
+        </a-form-item>
+        <a-form-item :label="t('main.toolPalette.designReview.comment')">
+          <a-textarea
+            v-model:value="draftComment"
             :rows="2"
             @blur="commitComment"
           />
-        </el-form-item>
+        </a-form-item>
         <div class="ml-design-review-detail-actions">
-          <el-button size="small" @click="focus(selected!)">
+          <a-button size="small" @click="focus(selected!)">
             {{ t('main.toolPalette.designReview.zoomTo') }}
-          </el-button>
-          <el-button size="small" type="danger" @click="remove(selected!.id)">
+          </a-button>
+          <a-button size="small" danger @click="remove(selected!.id)">
             {{ t('main.toolPalette.designReview.delete') }}
-          </el-button>
+          </a-button>
         </div>
-      </el-form>
+      </a-form>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Close } from '@element-plus/icons-vue'
+import { CloseOutlined } from '@ant-design/icons-vue'
 import type { AcApMarkupStatus } from '@mlightcad/cad-simple-viewer'
-import {
-  ElButton,
-  ElForm,
-  ElFormItem,
-  ElIcon,
-  ElInput,
-  ElOption,
-  ElSelect,
-  ElTable,
-  ElTableColumn
-} from 'element-plus'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -159,6 +130,37 @@ const filtered = computed(() => {
     const hay = `${m.type} ${m.status} ${m.author} ${m.text ?? ''} ${m.comment}`
     return hay.toLowerCase().includes(q)
   })
+})
+
+const tableColumns = [
+  {
+    title: () => t('main.toolPalette.designReview.type'),
+    dataIndex: 'type',
+    key: 'type',
+    width: 88
+  },
+  {
+    title: () => t('main.toolPalette.designReview.status'),
+    dataIndex: 'status',
+    key: 'status',
+    width: 96
+  },
+  {
+    title: () => t('main.toolPalette.designReview.author'),
+    dataIndex: 'author',
+    key: 'author',
+    ellipsis: { showTitle: true }
+  },
+  {
+    title: () => t('main.toolPalette.designReview.summary'),
+    dataIndex: 'summary',
+    key: 'summary',
+    ellipsis: { showTitle: false }
+  }
+]
+
+const customRow = (record: { id: string }) => ({
+  onClick: () => handleRowClick(record)
 })
 
 const selected = computed(
@@ -270,8 +272,15 @@ const statusLabel = (status: AcApMarkupStatus) => {
   min-height: 120px;
 }
 
+.ml-design-review-ellipsis {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ml-design-review-detail {
-  border-top: 1px solid var(--el-border-color-lighter);
+  border-top: 1px solid var(--ml-theme-border);
   padding-top: 6px;
   max-height: 46%;
   overflow: auto;
@@ -294,22 +303,21 @@ const statusLabel = (status: AcApMarkupStatus) => {
   margin-left: auto;
 }
 
-.ml-design-review-detail-form {
-  --el-form-item-margin-bottom: 4px;
-}
-
-.ml-design-review-detail-form :deep(.el-form-item) {
+.ml-design-review-detail-form :deep(.ant-form-item) {
   margin-bottom: 4px;
 }
 
-.ml-design-review-detail-form :deep(.el-form-item .el-form-item__label) {
+.ml-design-review-detail-form :deep(.ant-form-item .ant-form-item-label) {
   margin-bottom: 2px;
   line-height: 1.2;
+}
+
+.ml-design-review-detail-form :deep(.ant-form-item .ant-form-item-label > label) {
   height: auto;
 }
 
-.ml-design-review-detail-form :deep(.el-select),
-.ml-design-review-detail-form :deep(.el-input) {
+.ml-design-review-detail-form :deep(.ant-select),
+.ml-design-review-detail-form :deep(.ant-input) {
   width: 100%;
 }
 

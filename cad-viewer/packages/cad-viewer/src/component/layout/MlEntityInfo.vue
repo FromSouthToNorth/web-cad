@@ -1,43 +1,42 @@
 <template>
-  <el-card v-if="visible" ref="cardRef" class="ml-entity-info">
-    <el-row class="ml-entity-info-text">
-      <el-col :span="24">
-        <el-text size="small" class="ml-entity-info-title">
+  <a-card v-if="visible" ref="cardRef" class="ml-entity-info">
+    <a-row class="ml-entity-info-text">
+      <a-col :span="24">
+        <span class="ml-entity-info-title">
           {{ info.type }}
-        </el-text>
-      </el-col>
-    </el-row>
-    <el-row class="ml-entity-info-text">
-      <el-col :span="10">
-        <el-text size="small">{{ t('main.entityInfo.color') }}</el-text>
-      </el-col>
-      <el-col :span="14">
-        <el-text size="small">{{ info.color }}</el-text>
-      </el-col>
-    </el-row>
-    <el-row class="ml-entity-info-text">
-      <el-col :span="10">
-        <el-text size="small">{{ t('main.entityInfo.layer') }}</el-text>
-      </el-col>
-      <el-col :span="14">
-        <el-text size="small">{{ info.layer }}</el-text>
-      </el-col>
-    </el-row>
-    <el-row class="ml-entity-info-text">
-      <el-col :span="10">
-        <el-text size="small">{{ t('main.entityInfo.lineType') }}</el-text>
-      </el-col>
-      <el-col :span="14">
-        <el-text size="small">{{ info.lineType }}</el-text>
-      </el-col>
-    </el-row>
-  </el-card>
+        </span>
+      </a-col>
+    </a-row>
+    <a-row class="ml-entity-info-text">
+      <a-col :span="10">
+        <span>{{ t('main.entityInfo.color') }}</span>
+      </a-col>
+      <a-col :span="14">
+        <span>{{ info.color }}</span>
+      </a-col>
+    </a-row>
+    <a-row class="ml-entity-info-text">
+      <a-col :span="10">
+        <span>{{ t('main.entityInfo.layer') }}</span>
+      </a-col>
+      <a-col :span="14">
+        <span>{{ info.layer }}</span>
+      </a-col>
+    </a-row>
+    <a-row class="ml-entity-info-text">
+      <a-col :span="10">
+        <span>{{ t('main.entityInfo.lineType') }}</span>
+      </a-col>
+      <a-col :span="14">
+        <span>{{ info.lineType }}</span>
+      </a-col>
+    </a-row>
+  </a-card>
 </template>
 
 <script setup lang="ts">
 import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
 import { AcDbEntity } from '@mlightcad/data-model'
-import { ElCard, ElCol, ElRow, ElText } from 'element-plus'
 import { ComponentPublicInstance, computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 

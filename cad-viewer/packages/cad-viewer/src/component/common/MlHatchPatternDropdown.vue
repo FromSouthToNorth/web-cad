@@ -1,47 +1,44 @@
 <template>
   <div class="ml-hatch-pattern-dropdown">
-    <ElPopover
-      v-model:visible="isOpen"
+    <a-popover
+      v-model:open="isOpen"
       trigger="click"
-      placement="bottom-start"
-      popper-class="ml-hatch-pattern-dropdown-popper"
+      placement="bottomLeft"
+      overlay-class-name="ml-hatch-pattern-dropdown-popper"
       :disabled="disabled"
-      :offset="6"
       :show-arrow="false"
-      persistent
     >
-      <template #reference>
-        <MlRibbonButton
-          :id="buttonId"
-          class="ml-hatch-pattern-dropdown__button"
-          :label="currentLabel"
-          :disabled="disabled"
-          :aria-label="accessibleLabel"
-        >
-          <template #icon>
-            <span
-              class="ml-hatch-pattern-dropdown__swatch"
-              :style="selectedSwatchStyle"
-              aria-hidden="true"
-            />
-          </template>
-        </MlRibbonButton>
-      </template>
-
-      <MlHatchPatternPanel
-        :model-value="normalizedModelValue"
-        :options="resolvedOptions"
+      <MlRibbonButton
+        :id="buttonId"
+        class="ml-hatch-pattern-dropdown__button"
+        :label="currentLabel"
         :disabled="disabled"
-        @select="handlePatternSelect"
-      />
-    </ElPopover>
+        :aria-label="accessibleLabel"
+      >
+        <template #icon>
+          <span
+            class="ml-hatch-pattern-dropdown__swatch"
+            :style="selectedSwatchStyle"
+            aria-hidden="true"
+          />
+        </template>
+      </MlRibbonButton>
+
+      <template #content>
+        <MlHatchPatternPanel
+          :model-value="normalizedModelValue"
+          :options="resolvedOptions"
+          :disabled="disabled"
+          @select="handlePatternSelect"
+        />
+      </template>
+    </a-popover>
   </div>
 </template>
 
 <script setup lang="ts">
 import { DEFAULT_HATCH_PATTERN_IMPERIAL } from '@mlightcad/data-model'
 import { MlRibbonButton } from '@mlightcad/ribbon'
-import { ElPopover } from 'element-plus'
 import { computed, ref, watch } from 'vue'
 
 import {
@@ -150,7 +147,7 @@ function handlePatternSelect(patternName: string) {
   min-width: 152px;
 }
 
-.ml-hatch-pattern-dropdown :deep(.el-popover__reference-wrapper) {
+.ml-hatch-pattern-dropdown :deep(.ant-popover) {
   display: inline-flex;
   width: 100%;
 }
@@ -173,7 +170,7 @@ function handlePatternSelect(patternName: string) {
   padding: 0;
 }
 
-:global(.ml-hatch-pattern-dropdown-popper .el-popper__arrow) {
+:global(.ml-hatch-pattern-dropdown-popper .ant-popover-arrow) {
   display: none;
 }
 </style>

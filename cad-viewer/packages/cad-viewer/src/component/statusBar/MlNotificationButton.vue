@@ -1,26 +1,25 @@
 <template>
-  <el-tooltip
-    :content="t('main.statusBar.notification.tooltip')"
-    :hide-after="0"
+  <a-tooltip
+    :title="t('main.statusBar.notification.tooltip')"
+    :mouse-leave-delay="0"
   >
-    <el-button
+    <a-button
       class="ml-notification-button"
-      :icon="Bell"
       @click="toggleNotificationCenter"
     >
-      <el-badge
+      <template #icon><BellOutlined /></template>
+      <a-badge
         v-if="unreadCount > 0"
-        :value="unreadCount"
-        :max="99"
+        :count="unreadCount"
+        :overflow-count="99"
         class="ml-notification-badge"
       />
-    </el-button>
-  </el-tooltip>
+    </a-button>
+  </a-tooltip>
 </template>
 
 <script setup lang="ts">
-import { Bell } from '@element-plus/icons-vue'
-import { ElBadge, ElButton, ElTooltip } from 'element-plus'
+import { BellOutlined } from '@ant-design/icons-vue'
 import { useI18n } from 'vue-i18n'
 
 import { useNotificationCenter } from '../../composable/useNotificationCenter'
@@ -52,7 +51,7 @@ const toggleNotificationCenter = () => {
   right: -2px;
 }
 
-.ml-notification-badge :deep(.el-badge__content) {
+.ml-notification-badge :deep(.ant-badge-count) {
   font-size: 10px;
   min-width: 16px;
   height: 16px;

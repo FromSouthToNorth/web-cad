@@ -1,4 +1,3 @@
-import 'element-plus/dist/index.css'
 import '../style/style.css'
 import '../style/index.scss'
 

@@ -1,47 +1,44 @@
 <template>
   <div class="ml-ribbon-hatch-pattern-large-dropdown">
-    <ElPopover
-      v-model:visible="isOpen"
+    <a-popover
+      v-model:open="isOpen"
       trigger="click"
       placement="bottom-start"
-      popper-class="ml-hatch-pattern-dropdown-popper"
+      overlay-class-name="ml-hatch-pattern-dropdown-popper"
       :disabled="disabled"
-      :offset="6"
-      :show-arrow="false"
-      persistent
+      :arrow="false"
     >
-      <template #reference>
-        <MlRibbonButton
-          :id="buttonId"
-          class="ml-ribbon-hatch-pattern-large-dropdown__button"
-          :label="buttonLabel"
+      <template #content>
+        <MlHatchPatternPanel
+          :model-value="normalizedModelValue"
+          :options="resolvedOptions"
           :disabled="disabled"
-          :aria-label="buttonLabel"
-        >
-          <template #icon>
-            <span
-              class="ml-ribbon-hatch-pattern-large-dropdown__swatch"
-              :style="selectedSwatchStyle"
-              aria-hidden="true"
-            />
-          </template>
-        </MlRibbonButton>
+          @select="handlePatternSelect"
+        />
       </template>
 
-      <MlHatchPatternPanel
-        :model-value="normalizedModelValue"
-        :options="resolvedOptions"
+      <MlRibbonButton
+        :id="buttonId"
+        class="ml-ribbon-hatch-pattern-large-dropdown__button"
+        :label="buttonLabel"
         :disabled="disabled"
-        @select="handlePatternSelect"
-      />
-    </ElPopover>
+        :aria-label="buttonLabel"
+      >
+        <template #icon>
+          <span
+            class="ml-ribbon-hatch-pattern-large-dropdown__swatch"
+            :style="selectedSwatchStyle"
+            aria-hidden="true"
+          />
+        </template>
+      </MlRibbonButton>
+    </a-popover>
   </div>
 </template>
 
 <script setup lang="ts">
 import { DEFAULT_HATCH_PATTERN_IMPERIAL } from '@mlightcad/data-model'
 import { MlRibbonButton } from '@mlightcad/ribbon'
-import { ElPopover } from 'element-plus'
 import { computed, ref } from 'vue'
 
 import {
@@ -144,7 +141,7 @@ function handlePatternSelect(patternName: string) {
   height: 100%;
 }
 
-.ml-ribbon-hatch-pattern-large-dropdown :deep(.el-popover__reference-wrapper) {
+.ml-ribbon-hatch-pattern-large-dropdown :deep(> *) {
   display: inline-flex;
   align-self: stretch;
   width: 100%;
@@ -163,7 +160,7 @@ function handlePatternSelect(patternName: string) {
   padding: 0;
 }
 
-:global(.ml-hatch-pattern-dropdown-popper .el-popper__arrow) {
+:global(.ml-hatch-pattern-dropdown-popper .ant-popover-arrow) {
   display: none;
 }
 </style>

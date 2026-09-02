@@ -1,16 +1,16 @@
 <template>
-  <el-button
+  <a-button
     v-if="hasMissing"
     class="ml-warning-button"
-    type="warning"
-    :icon="Warning"
+    danger
     @click="click()"
-  />
+  >
+    <template #icon><WarningOutlined /></template>
+  </a-button>
 </template>
 
 <script lang="ts" setup>
-import { Warning } from '@element-plus/icons-vue'
-import { ElButton } from 'element-plus'
+import { WarningOutlined } from '@ant-design/icons-vue'
 import { computed } from 'vue'
 
 import { openMissingResourcesPalette, useMissedData } from '../../composable'

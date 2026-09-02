@@ -22,63 +22,56 @@
         v-if="store.dialogs.activeMissingResourceTab === 'font'"
         class="ml-missing-resources__panel"
       >
-        <el-checkbox
+        <a-checkbox
           v-if="fontRows.length > 0"
-          v-model="matchFontType"
+          v-model:checked="matchFontType"
           class="ml-missing-resources__option"
         >
           {{ t('main.toolPalette.missingResources.matchFontType') }}
-        </el-checkbox>
-        <el-table
-          :data="fontRows"
+        </a-checkbox>
+        <a-table
+          :data-source="fontRows"
+          :columns="fontTableColumns"
+          :pagination="false"
           class="ml-missing-resources__table"
-          :empty-text="t('main.toolPalette.missingResources.emptyFonts')"
+          :locale="{ emptyText: t('main.toolPalette.missingResources.emptyFonts') }"
         >
-          <el-table-column
-            prop="missedFont"
-            :label="t('main.toolPalette.missingResources.missedFont')"
-            min-width="100"
-            show-overflow-tooltip
-          />
-          <el-table-column
-            :label="t('main.toolPalette.missingResources.replacedFont')"
-            min-width="140"
-          >
-            <template #default="{ row }">
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'mappedFont'">
               <div class="ml-missing-resources__cell-actions">
-                <el-select
-                  :model-value="row.mappedFont"
+                <a-select
+                  :value="record.mappedFont"
                   :placeholder="
                     t('main.toolPalette.missingResources.selectFont')
                   "
-                  @update:model-value="
-                    (value: string) => updateMappedFont(row.missedFont, value)
+                  @change="
+                    (value: string) => updateMappedFont(record.missedFont, value)
                   "
                 >
-                  <el-option
+                  <a-select-option
                     v-for="replacement in getReplacementFontsFor(
-                      row.missedFont
+                      record.missedFont
                     )"
                     :key="replacement"
-                    :label="replacement"
                     :value="replacement"
-                  />
-                </el-select>
-                <el-button
-                  link
-                  type="primary"
+                  >
+                    {{ replacement }}
+                  </a-select-option>
+                </a-select>
+                <a-button
+                  type="link"
                   size="small"
                   :title="
                     t('main.toolPalette.missingResources.selectLocalFont')
                   "
-                  @click="handleSelectLocalFont(row.missedFont)"
+                  @click="handleSelectLocalFont(record.missedFont)"
                 >
                   ...
-                </el-button>
+                </a-button>
               </div>
             </template>
-          </el-table-column>
-        </el-table>
+          </template>
+        </a-table>
       </div>
 
       <div
@@ -90,7 +83,7 @@
     </div>
 
     <div v-if="showApplyBar" class="ml-missing-resources__footer">
-      <el-button
+      <a-button
         type="primary"
         size="small"
         :disabled="!canApply"
@@ -98,7 +91,7 @@
         @click="handleApply"
       >
         {{ t('main.toolPalette.missingResources.apply') }}
-      </el-button>
+      </a-button>
     </div>
 
     <input
@@ -120,14 +113,6 @@ import {
   AcApSettingManager,
   eventBus} from '@mlightcad/cad-simple-viewer'
 import type { MlOverflowTab } from '@mlightcad/ui-components'
-import {
-  ElButton,
-  ElCheckbox,
-  ElOption,
-  ElSelect,
-  ElTable,
-  ElTableColumn
-} from 'element-plus'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -160,6 +145,11 @@ const fontRows = computed(() => {
     mappedFont
   }))
 })
+
+const fontTableColumns = [
+  { title: t('main.toolPalette.missingResources.missedFont'), dataIndex: 'missedFont', width: 100, ellipsis: true },
+  { title: t('main.toolPalette.missingResources.replacedFont'), dataIndex: 'mappedFont', width: 140 }
+]
 
 const subTabs = computed<MlOverflowTab[]>(() => {
   return [
@@ -368,7 +358,7 @@ const handleApply = async () => {
   min-height: 0;
   gap: 8px;
   font-size: 12px;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
 }
 
 .ml-missing-resources__tab-list {
@@ -376,7 +366,7 @@ const handleApply = async () => {
   flex: 0 0 auto;
   align-items: stretch;
   min-width: 0;
-  border-bottom: 1px solid var(--el-border-color, #dcdfe6);
+  border-bottom: 1px solid var(--ml-theme-border);
 }
 
 .ml-missing-resources__tab {
@@ -384,7 +374,7 @@ const handleApply = async () => {
   border: none;
   border-bottom: 2px solid transparent;
   background: transparent;
-  color: var(--el-text-color-secondary, #606266);
+  color: var(--ml-theme-text-secondary);
   padding: 6px 12px;
   font-size: 12px;
   cursor: pointer;
@@ -392,13 +382,13 @@ const handleApply = async () => {
 }
 
 .ml-missing-resources__tab:hover {
-  color: var(--el-text-color-primary, #303133);
-  background: var(--el-fill-color-light, rgba(0, 0, 0, 0.04));
+  color: var(--ml-theme-text-heading);
+  background: var(--ml-theme-bg-hover);
 }
 
 .ml-missing-resources__tab.is-active {
-  color: var(--el-text-color-primary, #303133);
-  border-bottom-color: var(--el-color-primary, #409eff);
+  color: var(--ml-theme-text-heading);
+  border-bottom-color: var(--ml-theme-primary);
 }
 
 .ml-missing-resources__body {
@@ -427,7 +417,7 @@ const handleApply = async () => {
   white-space: normal;
 }
 
-.ml-missing-resources__option :deep(.el-checkbox__label) {
+.ml-missing-resources__option :deep(.ant-checkbox__label) {
   white-space: normal;
   line-height: 1.4;
   word-break: break-word;
@@ -439,10 +429,10 @@ const handleApply = async () => {
   min-height: 0;
 }
 
-.ml-missing-resources__table :deep(.el-table__empty-text) {
+.ml-missing-resources__table :deep(.ant-table__empty-text) {
   font-size: 12px;
   line-height: 1.4;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary);
   white-space: normal;
   padding: 0 8px;
 }
@@ -454,7 +444,7 @@ const handleApply = async () => {
   min-width: 0;
 }
 
-.ml-missing-resources__cell-actions :deep(.el-select) {
+.ml-missing-resources__cell-actions :deep(.ant-select) {
   flex: 1;
   min-width: 0;
 }
@@ -464,6 +454,6 @@ const handleApply = async () => {
   justify-content: flex-end;
   flex: 0 0 auto;
   padding: 0 8px 8px;
-  border-top: 1px solid var(--el-border-color-lighter);
+  border-top: 1px solid var(--ml-theme-border);
 }
 </style>

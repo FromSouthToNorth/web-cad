@@ -15,11 +15,11 @@
     <!-- Right Slot Content -->
     <template #right>
       <ml-progress />
-      <el-button-group class="ml-status-bar-right-button-group">
-        <el-button
+      <div class="ml-status-bar-right-button-group">
+        <a-button
           v-if="features.isShowCoordinate && !isMobile"
           class="ml-status-bar-current-pos"
-          >{{ posText }}</el-button
+          >{{ posText }}</a-button
         >
         <ml-warning-button />
         <ml-notification-button @click="toggleNotificationCenter" />
@@ -36,8 +36,8 @@
           :off-icon="orthoMode"
           :on-tooltip="t('main.statusBar.orthoMode.on')"
           :off-tooltip="t('main.statusBar.orthoMode.off')"
-          on-color="var(--el-color-primary)"
-          off-color="var(--el-text-color-regular)"
+          on-color="var(--ml-theme-primary)"
+          off-color="var(--ml-theme-text-primary)"
         />
         <ml-polar-tracking-button />
         <ml-sys-var-toggle-button
@@ -46,8 +46,8 @@
           :off-icon="lineWidth"
           :on-tooltip="t('main.statusBar.lineWidth.on')"
           :off-tooltip="t('main.statusBar.lineWidth.off')"
-          on-color="var(--el-color-primary)"
-          off-color="var(--el-text-color-regular)"
+          on-color="var(--ml-theme-primary)"
+          off-color="var(--ml-theme-text-primary)"
         />
         <ml-sys-var-toggle-button
           :sys-var-name="AcDbSystemVariables.DYNMODE"
@@ -55,12 +55,12 @@
           :off-icon="dynamicInput"
           :on-tooltip="t('main.statusBar.dynamicInput.on')"
           :off-tooltip="t('main.statusBar.dynamicInput.off')"
-          on-color="var(--el-color-primary)"
-          off-color="var(--el-text-color-regular)"
+          on-color="var(--ml-theme-primary)"
+          off-color="var(--ml-theme-text-primary)"
           remember-last-enabled
         />
         <ml-setting-button />
-      </el-button-group>
+      </div>
     </template>
   </ml-status-bar>
 </template>
@@ -69,7 +69,6 @@
 import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
 import { AcDbSystemVariables } from '@mlightcad/data-model'
 import { MlStatusBar } from '@mlightcad/ui-components'
-import { ElButton, ElButtonGroup } from 'element-plus'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

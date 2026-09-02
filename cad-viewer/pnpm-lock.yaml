@@ -337,9 +337,9 @@ importers:
 
   packages/cad-viewer:
     devDependencies:
-      '@element-plus/icons-vue':
-        specifier: ^2.3.1
-        version: 2.3.2(vue@3.5.31(typescript@5.9.3))
+      '@ant-design/icons-vue':
+        specifier: ^7.0.1
+        version: 7.0.1(vue@3.5.31(typescript@5.9.3))
       '@mlightcad/cad-agent-plugin':
         specifier: workspace:*
         version: link:../cad-agent-plugin
@@ -379,9 +379,9 @@ importers:
       '@vueuse/core':
         specifier: ^11.1.0
         version: 11.3.0(vue@3.5.31(typescript@5.9.3))
-      element-plus:
-        specifier: ^2.12.0
-        version: 2.13.6(typescript@5.9.3)(vue@3.5.31(typescript@5.9.3))
+      ant-design-vue:
+        specifier: ^4.2.6
+        version: 4.2.6(vue@3.5.31(typescript@5.9.3))
       lodash-es:
         specifier: 4.17.21
         version: 4.17.21

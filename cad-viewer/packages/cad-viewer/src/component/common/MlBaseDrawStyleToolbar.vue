@@ -137,32 +137,32 @@ function onLineWeightChange(value: AcGiLineWeight) {
   width: 100%;
   height: 100%;
   padding: 0;
-  border: 1px solid var(--el-border-color);
-  border-radius: var(--el-border-radius-base);
-  background: var(--el-fill-color-blank);
-  color: var(--el-text-color-regular);
+  border: 1px solid var(--ml-theme-border);
+  border-radius: 4px;
+  background: var(--ml-theme-bg-surface);
+  color: var(--ml-theme-text-primary);
   cursor: pointer;
   box-sizing: border-box;
   transition:
-    border-color var(--el-transition-duration),
-    box-shadow var(--el-transition-duration);
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .ml-base-draw-style-toolbar__color-button:hover {
-  border-color: var(--el-border-color-hover);
+  border-color: var(--ml-theme-border);
 }
 
 .ml-base-draw-style-toolbar__color-button:focus-visible {
   outline: none;
-  border-color: var(--el-color-primary);
-  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+  border-color: var(--ml-theme-primary);
+  box-shadow: 0 0 0 1px var(--ml-theme-primary) inset;
 }
 
 .ml-base-draw-style-toolbar__color-button:disabled {
   cursor: not-allowed;
-  color: var(--el-disabled-text-color);
-  background: var(--el-fill-color-light);
-  border-color: var(--el-border-color-light);
+  color: var(--ml-theme-text-muted);
+  background: var(--ml-theme-bg-hover);
+  border-color: var(--ml-theme-border);
 }
 
 .ml-base-draw-style-toolbar :deep(.ml-base-draw-style-toolbar__lineweight) {

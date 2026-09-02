@@ -2,19 +2,18 @@
 import '@mlightcad/ribbon/style.css'
 
 import {
-  ChatDotRound,
-  ChatLineSquare,
-  Delete,
-  DocumentCopy,
-  EditPen,
-  Hide,
-  RefreshLeft,
-  RefreshRight,
-  Right,
-  Search,
-  Stamp,
-  View
-} from '@element-plus/icons-vue'
+  CopyOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  EyeInvisibleOutlined,
+  EyeOutlined,
+  MessageOutlined,
+  RedoOutlined,
+  RightOutlined,
+  RollbackOutlined,
+  SearchOutlined,
+  TagOutlined
+} from '@ant-design/icons-vue'
 import {
   AcApConvertToDxfCmd,
   acapCssColor,
@@ -68,7 +67,6 @@ import {
   RibbonLocaleTexts,
   RibbonTabModel
 } from '@mlightcad/ribbon'
-import { ElButton, ElTooltip } from 'element-plus'
 import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -1022,7 +1020,7 @@ const buildBaseTabs = (
       label: t('main.verticalToolbar.markupCallout.text'),
       tooltip: t('main.verticalToolbar.markupCallout.description'),
       size: 'large',
-      props: { icon: ChatLineSquare }
+      props: { icon: MessageOutlined }
     },
     {
       id: 'cmd-tool-markup-text',
@@ -1030,7 +1028,7 @@ const buildBaseTabs = (
       label: t('main.verticalToolbar.markupText.text'),
       tooltip: t('main.verticalToolbar.markupText.description'),
       size: 'large',
-      props: { icon: EditPen }
+      props: { icon: EditOutlined }
     }
   ]
 
@@ -1057,7 +1055,7 @@ const buildBaseTabs = (
       label: t('main.verticalToolbar.markupArrow.text'),
       tooltip: t('main.verticalToolbar.markupArrow.description'),
       size: 'small',
-      props: { icon: Right }
+      props: { icon: RightOutlined }
     }
   ]
 
@@ -1068,7 +1066,7 @@ const buildBaseTabs = (
       label: t('main.verticalToolbar.markupStamp.text'),
       tooltip: t('main.verticalToolbar.markupStamp.description'),
       size: 'small',
-      props: { icon: Stamp }
+      props: { icon: TagOutlined }
     },
     {
       id: 'cmd-tool-markup-import',
@@ -1107,8 +1105,8 @@ const buildBaseTabs = (
       size: 'small',
       props: {
         modelValue: markupVisible,
-        activeIcon: View,
-        inactiveIcon: Hide,
+        activeIcon: EyeOutlined,
+        inactiveIcon: EyeInvisibleOutlined,
         activeLabel: t('main.verticalToolbar.showMarkup.text'),
         inactiveLabel: t('main.verticalToolbar.hideMarkup.text'),
         activeValue: 'cmd-tool-markup-vis',
@@ -1121,7 +1119,7 @@ const buildBaseTabs = (
       label: t('main.verticalToolbar.clearMarkups.text'),
       tooltip: verticalToolbarDescriptions.clearMarkups,
       size: 'small',
-      props: { icon: Delete }
+      props: { icon: DeleteOutlined }
     }
   ]
 
@@ -1225,8 +1223,8 @@ const buildBaseTabs = (
       size: 'large',
       props: {
         modelValue: measurementVisible,
-        activeIcon: View,
-        inactiveIcon: Hide,
+        activeIcon: EyeOutlined,
+        inactiveIcon: EyeInvisibleOutlined,
         activeLabel: t('main.verticalToolbar.showMeasurements.text'),
         inactiveLabel: t('main.verticalToolbar.hideMeasurements.text'),
         activeValue: 'cmd-tool-measurement-vis',
@@ -1750,7 +1748,7 @@ const buildBaseTabs = (
                   label: t('main.ribbon.command.rotate'),
                   tooltip: ribbonTooltips.rotate,
                   size: 'small',
-                  props: { icon: RefreshRight }
+                  props: { icon: RedoOutlined }
                 },
                 {
                   id: 'cmd-copy',
@@ -1758,7 +1756,7 @@ const buildBaseTabs = (
                   label: t('main.ribbon.command.copy'),
                   tooltip: ribbonTooltips.copy,
                   size: 'small',
-                  props: { icon: DocumentCopy }
+                  props: { icon: CopyOutlined }
                 }
               ]
             },
@@ -1773,7 +1771,7 @@ const buildBaseTabs = (
                   label: t('main.ribbon.command.erase'),
                   tooltip: ribbonTooltips.erase,
                   size: 'small',
-                  props: { icon: Delete }
+                  props: { icon: DeleteOutlined }
                 },
                 {
                   id: 'cmd-offset',
@@ -2068,7 +2066,7 @@ const buildBaseTabs = (
                         tooltip: ribbonTooltips.agent,
                         size: 'large' as const,
                         props: {
-                          icon: ChatDotRound,
+                          icon: MessageOutlined,
                           labelWrapLines: 2,
                           labelWrapWidth: 'max-content'
                         }
@@ -2084,7 +2082,7 @@ const buildBaseTabs = (
                         tooltip: ribbonTooltips.search,
                         size: 'large' as const,
                         props: {
-                          icon: Search,
+                          icon: SearchOutlined,
                           labelWrapLines: 2,
                           labelWrapWidth: 'max-content'
                         }
@@ -2502,30 +2500,30 @@ const handleFileMenuSelect = async (command: string) => {
     >
       <template #tabs-after="{ disabled }">
         <div class="ml-ribbon-tabs-after">
-          <el-tooltip
-            :content="t('main.ribbon.tooltip.undo')"
-            :hide-after="0"
-            :show-after="1000"
+          <a-tooltip
+            :title="t('main.ribbon.tooltip.undo')"
+            :mouseEnterDelay="1"
           >
-            <el-button
+            <a-button
               class="ml-ribbon-tabs-after__button"
               :disabled="disabled || !canUndo"
-              :icon="RefreshLeft"
               @click="handleHeaderUndo"
-            />
-          </el-tooltip>
-          <el-tooltip
-            :content="t('main.ribbon.tooltip.redo')"
-            :hide-after="0"
-            :show-after="1000"
+            >
+              <template #icon><RollbackOutlined /></template>
+            </a-button>
+          </a-tooltip>
+          <a-tooltip
+            :title="t('main.ribbon.tooltip.redo')"
+            :mouseEnterDelay="1"
           >
-            <el-button
+            <a-button
               class="ml-ribbon-tabs-after__button"
               :disabled="disabled || !canRedo"
-              :icon="RefreshRight"
               @click="handleHeaderRedo"
-            />
-          </el-tooltip>
+            >
+              <template #icon><RedoOutlined /></template>
+            </a-button>
+          </a-tooltip>
         </div>
       </template>
       <template #tabs-extra="{ disabled }">

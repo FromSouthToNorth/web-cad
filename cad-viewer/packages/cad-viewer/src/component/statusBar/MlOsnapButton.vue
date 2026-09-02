@@ -1,42 +1,32 @@
 <template>
-  <el-tooltip :content="t('main.statusBar.osnap.tooltip')" :hide-after="0">
-    <el-dropdown trigger="click" @command="handleCommand">
-      <el-button class="ml-osnap-setting-button" :icon="osnap" />
-      <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item
+  <a-tooltip :title="t('main.statusBar.osnap.tooltip')" :mouse-leave-delay="0">
+    <a-dropdown :trigger="['click']">
+      <a-button class="ml-osnap-setting-button">
+        <template #icon><component :is="osnap" /></template>
+      </a-button>
+      <template #overlay>
+        <a-menu @click="handleMenuClick">
+          <a-menu-item
             v-for="mode in osnapModes"
             :key="mode.value"
-            :command="mode.value"
-            :icon="
-              acdbHasOsnapMode(features.osnapModes, mode.value)
-                ? Check
-                : undefined
-            "
           >
+            <CheckOutlined v-if="acdbHasOsnapMode(features.osnapModes, mode.value)" style="margin-right: 8px;" />
             {{ mode.label }}
-          </el-dropdown-item>
-        </el-dropdown-menu>
+          </a-menu-item>
+        </a-menu>
       </template>
-    </el-dropdown>
-  </el-tooltip>
+    </a-dropdown>
+  </a-tooltip>
 </template>
 
 <script lang="ts" setup>
-import { Check } from '@element-plus/icons-vue'
+import { CheckOutlined } from '@ant-design/icons-vue'
 import { AcApSettingManager } from '@mlightcad/cad-simple-viewer'
 import {
   acdbHasOsnapMode,
   AcDbOsnapMode,
   acdbToggleOsnapMode
 } from '@mlightcad/data-model'
-import {
-  ElButton,
-  ElDropdown,
-  ElDropdownItem,
-  ElDropdownMenu,
-  ElTooltip
-} from 'element-plus'
 import { useI18n } from 'vue-i18n'
 
 import { useSettings } from '../../composable'
@@ -73,7 +63,8 @@ const osnapModes = [
 /**
  * Toggle osnap mode and update the bitmask.
  */
-const handleCommand = (mode: AcDbOsnapMode) => {
+const handleMenuClick = ({ key }: { key: string }) => {
+  const mode = Number(key) as AcDbOsnapMode
   features.osnapModes = acdbToggleOsnapMode(features.osnapModes, mode)
   AcApSettingManager.instance.osnapModes = features.osnapModes
 }

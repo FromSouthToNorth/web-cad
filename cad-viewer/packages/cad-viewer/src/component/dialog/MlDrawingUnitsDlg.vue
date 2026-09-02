@@ -13,95 +13,101 @@
           :title="t('dialog.drawingUnitsDlg.lengthSection')"
           class="ml-drawing-units-dlg__pane"
         >
-          <el-form label-position="top" class="ml-drawing-units-dlg__form">
-            <el-form-item :label="t('dialog.drawingUnitsDlg.lengthType')">
-              <el-select
-                v-model="form.lunits"
+          <a-form layout="vertical" class="ml-drawing-units-dlg__form">
+            <a-form-item :label="t('dialog.drawingUnitsDlg.lengthType')">
+              <a-select
+                v-model:value="form.lunits"
                 class="ml-drawing-units-dlg__control"
               >
-                <el-option
+                <a-select-option
                   v-for="opt in linearUnitOptions"
                   :key="opt.value"
-                  :label="opt.label"
                   :value="opt.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item :label="t('dialog.drawingUnitsDlg.lengthPrecision')">
-              <el-select
-                v-model="form.luprec"
+                >
+                  {{ opt.label }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+            <a-form-item :label="t('dialog.drawingUnitsDlg.lengthPrecision')">
+              <a-select
+                v-model:value="form.luprec"
                 class="ml-drawing-units-dlg__control"
               >
-                <el-option
+                <a-select-option
                   v-for="opt in lengthPrecisionOptions"
                   :key="opt.value"
-                  :label="opt.label"
                   :value="opt.value"
-                />
-              </el-select>
-            </el-form-item>
-          </el-form>
+                >
+                  {{ opt.label }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </a-form>
         </ml-fieldset-group>
 
         <ml-fieldset-group
           :title="t('dialog.drawingUnitsDlg.angleSection')"
           class="ml-drawing-units-dlg__pane"
         >
-          <el-form label-position="top" class="ml-drawing-units-dlg__form">
-            <el-form-item :label="t('dialog.drawingUnitsDlg.angleType')">
-              <el-select
-                v-model="form.aunits"
+          <a-form layout="vertical" class="ml-drawing-units-dlg__form">
+            <a-form-item :label="t('dialog.drawingUnitsDlg.angleType')">
+              <a-select
+                v-model:value="form.aunits"
                 class="ml-drawing-units-dlg__control"
               >
-                <el-option
+                <a-select-option
                   v-for="opt in angleUnitOptions"
                   :key="opt.value"
-                  :label="opt.label"
                   :value="opt.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item :label="t('dialog.drawingUnitsDlg.anglePrecision')">
-              <el-select
-                v-model="form.auprec"
+                >
+                  {{ opt.label }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+            <a-form-item :label="t('dialog.drawingUnitsDlg.anglePrecision')">
+              <a-select
+                v-model:value="form.auprec"
                 class="ml-drawing-units-dlg__control"
               >
-                <el-option
+                <a-select-option
                   v-for="opt in anglePrecisionOptions"
                   :key="opt.value"
-                  :label="opt.label"
                   :value="opt.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item>
-              <el-checkbox v-model="clockwiseChecked">{{
+                >
+                  {{ opt.label }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+            <a-form-item>
+              <a-checkbox v-model:checked="clockwiseChecked">{{
                 t('dialog.drawingUnitsDlg.clockwise')
-              }}</el-checkbox>
-            </el-form-item>
-          </el-form>
+              }}</a-checkbox>
+            </a-form-item>
+          </a-form>
         </ml-fieldset-group>
 
         <ml-fieldset-group
           :title="t('dialog.drawingUnitsDlg.insertionSection')"
           class="ml-drawing-units-dlg__span-row"
         >
-          <el-form label-position="top" class="ml-drawing-units-dlg__form">
-            <el-form-item :label="t('dialog.drawingUnitsDlg.insertionUnits')">
-              <el-select
-                v-model="form.insunits"
-                filterable
+          <a-form layout="vertical" class="ml-drawing-units-dlg__form">
+            <a-form-item :label="t('dialog.drawingUnitsDlg.insertionUnits')">
+              <a-select
+                v-model:value="form.insunits"
+                show-search
+                :filter-option="filterOptionByLabel"
                 class="ml-drawing-units-dlg__control"
               >
-                <el-option
+                <a-select-option
                   v-for="opt in insertionUnitOptions"
                   :key="opt.value"
-                  :label="opt.label"
                   :value="opt.value"
-                />
-              </el-select>
-            </el-form-item>
-          </el-form>
+                >
+                  {{ opt.label }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </a-form>
         </ml-fieldset-group>
       </div>
     </div>
@@ -118,12 +124,12 @@ import {
   AcDbUnitsValue
 } from '@mlightcad/data-model'
 import {
-  ElCheckbox,
-  ElForm,
-  ElFormItem,
-  ElOption,
-  ElSelect
-} from 'element-plus'
+  Checkbox as ACheckbox,
+  Form as AForm,
+  FormItem as AFormItem,
+  Select as ASelect,
+  SelectOption as ASelectOption
+} from 'ant-design-vue'
 import { computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -162,6 +168,12 @@ const clockwiseChecked = computed({
     form.angdir = v ? 1 : 0
   }
 })
+
+/** antdv `show-search` filter: match label against the typed input. */
+function filterOptionByLabel(input: string, option: { label?: string }) {
+  const label = option?.label ?? ''
+  return String(label).toLowerCase().includes(input.toLowerCase())
+}
 
 const lengthPrecisionOptions = computed(() =>
   drawingUnitPrecisionOptions(form.luprec)
@@ -399,11 +411,11 @@ function handleOk() {
   min-height: 0;
 }
 
-.ml-drawing-units-dlg__form :deep(.el-form-item) {
+.ml-drawing-units-dlg__form :deep(.ant-form-item) {
   margin-bottom: 8px;
 }
 
-.ml-drawing-units-dlg__form :deep(.el-form-item:last-child) {
+.ml-drawing-units-dlg__form :deep(.ant-form-item:last-child) {
   margin-bottom: 0;
 }
 

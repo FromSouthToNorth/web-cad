@@ -2,65 +2,43 @@
   <div class="ml-count-list">
     <div class="ml-count-list-toolbar">
       <div class="ml-count-list-search-row">
-        <el-input
-          v-model="search"
-          clearable
+        <a-input
+          v-model:value="search"
+          allow-clear
           size="small"
           class="ml-count-list-search"
           :placeholder="t('main.toolPalette.countList.searchPlaceholder')"
         />
-        <el-button
+        <a-button
           size="small"
           :type="hasCountArea ? 'primary' : 'default'"
           :title="t('main.toolPalette.countList.countInArea')"
           :aria-label="t('main.toolPalette.countList.countInArea')"
           @click="handleCountArea"
         >
-          <el-icon><Crop /></el-icon>
-        </el-button>
+          <ScissorOutlined />
+        </a-button>
       </div>
     </div>
 
-    <el-table
-      :data="groups"
+    <a-table
+      :columns="tableColumns"
+      :data-source="groups"
       class="ml-count-list-table"
       size="small"
-      highlight-current-row
+      :pagination="false"
       table-layout="fixed"
-      :empty-text="t('main.toolPalette.countList.empty')"
-      @row-click="handleRowClick"
-    >
-      <el-table-column
-        prop="label"
-        :label="t('main.toolPalette.countList.blockName')"
-        min-width="80"
-        sortable
-        :show-overflow-tooltip="{ showAfter: 2000 }"
-      />
-      <el-table-column
-        prop="count"
-        :label="t('main.toolPalette.countList.count')"
-        width="88"
-        align="right"
-        header-align="right"
-        sortable
-      />
-    </el-table>
+      :locale="{ emptyText: t('main.toolPalette.countList.empty') }"
+      :custom-row="customRow"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Crop } from '@element-plus/icons-vue'
+import { ScissorOutlined } from '@ant-design/icons-vue'
 import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
 import { AcGeBox2d } from '@mlightcad/data-model'
-import {
-  ElButton,
-  ElIcon,
-  ElInput,
-  ElMessage,
-  ElTable,
-  ElTableColumn
-} from 'element-plus'
+import { message } from 'ant-design-vue'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -82,6 +60,29 @@ const countArea = ref<AcGeBox2d | null>(null)
 const hasCountArea = ref(false)
 const groups = ref<MlCountListGroup[]>([])
 let refreshTimer: ReturnType<typeof setTimeout> | null = null
+
+const tableColumns = [
+  {
+    title: () => t('main.toolPalette.countList.blockName'),
+    dataIndex: 'label',
+    key: 'label',
+    sorter: (a: MlCountListGroup, b: MlCountListGroup) =>
+      a.label.localeCompare(b.label),
+    ellipsis: { showTitle: true }
+  },
+  {
+    title: () => t('main.toolPalette.countList.count'),
+    dataIndex: 'count',
+    key: 'count',
+    width: 88,
+    align: 'right' as const,
+    sorter: (a: MlCountListGroup, b: MlCountListGroup) => a.count - b.count
+  }
+]
+
+const customRow = (record: MlCountListGroup) => ({
+  onClick: () => handleRowClick(record)
+})
 
 const refresh = () => {
   const instances = collectCountListInstances(
@@ -122,13 +123,11 @@ const handleCountArea = async () => {
     hasCountArea.value = true
   }
   refresh()
-  ElMessage({
-    message: hasCountArea.value
+  message.success(
+    hasCountArea.value
       ? t('main.toolPalette.countList.areaSet')
-      : t('main.toolPalette.countList.areaCleared'),
-    type: 'success',
-    grouping: true
-  })
+      : t('main.toolPalette.countList.areaCleared')
+  )
 }
 
 watch(search, () => {
@@ -190,29 +189,21 @@ onUnmounted(() => {
   width: 100%;
 }
 
-.ml-count-list-table :deep(.el-table__inner-wrapper) {
+.ml-count-list-table :deep(.ant-table-wrapper),
+.ml-count-list-table :deep(.ant-spin-nested-loading),
+.ml-count-list-table :deep(.ant-spin-container),
+.ml-count-list-table :deep(.ant-table),
+.ml-count-list-table :deep(.ant-table-container) {
   height: 100%;
 }
 
-.ml-count-list-table :deep(.el-table__header .cell) {
-  display: flex;
-  align-items: center;
+.ml-count-list-table :deep(.ant-table-header .ant-table-cell) {
   white-space: nowrap;
   line-height: 1.2;
 }
 
-.ml-count-list-table :deep(.el-table__header th.is-right .cell) {
-  justify-content: flex-end;
-}
-
-.ml-count-list-table :deep(.el-table__header .cell .caret-wrapper) {
-  flex-shrink: 0;
-  height: 14px;
-  width: 14px;
-}
-
 /* Keep Count column visible; Block absorbs width reduction. */
-.ml-count-list-table :deep(.el-table__body .el-table__cell:first-child .cell) {
+.ml-count-list-table :deep(.ant-table-body .ant-table-cell:first-child) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

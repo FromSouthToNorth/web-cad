@@ -1,4 +1,4 @@
-import { CircleClose } from '@element-plus/icons-vue'
+import { CloseCircleOutlined } from '@ant-design/icons-vue'
 import type { AcEdCommandEventArgs } from '@mlightcad/cad-simple-viewer'
 import { AcCmColor } from '@mlightcad/data-model'
 import type {
@@ -538,7 +538,7 @@ export function useHatchContextualRibbon({
                   label: t('main.ribbon.hatch.command.close'),
                   tooltip: t('main.ribbon.hatch.tooltip.close'),
                   size: 'large',
-                  props: { icon: CircleClose }
+                  props: { icon: CloseCircleOutlined }
                 }
               ]
             }

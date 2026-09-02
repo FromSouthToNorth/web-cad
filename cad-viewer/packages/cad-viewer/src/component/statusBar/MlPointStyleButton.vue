@@ -1,17 +1,17 @@
 <template>
-  <el-tooltip :content="t('main.statusBar.pointStyle.tooltip')" :hide-after="0">
-    <el-button
+  <a-tooltip :title="t('main.statusBar.pointStyle.tooltip')" :mouse-leave-delay="0">
+    <a-button
       class="ml-point-style-button"
-      :icon="Operation"
       @click="click()"
-    />
-  </el-tooltip>
+    >
+      <template #icon><ToolOutlined /></template>
+    </a-button>
+  </a-tooltip>
 </template>
 
 <script lang="ts" setup>
-import { Operation } from '@element-plus/icons-vue'
+import { ToolOutlined } from '@ant-design/icons-vue'
 import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { ElButton, ElTooltip } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

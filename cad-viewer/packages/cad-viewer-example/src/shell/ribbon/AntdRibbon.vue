@@ -1,25 +1,12 @@
 <template>
   <div class="antd-ribbon" :class="{ 'is-collapsed': isCollapsed }">
-    <!-- Row 1: QAT + locale -->
+    <!-- QAT + tabs + locale share the header row -->
     <div class="antd-ribbon-qat-row">
       <AntdQat
         :items="qatItems"
         :file-items="fileItems"
         :disabled="disabled"
       />
-      <div class="antd-ribbon-qat-right">
-        <a-select
-          v-model:value="activeLocale"
-          size="small"
-          class="antd-ribbon-locale"
-          :options="localeOptions"
-          @change="onLocaleChange"
-        />
-      </div>
-    </div>
-
-    <!-- Row 2: Tab bar -->
-    <div class="antd-ribbon-tab-bar">
       <div class="antd-ribbon-tabs" role="tablist">
         <button
           v-for="tab in visibleTabs"
@@ -39,9 +26,18 @@
           {{ t(`shell.ribbon.tab.${tab.id}`) }}
         </button>
       </div>
+      <div class="antd-ribbon-qat-right">
+        <a-select
+          v-model:value="activeLocale"
+          size="small"
+          class="antd-ribbon-locale"
+          :options="localeOptions"
+          @change="onLocaleChange"
+        />
+      </div>
     </div>
 
-    <!-- Row 3: Panel area -->
+    <!-- Panel area; quick property controls live in the Properties panel -->
     <div v-if="!isCollapsed" class="antd-ribbon-panels">
       <AntdRibbonPanel
         v-for="panel in activeTab?.panels ?? []"
@@ -50,7 +46,16 @@
         :items="panel.items"
         :disabled="disabled"
         @execute="run"
-      />
+      >
+        <AntdLayerSelect
+          v-if="panel.id === 'layer'"
+          :disabled="disabled"
+        />
+        <AntdPropertyBar
+          v-if="panel.id === 'properties'"
+          :disabled="disabled"
+        />
+      </AntdRibbonPanel>
     </div>
   </div>
 </template>
@@ -65,8 +70,10 @@ import {
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import AntdRibbonPanel from './AntdRibbonPanel.vue'
+import AntdLayerSelect from './AntdLayerSelect.vue'
+import AntdPropertyBar from './AntdPropertyBar.vue'
 import AntdQat from './AntdQat.vue'
+import AntdRibbonPanel from './AntdRibbonPanel.vue'
 import { fileItems, qatItems, ribbonTabs } from './ribbonModel'
 
 const { t } = useI18n()

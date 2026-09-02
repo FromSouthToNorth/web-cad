@@ -20,12 +20,16 @@
               t('dialog.exportHtmlDlg.exportInvisibleLayersHint')
             }}</span>
           </div>
-          <el-switch
-            v-model="form.exportInvisibleLayers"
-            :active-text="t('dialog.exportHtmlDlg.yes')"
-            :inactive-text="t('dialog.exportHtmlDlg.no')"
-            inline-prompt
-          />
+          <div class="ml-export-html-dlg__switch-row">
+            <a-switch v-model:checked="form.exportInvisibleLayers" />
+            <span class="ml-export-html-dlg__switch-state">
+              {{
+                form.exportInvisibleLayers
+                  ? t('dialog.exportHtmlDlg.yes')
+                  : t('dialog.exportHtmlDlg.no')
+              }}
+            </span>
+          </div>
         </div>
       </ml-fieldset-group>
 
@@ -33,15 +37,15 @@
         :title="t('dialog.exportHtmlDlg.initialView')"
         class="ml-export-html-dlg__section"
       >
-        <el-radio-group
-          v-model="form.initialView"
+        <a-radio-group
+          v-model:value="form.initialView"
           class="ml-export-html-dlg__card-group"
         >
           <label
             class="ml-export-html-dlg__card"
             :class="{ 'is-selected': form.initialView === 'fit' }"
           >
-            <el-radio value="fit" class="ml-export-html-dlg__card-radio" />
+            <a-radio value="fit" class="ml-export-html-dlg__card-radio" />
             <span class="ml-export-html-dlg__card-body">
               <span class="ml-export-html-dlg__card-title">{{
                 t('dialog.exportHtmlDlg.initialViewExtents')
@@ -55,7 +59,7 @@
             class="ml-export-html-dlg__card"
             :class="{ 'is-selected': form.initialView === 'current' }"
           >
-            <el-radio value="current" class="ml-export-html-dlg__card-radio" />
+            <a-radio value="current" class="ml-export-html-dlg__card-radio" />
             <span class="ml-export-html-dlg__card-body">
               <span class="ml-export-html-dlg__card-title">{{
                 t('dialog.exportHtmlDlg.initialViewCurrent')
@@ -65,22 +69,22 @@
               }}</span>
             </span>
           </label>
-        </el-radio-group>
+        </a-radio-group>
       </ml-fieldset-group>
 
       <ml-fieldset-group
         :title="t('dialog.exportHtmlDlg.viewerMode')"
         class="ml-export-html-dlg__section"
       >
-        <el-radio-group
-          v-model="form.viewerMode"
+        <a-radio-group
+          v-model:value="form.viewerMode"
           class="ml-export-html-dlg__card-group"
         >
           <label
             class="ml-export-html-dlg__card"
             :class="{ 'is-selected': form.viewerMode === 'view' }"
           >
-            <el-radio value="view" class="ml-export-html-dlg__card-radio" />
+            <a-radio value="view" class="ml-export-html-dlg__card-radio" />
             <span class="ml-export-html-dlg__card-body">
               <span class="ml-export-html-dlg__card-title">{{
                 t('dialog.exportHtmlDlg.viewerModeView')
@@ -94,7 +98,7 @@
             class="ml-export-html-dlg__card"
             :class="{ 'is-selected': form.viewerMode === 'measure' }"
           >
-            <el-radio value="measure" class="ml-export-html-dlg__card-radio" />
+            <a-radio value="measure" class="ml-export-html-dlg__card-radio" />
             <span class="ml-export-html-dlg__card-body">
               <span class="ml-export-html-dlg__card-title">{{
                 t('dialog.exportHtmlDlg.viewerModeMeasure')
@@ -104,7 +108,7 @@
               }}</span>
             </span>
           </label>
-        </el-radio-group>
+        </a-radio-group>
       </ml-fieldset-group>
     </div>
   </ml-base-dialog>
@@ -122,7 +126,11 @@ import type {
   AcExViewerMode
 } from '@mlightcad/cad-html-plugin'
 import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { ElRadio, ElRadioGroup, ElSwitch } from 'element-plus'
+import {
+  Radio as ARadio,
+  RadioGroup as ARadioGroup,
+  Switch as ASwitch
+} from 'ant-design-vue'
 import { computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -277,14 +285,25 @@ async function handleOk() {
 .ml-export-html-dlg__toggle-label {
   font-size: var(--ml-dialog-font-size, 12px);
   font-weight: 600;
-  color: var(--el-text-color-primary);
+  color: var(--ml-theme-text-primary, #18181b);
   line-height: 1.4;
 }
 
 .ml-export-html-dlg__toggle-hint {
   font-size: 11px;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary, #64748b);
   line-height: 1.35;
+}
+
+.ml-export-html-dlg__switch-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ml-export-html-dlg__switch-state {
+  font-size: var(--ml-dialog-font-size, 12px);
+  color: var(--ml-theme-text-primary, #18181b);
 }
 
 .ml-export-html-dlg__card-group {
@@ -300,9 +319,9 @@ async function handleOk() {
   gap: 8px;
   min-width: 0;
   padding: 10px 10px 10px 8px;
-  border: 1px solid var(--el-border-color);
+  border: 1px solid var(--ml-theme-border, #e2e8f0);
   border-radius: 4px;
-  background: var(--el-fill-color-blank);
+  background: var(--ml-theme-bg-surface, #ffffff);
   cursor: pointer;
   transition:
     border-color 0.15s ease,
@@ -311,13 +330,13 @@ async function handleOk() {
 }
 
 .ml-export-html-dlg__card:hover {
-  border-color: var(--el-color-primary-light-5);
+  border-color: var(--ml-theme-primary-hover, #2563eb);
 }
 
 .ml-export-html-dlg__card.is-selected {
-  border-color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-  box-shadow: inset 0 0 0 1px var(--el-color-primary-light-7);
+  border-color: var(--ml-theme-primary, #3b82f6);
+  background: var(--ml-theme-bg-active, #dbeafe);
+  box-shadow: inset 0 0 0 1px var(--ml-theme-primary, #3b82f6);
 }
 
 .ml-export-html-dlg__card-radio {
@@ -326,7 +345,7 @@ async function handleOk() {
   height: auto;
 }
 
-.ml-export-html-dlg__card-radio :deep(.el-radio__label) {
+.ml-export-html-dlg__card-radio :deep(.ant-radio) {
   display: none;
 }
 
@@ -340,13 +359,13 @@ async function handleOk() {
 .ml-export-html-dlg__card-title {
   font-size: var(--ml-dialog-font-size, 12px);
   font-weight: 600;
-  color: var(--el-text-color-primary);
+  color: var(--ml-theme-text-primary, #18181b);
   line-height: 1.35;
 }
 
 .ml-export-html-dlg__card-hint {
   font-size: 11px;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary, #64748b);
   line-height: 1.35;
 }
 </style>

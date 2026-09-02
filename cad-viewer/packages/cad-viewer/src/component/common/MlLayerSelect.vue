@@ -1,16 +1,16 @@
 <template>
   <div class="ml-layer-select">
-    <el-select
-      :model-value="resolvedModelValue"
+    <a-select
+      :value="resolvedModelValue"
       :disabled="props.disabled || !props.options.length"
       :placeholder="props.placeholder ?? t('main.ribbonProperty.layer')"
       class="ml-layer-select__control"
-      :popper-class="popperClass"
+      :popup-class-name="popperClass"
       style="width: 100%"
       @change="onSelect"
-      @visible-change="onVisibleChange"
+      @dropdownVisibleChange="onVisibleChange"
     >
-      <template #label>
+      <template #optionLabel>
         <div
           v-if="selectedOption"
           class="ml-layer-select-trigger"
@@ -87,10 +87,10 @@
 
       <template #header>
         <div class="ml-layer-select-header">
-          <el-input
+          <a-input
             ref="searchInputRef"
-            v-model="searchQuery"
-            clearable
+            v-model:value="searchQuery"
+            allow-clear
             :placeholder="
               props.searchPlaceholder ?? t('main.layerSelect.searchPlaceholder')
             "
@@ -98,16 +98,15 @@
             @keydown.stop
           >
             <template #prefix>
-              <el-icon><Search /></el-icon>
+              <SearchOutlined />
             </template>
-          </el-input>
+          </a-input>
         </div>
       </template>
 
-      <el-option
+      <a-select-option
         v-for="item in filteredOptions"
         :key="item.value"
-        :label="item.name"
         :value="item.value"
       >
         <div class="ml-layer-select-option" :title="buildLayerTooltip(item)">
@@ -180,20 +179,19 @@
           />
           <span class="ml-layer-select-text">{{ item.name }}</span>
         </div>
-      </el-option>
+      </a-select-option>
 
-      <template #empty>
+      <template #notFoundContent>
         <div class="ml-layer-select-empty">
           {{ emptyText }}
         </div>
       </template>
-    </el-select>
+    </a-select>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Search } from '@element-plus/icons-vue'
-import { ElIcon, ElInput, ElOption, ElSelect, useGlobalConfig } from 'element-plus'
+import { SearchOutlined } from '@ant-design/icons-vue'
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -238,11 +236,10 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const searchQuery = ref('')
-const searchInputRef = ref<InstanceType<typeof ElInput>>()
+const searchInputRef = ref<HTMLInputElement>()
 
-/** Ribbon / ConfigProvider size (`small` | `default` | `large`). */
-const globalSize = useGlobalConfig('size', '')
-const ribbonUiSize = computed(() => globalSize.value || 'default')
+/** Ribbon / UI size (`small` | `default` | `large`). */
+const ribbonUiSize = computed(() => 'default')
 
 /**
  * Match built-in ribbon selects: attach ribbon popper size classes so teleported
@@ -353,7 +350,7 @@ function onStateIconClick(item: LayerSelectOption, state: LayerStateKey) {
   font-family: inherit;
   font-size: var(
     --ml-rb-font-sm,
-    calc(var(--el-font-size-small) * var(--ml-rb-scale, 1))
+    calc(12px * var(--ml-rb-scale, 1))
   );
 }
 
@@ -362,10 +359,10 @@ function onStateIconClick(item: LayerSelectOption, state: LayerStateKey) {
   min-width: 0;
 }
 
-.ml-layer-select :deep(.el-select__wrapper),
-.ml-layer-select :deep(.el-select__selection),
-.ml-layer-select :deep(.el-select__selected-item),
-.ml-layer-select :deep(.el-select__placeholder) {
+.ml-layer-select :deep(.ant-select),
+.ml-layer-select :deep(.ant-select-selector),
+.ml-layer-select :deep(.ant-select-selection-item),
+.ml-layer-select :deep(.ant-select-selection-placeholder) {
   width: 100%;
   min-width: 0;
   font-family: inherit;
@@ -409,7 +406,7 @@ function onStateIconClick(item: LayerSelectOption, state: LayerStateKey) {
   display: inline-flex;
   width: 16px;
   height: 16px;
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
 }
 
 .ml-layer-select-state-button {
@@ -425,21 +422,21 @@ function onStateIconClick(item: LayerSelectOption, state: LayerStateKey) {
 }
 
 .ml-layer-select-state-icon.is-on {
-  color: var(--el-color-primary);
+  color: var(--ml-theme-primary);
 }
 
 .ml-layer-select-state-icon.is-off {
-  color: var(--el-text-color-disabled);
+  color: var(--ml-theme-text-muted);
 }
 
 .ml-layer-select-state-icon.is-frozen,
 .ml-layer-select-state-icon.is-locked {
-  color: var(--el-text-color-primary);
+  color: var(--ml-theme-text-heading);
 }
 
 .ml-layer-select-state-icon.is-unfrozen,
 .ml-layer-select-state-icon.is-unlocked {
-  color: var(--el-text-color-regular);
+  color: var(--ml-theme-text-primary);
 }
 
 .ml-layer-select-state-icon :deep(svg) {
@@ -467,13 +464,13 @@ function onStateIconClick(item: LayerSelectOption, state: LayerStateKey) {
   width: 12px;
   height: 12px;
   border-radius: 2px;
-  border: 1px solid var(--el-border-color);
+  border: 1px solid var(--ml-theme-border);
   box-sizing: border-box;
 }
 
 .ml-layer-select-empty {
   padding: 8px 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--ml-theme-text-secondary);
 }
 
 :global(.ml-layer-select-popper) {
@@ -482,25 +479,25 @@ function onStateIconClick(item: LayerSelectOption, state: LayerStateKey) {
    * from `ml-ribbon-popper--size-*` (same as built-in ribbon selects).
    */
   --ml-layer-select-font-size: calc(
-    var(--el-font-size-small) * var(--ml-rb-popper-scale, 1)
+    12px * var(--ml-rb-popper-scale, 1)
   );
   width: 340px;
   font-family: inherit;
   font-size: var(--ml-layer-select-font-size);
 }
 
-:global(.ml-layer-select-popper .el-select-dropdown__wrap) {
+:global(.ml-layer-select-popper .ant-select-dropdown) {
   max-height: 360px;
 }
 
-:global(.ml-layer-select-popper .el-select-dropdown__item) {
+:global(.ml-layer-select-popper .ant-select-item) {
   height: calc(36px * var(--ml-rb-popper-scale, 1));
   line-height: calc(36px * var(--ml-rb-popper-scale, 1));
   font-family: inherit;
   font-size: var(--ml-layer-select-font-size);
 }
 
-:global(.ml-layer-select-popper .el-input),
+:global(.ml-layer-select-popper .ant-input),
 :global(.ml-layer-select-popper .ml-layer-select-text),
 :global(.ml-layer-select-popper .ml-layer-select-empty) {
   font-family: inherit;
@@ -509,10 +506,10 @@ function onStateIconClick(item: LayerSelectOption, state: LayerStateKey) {
 
 .ml-layer-select-header {
   padding: 6px 8px 8px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  border-bottom: 1px solid var(--ml-theme-border);
 }
 
-.ml-layer-select-search :deep(.el-input__wrapper) {
+.ml-layer-select-search :deep(.ant-input-affix-wrapper) {
   border-radius: 8px;
 }
 </style>

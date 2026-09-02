@@ -87,6 +87,7 @@ export default {
         circle: 'Circle',
         arc: 'Arc',
         ellipse: 'Ellipse',
+        rect: 'Rectangle',
         rectangle: 'Rectangle',
         polygon: 'Polygon',
         spline: 'Spline',
@@ -126,6 +127,7 @@ export default {
         regen: 'Regen',
         invertSelect: 'Invert Selection',
         search: 'Object Search',
+        agent: 'CAD Agent',
         switchBg: 'Switch BG',
         insertBlock: 'Insert Block',
         attachImage: 'Attach Image',
@@ -151,6 +153,17 @@ export default {
         zoomWindow: 'Zoom Window',
         zoomOut: 'Zoom',
         pan: 'Pan'
+      },
+      option: {
+        circleCR: 'Center, Radius',
+        circleCD: 'Center, Diameter',
+        circle2P: '2 Point',
+        circle3P: '3 Point',
+        circleTTR: 'Tan, Tan, Radius',
+        circleTTT: 'Tan, Tan, Tan',
+        arc3P: '3 Point',
+        arcCSE: 'Center, Start, End',
+        arcCSA: 'Center, Start, Angle'
       },
       file: {
         qnew: 'New Drawing',

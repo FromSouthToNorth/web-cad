@@ -6,7 +6,7 @@ export type LlmProviderId =
   | 'anthropic'
   | 'openai-compatible'
   | 'deepseek'
-  | 'deepseek-vl'
+  | 'kimi'
 
 /**
  * Persisted LLM configuration for the CAD agent chat panel.
@@ -56,12 +56,12 @@ export const PROVIDER_DEFAULTS: Record<
     model: 'gpt-4o-mini'
   },
   deepseek: {
-    baseUrl: 'https://api.deepseek.com/v1',
+    baseUrl: 'https://api.deepseek.com',
     model: 'deepseek-v4-flash'
   },
-  'deepseek-vl': {
-    baseUrl: 'https://api.siliconflow.cn/v1',
-    model: 'deepseek-vl2'
+  kimi: {
+    baseUrl: 'https://api.kimi.com/coding/v1',
+    model: 'k3'
   }
 }
 
@@ -100,8 +100,16 @@ async function restoreApiKey(persisted: PersistedLlmSettings): Promise<string> {
   return ''
 }
 
+/** Providers that have been removed; persisted values are migrated to the DeepSeek provider. */
+const RETIRED_PROVIDERS: Record<string, LlmProviderId> = {
+  'deepseek-vl': 'deepseek'
+}
+
 /**
  * Loads LLM settings from `localStorage`, merged over {@link DEFAULTS}.
+ *
+ * Retired providers (e.g. `deepseek-vl`) are migrated to their replacement so
+ * existing users never boot into an invalid selection.
  *
  * @returns Parsed settings with decrypted API key, or defaults when missing or invalid.
  */
@@ -113,11 +121,21 @@ export async function loadLlmSettings(): Promise<LlmSettings> {
     const persisted = JSON.parse(raw) as PersistedLlmSettings
     const apiKey = await restoreApiKey(persisted)
 
-    return {
+    const merged: LlmSettings = {
       ...DEFAULTS,
       ...persisted,
       apiKey
     }
+
+    const replacement = RETIRED_PROVIDERS[merged.provider]
+    if (replacement) {
+      const defaults = getProviderDefaults(replacement)
+      merged.provider = replacement
+      merged.baseUrl = defaults.baseUrl
+      merged.model = defaults.model
+    }
+
+    return merged
   } catch {
     return { ...DEFAULTS }
   }

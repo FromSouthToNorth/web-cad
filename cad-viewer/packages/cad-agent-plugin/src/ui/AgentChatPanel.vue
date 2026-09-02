@@ -458,7 +458,7 @@ function isVerificationMessage(message: UIMessage): boolean {
         {{ labels.provider }}
         <select v-model="settings.provider">
           <option value="deepseek">{{ labels.providerDeepseek }}</option>
-          <option value="deepseek-vl">{{ labels.providerDeepseekVl }}</option>
+          <option value="kimi">{{ labels.providerKimi }}</option>
           <option value="openai">{{ labels.providerOpenai }}</option>
           <option value="anthropic">{{ labels.providerAnthropic }}</option>
           <option value="openai-compatible">
@@ -470,12 +470,6 @@ function isVerificationMessage(message: UIMessage): boolean {
         {{ labels.baseUrl }}
         <input v-model="settings.baseUrl" type="text" />
       </label>
-      <p
-        v-if="settings.provider === 'deepseek-vl'"
-        class="cad-agent-model-hint"
-      >
-        {{ labels.providerDeepseekVlHint }}
-      </p>
       <label>
         {{ labels.model }}
         <select v-model="modelSelection">

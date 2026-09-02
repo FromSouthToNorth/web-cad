@@ -88,44 +88,6 @@ export const PROVIDER_MODEL_OPTIONS: Record<
       labelEn: 'DeepSeek V4 Pro',
       labelZh: 'DeepSeek V4 Pro',
       supportsVision: false
-    },
-    {
-      value: 'deepseek-chat',
-      labelEn: 'DeepSeek Chat (legacy)',
-      labelZh: 'DeepSeek Chat（旧版别名）',
-      supportsVision: false
-    },
-    {
-      value: 'deepseek-reasoner',
-      labelEn: 'DeepSeek Reasoner (legacy)',
-      labelZh: 'DeepSeek Reasoner（旧版别名）',
-      supportsVision: false
-    }
-  ],
-  'deepseek-vl': [
-    {
-      value: 'deepseek-vl2',
-      labelEn: 'DeepSeek VL2',
-      labelZh: 'DeepSeek VL2',
-      supportsVision: true
-    },
-    {
-      value: 'deepseek-ai/deepseek-vl2-small',
-      labelEn: 'DeepSeek VL2 Small',
-      labelZh: 'DeepSeek VL2 Small',
-      supportsVision: true
-    },
-    {
-      value: 'deepseek-ai/deepseek-vl2-tiny',
-      labelEn: 'DeepSeek VL2 Tiny',
-      labelZh: 'DeepSeek VL2 Tiny',
-      supportsVision: true
-    },
-    {
-      value: 'deepseek-ai/deepseek-vl2',
-      labelEn: 'DeepSeek VL2 (HuggingFace id)',
-      labelZh: 'DeepSeek VL2（HuggingFace 路径）',
-      supportsVision: true
     }
   ],
   'openai-compatible': [
@@ -147,6 +109,32 @@ export const PROVIDER_MODEL_OPTIONS: Record<
       labelZh: 'GPT-3.5 Turbo',
       supportsVision: false
     }
+  ],
+  kimi: [
+    {
+      value: 'k3',
+      labelEn: 'Kimi K3 (1M)',
+      labelZh: 'Kimi K3（1M 上下文）',
+      supportsVision: true
+    },
+    {
+      value: 'k3-256k',
+      labelEn: 'Kimi K3 (256K)',
+      labelZh: 'Kimi K3（256K 上下文）',
+      supportsVision: true
+    },
+    {
+      value: 'kimi-for-coding',
+      labelEn: 'Kimi K2.7 Code',
+      labelZh: 'Kimi K2.7 Code',
+      supportsVision: true
+    },
+    {
+      value: 'kimi-for-coding-highspeed',
+      labelEn: 'Kimi K2.7 Code HighSpeed',
+      labelZh: 'Kimi K2.7 Code 高速版',
+      supportsVision: true
+    }
   ]
 }
 
@@ -161,8 +149,9 @@ const VISION_MODEL_PATTERNS = [
   /claude-haiku-4/i,
   /gemini/i,
   /qwen.*vl/i,
-  /deepseek-vl/i,
   /deepseek.*vision/i,
+  /^k3$/i,
+  /kimi/i,
   /glm-4v/i,
   /llava/i,
   /pixtral/i

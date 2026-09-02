@@ -21,7 +21,7 @@ export function registerLazySearchPlugin(
     name: SEARCH_PLUGIN_NAME,
     triggers: [...SEARCH_PLUGIN_TRIGGERS],
     loader: async () => {
-      const { createSearchPlugin } = await import('./createSearchPlugin')
+      const { createSearchPlugin } = await import('@mlightcad/cad-search-plugin')
       return createSearchPlugin()
     }
   })

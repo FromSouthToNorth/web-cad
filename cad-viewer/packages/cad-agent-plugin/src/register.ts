@@ -21,7 +21,7 @@ export function registerLazyAgentPlugin(
     name: AGENT_PLUGIN_NAME,
     triggers: [...AGENT_PLUGIN_TRIGGERS],
     loader: async () => {
-      const { createAgentPlugin } = await import('./createAgentPlugin')
+      const { createAgentPlugin } = await import('@mlightcad/cad-agent-plugin')
       return createAgentPlugin()
     }
   })

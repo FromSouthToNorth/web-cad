@@ -15,14 +15,6 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const VIEWER_RUNTIME_SRC = '../cad-html-plugin/dist/viewer-runtime.iife.js'
-const LOCAL_UI_COMPONENTS_SRC = resolve(
-  __dirname,
-  '../../../ui-components/packages/ui-components/src'
-)
-const LOCAL_UI_COMPONENTS_ROOT = resolve(
-  __dirname,
-  '../../../ui-components'
-)
 
 export default defineConfig(({ command, mode }) => {
   const hasViewerRuntime = existsSync(resolve(__dirname, VIEWER_RUNTIME_SRC))
@@ -39,23 +31,11 @@ export default defineConfig(({ command, mode }) => {
     'cad-simple-viewer',
     'cad-viewer'
   ]
-  const linkLocalUiComponents =
-    command === 'serve' && existsSync(LOCAL_UI_COMPONENTS_SRC)
   if (command === 'serve') {
     aliases.push({
       find: /^@mlightcad\/(cad-svg-plugin|three-renderer|cad-simple-viewer|cad-viewer)$/,
       replacement: resolve(__dirname, '../$1/src')
     })
-    if (linkLocalUiComponents) {
-      console.info(
-        '[cad-viewer-example] Aliasing @mlightcad/ui-components to local source:',
-        LOCAL_UI_COMPONENTS_SRC
-      )
-      aliases.push({
-        find: '@mlightcad/ui-components',
-        replacement: LOCAL_UI_COMPONENTS_SRC
-      })
-    }
   }
 
   const plugins = [
@@ -99,20 +79,14 @@ export default defineConfig(({ command, mode }) => {
       force: command === 'serve',
       exclude:
         command === 'serve'
-          ? [
-              ...devSourcePackages.map(name => `@mlightcad/${name}`),
-              ...(linkLocalUiComponents ? ['@mlightcad/ui-components'] : [])
-            ]
+          ? devSourcePackages.map(name => `@mlightcad/${name}`)
           : []
     },
     server: {
       port: 5173,
       strictPort: true,
       fs: {
-        allow: [
-          resolve(__dirname, '../..'),
-          ...(linkLocalUiComponents ? [LOCAL_UI_COMPONENTS_ROOT] : [])
-        ]
+        allow: [resolve(__dirname, '../..')]
       }
     },
     build: {

@@ -77,7 +77,7 @@ import { type Component, computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { colorName } from '../../locale'
-import { MlColorPickerDlg } from '../dialog'
+import MlColorPickerDlg from '../dialog/MlColorPickerDlg.vue'
 
 defineOptions({
   inheritAttrs: false

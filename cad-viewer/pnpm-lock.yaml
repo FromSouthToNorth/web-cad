@@ -336,6 +336,13 @@ importers:
         version: 0.12.4(three@0.172.0)
 
   packages/cad-viewer:
+    dependencies:
+      '@mlightcad/ribbon':
+        specifier: ^0.1.12
+        version: 0.1.12(@element-plus/icons-vue@2.3.2(vue@3.5.31(typescript@5.9.3)))(element-plus@2.13.6(typescript@5.9.3)(vue@3.5.31(typescript@5.9.3)))(vue@3.5.31(typescript@5.9.3))
+      '@mlightcad/ui-components':
+        specifier: ^0.1.9
+        version: 0.1.9(element-plus@2.13.6(typescript@5.9.3)(vue@3.5.31(typescript@5.9.3)))(vue@3.5.31(typescript@5.9.3))
     devDependencies:
       '@ant-design/icons-vue':
         specifier: ^7.0.1
@@ -361,18 +368,9 @@ importers:
       '@mlightcad/data-model':
         specifier: workspace:*
         version: link:../data-model
-      '@mlightcad/ribbon':
-        specifier: ^0.1.12
-        version: 0.1.12(@element-plus/icons-vue@2.3.2(vue@3.5.31(typescript@5.9.3)))(element-plus@2.13.6(typescript@5.9.3)(vue@3.5.31(typescript@5.9.3)))(vue@3.5.31(typescript@5.9.3))
       '@mlightcad/three-renderer':
         specifier: workspace:*
         version: link:../three-renderer
-      '@mlightcad/three-viewcube':
-        specifier: 0.0.9
-        version: 0.0.9(three@0.172.0)
-      '@mlightcad/ui-components':
-        specifier: ^0.1.9
-        version: 0.1.9(element-plus@2.13.6(typescript@5.9.3)(vue@3.5.31(typescript@5.9.3)))(vue@3.5.31(typescript@5.9.3))
       '@vitejs/plugin-vue':
         specifier: ^6.0.8
         version: 6.0.8(vite@6.4.3(@types/node@24.12.4)(sass@1.98.0)(yaml@2.8.3))(vue@3.5.31(typescript@5.9.3))
@@ -418,9 +416,6 @@ importers:
       '@ant-design/icons-vue':
         specifier: ^7.0.1
         version: 7.0.1(vue@3.5.31(typescript@5.9.3))
-      '@element-plus/icons-vue':
-        specifier: ^2.3.1
-        version: 2.3.2(vue@3.5.31(typescript@5.9.3))
       '@mlightcad/cad-agent-plugin':
         specifier: workspace:*
         version: link:../cad-agent-plugin
@@ -457,9 +452,6 @@ importers:
       ant-design-vue:
         specifier: ^4.2.6
         version: 4.2.6(vue@3.5.31(typescript@5.9.3))
-      element-plus:
-        specifier: ^2.12.0
-        version: 2.13.6(typescript@5.9.3)(vue@3.5.31(typescript@5.9.3))
       lodash-es:
         specifier: 4.17.21
         version: 4.17.21

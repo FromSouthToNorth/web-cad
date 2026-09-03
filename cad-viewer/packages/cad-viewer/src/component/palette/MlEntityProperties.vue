@@ -171,7 +171,8 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { entityPropEnum, entityPropName } from '../../locale'
-import { MlColorDropdown, MlHatchPatternDropdown } from '../common'
+import MlColorDropdown from '../common/MlColorDropdown.vue'
+import MlHatchPatternDropdown from '../common/MlHatchPatternDropdown.vue'
 
 const { t } = useI18n()
 

@@ -73,7 +73,7 @@ Users can load files directly from their computer:
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { MlCadViewer } from '@mlightcad/cad-viewer'
+import { MlCadViewer } from '@mlightcad/cad-viewer/legacy'
 
 const selectedFile = ref<File | undefined>()
 
@@ -158,10 +158,8 @@ import 'uno.css'
 import 'element-plus/dist/index.css'
 import 'element-plus/dist/index.css'
 
-import {
-  i18n,
-  MlCadViewer
-} from '@mlightcad/cad-viewer'
+import { i18n } from '@mlightcad/cad-viewer'
+import { MlCadViewer } from '@mlightcad/cad-viewer/legacy'
 import ElementPlus from 'element-plus'
 import { createApp } from 'vue'
 

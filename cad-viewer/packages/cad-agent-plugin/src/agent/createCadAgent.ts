@@ -37,6 +37,56 @@ function wasAborted(
   return error instanceof Error && error.name === 'AbortError'
 }
 
+/**
+ * Rewrites tool parts whose state is `output-error` into plain text parts.
+ *
+ * When the model emits malformed tool-call arguments, the AI SDK stores the
+ * part with `state: 'output-error'` and `input: undefined`. On the next
+ * message, `validateUIMessages` validates that missing input against the
+ * tool's `inputSchema` and throws, breaking every subsequent round of the
+ * conversation. Text keeps the failure visible to the model without the
+ * invalid part shape.
+ *
+ * @param messages - UI messages about to be validated and converted.
+ * @returns A sanitized copy; untouched when nothing needs rewriting.
+ */
+function repairToolErrorParts(messages: UIMessage[]): UIMessage[] {
+  return messages.map(message => {
+    if (message.role !== 'assistant' || !message.parts?.length) {
+      return message
+    }
+
+    let changed = false
+    const parts = message.parts.map(part => {
+      const candidate = part as {
+        type: string
+        state?: unknown
+        errorText?: unknown
+      }
+      if (
+        candidate.type.startsWith('tool-') &&
+        candidate.state === 'output-error'
+      ) {
+        changed = true
+        const toolName = candidate.type.slice('tool-'.length)
+        const detail =
+          typeof candidate.errorText === 'string'
+            ? candidate.errorText.trim()
+            : ''
+        return {
+          type: 'text' as const,
+          text: detail
+            ? `[${toolName} failed: ${detail}]`
+            : `[${toolName} failed]`
+        }
+      }
+      return part
+    })
+
+    return changed ? { ...message, parts } : message
+  })
+}
+
 /** Runtime options that affect agent behavior beyond LLM settings. */
 export interface AgentChatOptions {
   /** When `high-inference`, screenshot verification runs after each drawing round. */
@@ -108,7 +158,7 @@ export function createAgentChatTransport(
     sendMessages: async ({ messages, abortSignal }) => {
       const agent = getAgent()
       const validatedMessages = await validateUIMessages({
-        messages,
+        messages: repairToolErrorParts(messages),
         tools: agent.tools
       })
 
@@ -155,7 +205,9 @@ export function createAgentChatTransport(
                   title: agentT('verificationTitle'),
                   attempt: verificationAttempts,
                   maxAttempts: MAX_VERIFICATION_ATTEMPTS,
-                  statusText: `${agentT('verificationSkipped')}: ${preview.reason}`,
+                  statusText: `${agentT('verificationSkipped')}: ${
+                    preview.reason
+                  }`,
                   referenceImages,
                   referenceLabel: agentT('referenceImages'),
                   drawingLabel: agentT('drawingScreenshot')
@@ -204,14 +256,20 @@ export function createAgentChatTransport(
               if (verificationAttempts >= MAX_VERIFICATION_ATTEMPTS) {
                 appendAssistantText(
                   write,
-                  `\n${agentT('verificationMaxAttempts')}\n\n${verification.feedback.trim()}`
+                  `\n${agentT(
+                    'verificationMaxAttempts'
+                  )}\n\n${verification.feedback.trim()}`
                 )
                 break
               }
 
               appendAssistantText(
                 write,
-                `\n${agentT('verificationFailed')}\n${verification.feedback.trim()}\n\n${agentT('verificationContinuing')}`
+                `\n${agentT(
+                  'verificationFailed'
+                )}\n${verification.feedback.trim()}\n\n${agentT(
+                  'verificationContinuing'
+                )}`
               )
 
               workingMessages = [

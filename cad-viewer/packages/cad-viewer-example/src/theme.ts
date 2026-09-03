@@ -9,17 +9,25 @@ export type UiTheme = 'light' | 'dark'
 /**
  * antd ConfigProvider theme derived from the app theme, matching the
  * `--ml-theme-*` palette (primary #3b82f6) used across the shell.
+ *
+ * Values mirror the design tokens in `@mlightcad/cad-viewer` style/index.scss
+ * (--ml-radius-md, --ml-space-*). The whole shell renders at antd's `small`
+ * component size so the compact CAD density comes from tokens instead of
+ * per-component `!important` height overrides.
  */
 export const buildAntdTheme = (theme: UiTheme) => ({
   algorithm:
     theme === 'dark'
       ? antdTheme.darkAlgorithm
       : antdTheme.defaultAlgorithm,
+  componentSize: 'small' as const,
   token: {
     colorPrimary: '#3b82f6',
     colorInfo: '#3b82f6',
+    // --ml-radius-md
     borderRadius: 6,
-    fontSize: 13
+    // Ant baseline; density comes from componentSize instead of a smaller base
+    fontSize: 14
   }
 })
 

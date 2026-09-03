@@ -4,6 +4,7 @@ import {
   Experimental_Agent as Agent,
   generateId,
   type InferUIMessageChunk,
+  type ModelMessage,
   stepCountIs,
   type UIMessage,
   validateUIMessages
@@ -35,6 +36,111 @@ function wasAborted(
 ): boolean {
   if (abortSignal?.aborted) return true
   return error instanceof Error && error.name === 'AbortError'
+}
+
+/**
+ * Rewrites tool parts whose state is `output-error` into plain text parts.
+ *
+ * When the model emits malformed tool-call arguments, the AI SDK stores the
+ * part with `state: 'output-error'` and `input: undefined`. On the next
+ * message, `validateUIMessages` validates that missing input against the
+ * tool's `inputSchema` and throws, breaking every subsequent round of the
+ * conversation. Text keeps the failure visible to the model without the
+ * invalid part shape.
+ *
+ * @param messages - UI messages about to be validated and converted.
+ * @returns A sanitized copy; untouched when nothing needs rewriting.
+ */
+function repairToolErrorParts(messages: UIMessage[]): UIMessage[] {
+  return messages.map(message => {
+    if (message.role !== 'assistant' || !message.parts?.length) {
+      return message
+    }
+
+    let changed = false
+    const parts = message.parts.map(part => {
+      const candidate = part as {
+        type: string
+        state?: unknown
+        errorText?: unknown
+      }
+      if (
+        candidate.type.startsWith('tool-') &&
+        candidate.state === 'output-error'
+      ) {
+        changed = true
+        const toolName = candidate.type.slice('tool-'.length)
+        const detail =
+          typeof candidate.errorText === 'string'
+            ? candidate.errorText.trim()
+            : ''
+        return {
+          type: 'text' as const,
+          text: detail
+            ? `[${toolName} failed: ${detail}]`
+            : `[${toolName} failed]`
+        }
+      }
+      return part
+    })
+
+    return changed ? { ...message, parts } : message
+  })
+}
+
+/**
+ * Deep-normalizes a value into a JSON-safe form mirroring `JSON.stringify`
+ * semantics: non-finite numbers become `null`, `bigint` becomes a string,
+ * `Date` becomes its ISO string, and object properties holding
+ * `undefined`/functions are dropped.
+ *
+ * CAD tool results can contain non-JSON-safe values — for example, an empty
+ * drawing's extents are ±Infinity (`AcGeBox3d` initial state). Such a value
+ * re-enters the prompt on the next round as a `tool-result` part, where the
+ * AI SDK validates model messages against a JSON value schema and aborts the
+ * whole request with "Invalid prompt: The messages must be a ModelMessage[]".
+ *
+ * @param value - Any value produced by the agent pipeline.
+ * @returns An equivalent JSON-safe value.
+ */
+function toJsonSafe(value: unknown): unknown {
+  if (value === null) return null
+
+  switch (typeof value) {
+    case 'string':
+    case 'boolean':
+      return value
+    case 'number':
+      return Number.isFinite(value) ? value : null
+    case 'bigint':
+      return value.toString()
+    case 'undefined':
+    case 'function':
+    case 'symbol':
+      return null
+    case 'object': {
+      if (value instanceof Date) return value.toISOString()
+      if (Array.isArray(value)) return value.map(toJsonSafe)
+      const result: Record<string, unknown> = {}
+      for (const [key, entry] of Object.entries(value)) {
+        const entryType = typeof entry
+        if (entryType === 'undefined' || entryType === 'function') continue
+        result[key] = toJsonSafe(entry)
+      }
+      return result
+    }
+  }
+}
+
+/**
+ * JSON-safe copy of model messages about to be sent to the model.
+ *
+ * Only serializable values can round-trip through history, so normalizing is
+ * semantically neutral and prevents the SDK's model-message validation from
+ * failing on the next conversation round.
+ */
+function sanitizeModelMessages(messages: ModelMessage[]): ModelMessage[] {
+  return toJsonSafe(messages) as ModelMessage[]
 }
 
 /** Runtime options that affect agent behavior beyond LLM settings. */
@@ -72,7 +178,7 @@ async function streamAgentRound(options: {
     tools: agent.tools
   })
   const result = agent.stream({
-    prompt: modelMessages,
+    prompt: sanitizeModelMessages(modelMessages),
     abortSignal
   })
 
@@ -108,7 +214,7 @@ export function createAgentChatTransport(
     sendMessages: async ({ messages, abortSignal }) => {
       const agent = getAgent()
       const validatedMessages = await validateUIMessages({
-        messages,
+        messages: repairToolErrorParts(messages),
         tools: agent.tools
       })
 
@@ -155,7 +261,9 @@ export function createAgentChatTransport(
                   title: agentT('verificationTitle'),
                   attempt: verificationAttempts,
                   maxAttempts: MAX_VERIFICATION_ATTEMPTS,
-                  statusText: `${agentT('verificationSkipped')}: ${preview.reason}`,
+                  statusText: `${agentT('verificationSkipped')}: ${
+                    preview.reason
+                  }`,
                   referenceImages,
                   referenceLabel: agentT('referenceImages'),
                   drawingLabel: agentT('drawingScreenshot')
@@ -204,14 +312,20 @@ export function createAgentChatTransport(
               if (verificationAttempts >= MAX_VERIFICATION_ATTEMPTS) {
                 appendAssistantText(
                   write,
-                  `\n${agentT('verificationMaxAttempts')}\n\n${verification.feedback.trim()}`
+                  `\n${agentT(
+                    'verificationMaxAttempts'
+                  )}\n\n${verification.feedback.trim()}`
                 )
                 break
               }
 
               appendAssistantText(
                 write,
-                `\n${agentT('verificationFailed')}\n${verification.feedback.trim()}\n\n${agentT('verificationContinuing')}`
+                `\n${agentT(
+                  'verificationFailed'
+                )}\n${verification.feedback.trim()}\n\n${agentT(
+                  'verificationContinuing'
+                )}`
               )
 
               workingMessages = [

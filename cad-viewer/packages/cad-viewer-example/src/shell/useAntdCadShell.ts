@@ -51,7 +51,7 @@ export interface AntdCadShellOptions {
 /**
  * Boots the CAD core (canvas, commands, dialogs, lazy plugins) into an
  * arbitrary container and wires global engine events to antd toast
- * notifications. Mirrors the lifecycle previously owned by MlCadViewer.
+ * notifications.
  */
 export function useAntdCadShell(options: AntdCadShellOptions) {
   const { t } = useI18n()

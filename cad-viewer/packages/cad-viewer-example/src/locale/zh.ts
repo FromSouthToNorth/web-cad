@@ -14,6 +14,8 @@ export default {
     subtitle: '将 DXF 图纸导入查看器',
     newDrawing: '新建图纸',
     or: '或',
+    switchToLight: '切换到浅色主题',
+    switchToDark: '切换到深色主题',
     dropFile: '拖拽文件到此处，或',
     browse: '点击选择',
     openOptions: '打开选项',
@@ -60,6 +62,8 @@ export default {
   shell: {
     ribbon: {
       fileMenu: '文件',
+      collapse: '折叠功能区',
+      expand: '展开功能区',
       undo: '撤销',
       redo: '重做',
       tab: {
@@ -200,6 +204,7 @@ export default {
     },
     layerPanel: {
       searchPlaceholder: '搜索图层',
+      noLayers: '当前图纸没有图层',
       newLayer: '新建图层',
       deleteLayer: '删除图层',
       setCurrent: '置为当前',

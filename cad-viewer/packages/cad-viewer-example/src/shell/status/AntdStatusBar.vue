@@ -2,14 +2,17 @@
   <div class="antd-status-bar">
     <div class="antd-status-bar-layouts" role="tablist">
       <button
-        v-for="layout in layouts"
+        v-for="(layout, index) in layouts"
         :key="layout.blockTableRecordId"
         type="button"
         role="tab"
         :disabled="props.disabled" class="antd-status-layout-tab"
         :class="{ 'is-active': layout.isActive }"
         :aria-selected="layout.isActive"
+        :tabindex="layout.isActive ? 0 : -1"
+        :ref="el => setLayoutTabRef(layout.blockTableRecordId, el)"
         @click="selectLayout(layout)"
+        @keydown="onLayoutKeydown($event, index)"
       >
         {{ layout.name }}
       </button>
@@ -150,6 +153,45 @@ const selectLayout = (layout: LayoutInfo) => {
   acdbHostApplicationServices().layoutManager.setCurrentLayoutBtrId(
     layout.blockTableRecordId
   )
+}
+
+// ── tablist keyboard navigation (WAI-ARIA roving tabindex) ──────────
+
+const layoutTabButtons = new Map<string, HTMLButtonElement>()
+
+function setLayoutTabRef(id: string, el: unknown) {
+  if (el instanceof HTMLButtonElement) {
+    layoutTabButtons.set(id, el)
+  } else {
+    layoutTabButtons.delete(id)
+  }
+}
+
+function onLayoutKeydown(event: KeyboardEvent, index: number) {
+  // `layouts` is a reactive array (not a ref); index it directly.
+  const items = layouts
+  if (!items.length) return
+  let next = -1
+  switch (event.key) {
+    case 'ArrowRight':
+      next = (index + 1) % items.length
+      break
+    case 'ArrowLeft':
+      next = (index - 1 + items.length) % items.length
+      break
+    case 'Home':
+      next = 0
+      break
+    case 'End':
+      next = items.length - 1
+      break
+    default:
+      return
+  }
+  event.preventDefault()
+  const target = items[next]
+  selectLayout(target)
+  layoutTabButtons.get(target.blockTableRecordId)?.focus()
 }
 
 const orthoOn = computed(() => Number(systemVars.orthomode ?? 0) !== 0)

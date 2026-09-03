@@ -317,7 +317,7 @@ const handleNewDrawing = () => {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   grid-template-rows: auto;
   width: 100%;
-  border-radius: 14px;
+  border-radius: var(--ml-radius-xl);
   background: var(--ml-theme-bg-surface);
   overflow: hidden;
 }
@@ -326,14 +326,14 @@ const handleNewDrawing = () => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 18px 20px;
+  padding: var(--ml-space-4) var(--ml-space-6);
 }
 
 .upload-hero {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--ml-space-3);
+  margin-bottom: var(--ml-space-3);
 }
 
 .upload-icon {
@@ -343,7 +343,7 @@ const handleNewDrawing = () => {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: var(--ml-radius-lg);
   background: var(--ml-theme-primary);
   color: var(--ml-theme-on-primary);
   font-size: 18px;
@@ -355,7 +355,7 @@ const handleNewDrawing = () => {
 
 .upload-title {
   margin: 0;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--ml-theme-text-primary);
@@ -383,8 +383,8 @@ const handleNewDrawing = () => {
 .upload-divider {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 10px 0;
+  gap: var(--ml-space-3);
+  margin: var(--ml-space-3) 0;
   font-size: 11px;
   font-weight: 600;
   color: var(--ml-theme-text-muted);
@@ -406,13 +406,13 @@ const handleNewDrawing = () => {
 }
 
 .upload-dropzone :deep(.ant-upload-dragger) {
-  padding: 14px 12px;
-  border-radius: 10px;
+  padding: var(--ml-space-4) var(--ml-space-3);
+  border-radius: var(--ml-radius-lg);
   background: var(--ml-theme-bg-input);
 }
 
 .dropzone-title {
-  margin: 0 0 6px;
+  margin: 0 0 var(--ml-space-2);
   font-size: 13px;
   font-weight: 600;
   color: var(--ml-theme-text-primary);
@@ -426,15 +426,15 @@ const handleNewDrawing = () => {
 .format-tags {
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: var(--ml-space-2);
 }
 
 .format-tag {
-  padding: 1px 7px;
+  padding: 2px var(--ml-space-2);
   border-radius: 999px;
   background: var(--ml-theme-bg-tag);
   color: var(--ml-theme-primary-hover);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
@@ -443,13 +443,13 @@ const handleNewDrawing = () => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 18px 20px;
+  padding: var(--ml-space-4) var(--ml-space-6);
   background: var(--ml-theme-bg-subtle);
   border-left: 1px solid var(--ml-theme-border);
 }
 
 .settings-header {
-  margin-bottom: 10px;
+  margin-bottom: var(--ml-space-3);
 }
 
 .settings-title {
@@ -462,13 +462,13 @@ const handleNewDrawing = () => {
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px 12px;
+  gap: var(--ml-space-2) var(--ml-space-3);
 }
 
 .setting-block {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--ml-space-1);
 }
 
 .setting-block--full {
@@ -477,7 +477,7 @@ const handleNewDrawing = () => {
 
 .setting-label {
   margin: 0;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -487,8 +487,8 @@ const handleNewDrawing = () => {
 .pill-segment {
   display: flex;
   gap: 0;
-  border: 1.5px solid var(--ml-theme-border);
-  border-radius: 7px;
+  border: 1px solid var(--ml-theme-border);
+  border-radius: var(--ml-radius-md);
   background: var(--ml-theme-bg-surface);
   overflow: hidden;
 }

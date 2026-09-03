@@ -285,7 +285,7 @@ import {
   layerThawed,
   layerUnlocked
 } from '../../svg'
-import { MlColorPickerDlg } from '../dialog'
+import MlColorPickerDlg from '../dialog/MlColorPickerDlg.vue'
 import type { MlLayerTableChangeField, MlLayerTableRow } from './MlLayerTable'
 import MlLineTypeSelect from './MlLineTypeSelect.vue'
 import MlLineWeightSelect from './MlLineWeightSelect.vue'

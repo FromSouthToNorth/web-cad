@@ -13,8 +13,8 @@
 -->
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.12.0/dist/index.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mlightcad/cad-viewer@1.5.11/dist/cad-viewer.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mlightcad/cad-agent-plugin@1.5.11/dist/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mlightcad/cad-viewer@1.6.1/dist/cad-viewer.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mlightcad/cad-agent-plugin@1.6.1/dist/style.css">
 
 <style>
   * { box-sizing: border-box; }
@@ -92,19 +92,19 @@
     "@floating-ui/dom": "https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.6.13/+esm",
     "@popperjs/core": "https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/lib/index.js",
     "@types/lodash": "data:text/javascript,export%20default%20undefined;",
-    "@mlightcad/cad-simple-viewer": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-simple-viewer@1.5.11/+esm",
-    "@mlightcad/cad-viewer": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-viewer@1.5.11/dist/cad-viewer.js",
+    "@mlightcad/cad-simple-viewer": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-simple-viewer@1.6.1/+esm",
+    "@mlightcad/cad-viewer": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-viewer@1.6.1/dist/cad-viewer.js",
     "@mlightcad/data-model": "https://cdn.jsdelivr.net/npm/@mlightcad/data-model@1.12.5/+esm",
-    "@mlightcad/three-renderer": "https://cdn.jsdelivr.net/npm/@mlightcad/three-renderer@1.5.11/+esm",
-    "@mlightcad/cad-agent-plugin": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-agent-plugin@1.5.11/+esm",
-    "@mlightcad/cad-agent-plugin/register": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-agent-plugin@1.5.11/register/+esm",
+    "@mlightcad/three-renderer": "https://cdn.jsdelivr.net/npm/@mlightcad/three-renderer@1.6.1/+esm",
+    "@mlightcad/cad-agent-plugin": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-agent-plugin@1.6.1/+esm",
+    "@mlightcad/cad-agent-plugin/register": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-agent-plugin@1.6.1/register/+esm",
     "@mlightcad/cad-agent-plugin/style.css": "data:text/javascript,export%20default%20undefined;",
-    "@mlightcad/cad-html-plugin": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-html-plugin@1.5.11/+esm",
-    "@mlightcad/cad-html-plugin/register": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-html-plugin@1.5.11/register/+esm",
-    "@mlightcad/cad-pdf-plugin": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-pdf-plugin@1.5.11/+esm",
-    "@mlightcad/cad-pdf-plugin/register": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-pdf-plugin@1.5.11/register/+esm",
-    "@mlightcad/cad-svg-plugin": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-svg-plugin@1.5.11/+esm",
-    "@mlightcad/cad-svg-plugin/register": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-svg-plugin@1.5.11/register/+esm"
+    "@mlightcad/cad-html-plugin": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-html-plugin@1.6.1/+esm",
+    "@mlightcad/cad-html-plugin/register": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-html-plugin@1.6.1/register/+esm",
+    "@mlightcad/cad-pdf-plugin": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-pdf-plugin@1.6.1/+esm",
+    "@mlightcad/cad-pdf-plugin/register": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-pdf-plugin@1.6.1/register/+esm",
+    "@mlightcad/cad-svg-plugin": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-svg-plugin@1.6.1/+esm",
+    "@mlightcad/cad-svg-plugin/register": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-svg-plugin@1.6.1/register/+esm"
   }
 }
 </script>
@@ -125,9 +125,10 @@
 <pre id="status"></pre>
 
 <script type="module">
-const ML = '1.5.11'
+const ML = '1.6.1'
 const LIBREDWG_PARSER_WORKER_FILE = 'libredwg-parser-worker.js'
 const npm = (pkg, path = '') => `https://cdn.jsdelivr.net/npm/${pkg}${path}`
+// 1.6.1 is the last release whose main entry bundles the Element Plus shell.
 const CAD_VIEWER_URL = npm(`@mlightcad/cad-viewer@${ML}`, '/dist/cad-viewer.js')
 const BASE_URL = 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/'
 const DWG_WORKER = npm(

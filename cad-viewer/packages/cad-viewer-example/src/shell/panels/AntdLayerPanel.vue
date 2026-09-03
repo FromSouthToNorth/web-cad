@@ -73,81 +73,89 @@
       {{ t('shell.layerPanel.currentLayer', { name: currentLayerName || '—' }) }}
     </div>
 
-    <a-table
-      size="small"
-      class="antd-layer-table"
-      :data-source="displayedLayers"
-      :columns="columns"
-      :pagination="false"
-      :scroll="{ y: 'calc(100vh - 320px)' }"
-      :row-key="(record: LayerInfo) => record.name"
-      :row-class-name="layerRowClassName"
-      :custom-row="layerRowEvents"
-    >
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'on'">
-          <a-switch
-            size="small"
-            :checked="record.isOn"
-            :aria-label="`${record.name} on`"
-            @change="(checked: boolean) => setLayerOn(record.name, checked)"
-          />
-        </template>
-        <template v-else-if="column.key === 'frozen'">
-          <a-switch
-            size="small"
-            :checked="record.isFrozen"
-            :aria-label="`${record.name} frozen`"
-            @change="(checked: boolean) => setLayerFrozen(record.name, checked)"
-          />
-        </template>
-        <template v-else-if="column.key === 'locked'">
-          <a-switch
-            size="small"
-            :checked="record.isLocked"
-            :aria-label="`${record.name} locked`"
-            @change="(checked: boolean) => setLayerLocked(record.name, checked)"
-          />
-        </template>
-        <template v-else-if="column.key === 'name'">
-          <span class="antd-layer-name">
-            <span
-              class="antd-layer-color"
-              :style="{ backgroundColor: record.cssColor }"
-              aria-hidden="true"
+    <div ref="wrapRef" class="antd-layer-table-wrap">
+      <a-table
+        size="small"
+        class="antd-layer-table"
+        :data-source="displayedLayers"
+        :columns="columns"
+        :pagination="false"
+        :scroll="{ y: scrollY }"
+        :row-key="(record: LayerInfo) => record.name"
+        :row-class-name="layerRowClassName"
+        :custom-row="layerRowEvents"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'on'">
+            <a-switch
+              size="small"
+              :checked="record.isOn"
+              :aria-label="`${record.name} on`"
+              @change="(checked: boolean) => setLayerOn(record.name, checked)"
             />
-            {{ record.name }}
-          </span>
-        </template>
-        <template v-else-if="column.key === 'color'">
-          <a-popover
-            trigger="click"
-            placement="left"
-            @open-change="(open: boolean) => onColorPopoverOpen(open, record)"
-          >
-            <template #content>
-              <div class="antd-layer-color-picker">
-                <input
-                  type="color"
-                  class="antd-layer-native-color"
-                  :value="hexFromCss(record.cssColor)"
-                  @input="onNativeColorChange(record, $event)"
-                />
-              </div>
-            </template>
-            <button
-              type="button"
-              class="antd-layer-color-swatch"
-              :style="{ backgroundColor: record.cssColor }"
-              :aria-label="`${record.name} color`"
+          </template>
+          <template v-else-if="column.key === 'frozen'">
+            <a-switch
+              size="small"
+              :checked="record.isFrozen"
+              :aria-label="`${record.name} frozen`"
+              @change="(checked: boolean) => setLayerFrozen(record.name, checked)"
             />
-          </a-popover>
+          </template>
+          <template v-else-if="column.key === 'locked'">
+            <a-switch
+              size="small"
+              :checked="record.isLocked"
+              :aria-label="`${record.name} locked`"
+              @change="(checked: boolean) => setLayerLocked(record.name, checked)"
+            />
+          </template>
+          <template v-else-if="column.key === 'name'">
+            <span class="antd-layer-name">
+              <span
+                class="antd-layer-color"
+                :style="{ backgroundColor: record.cssColor }"
+                aria-hidden="true"
+              />
+              {{ record.name }}
+            </span>
+          </template>
+          <template v-else-if="column.key === 'color'">
+            <a-popover
+              trigger="click"
+              placement="left"
+              @open-change="(open: boolean) => onColorPopoverOpen(open, record)"
+            >
+              <template #content>
+                <div class="antd-layer-color-picker">
+                  <input
+                    type="color"
+                    class="antd-layer-native-color"
+                    :value="hexFromCss(record.cssColor)"
+                    @input="onNativeColorChange(record, $event)"
+                  />
+                </div>
+              </template>
+              <button
+                type="button"
+                class="antd-layer-color-swatch"
+                :style="{ backgroundColor: record.cssColor }"
+                :aria-label="`${record.name} color`"
+              />
+            </a-popover>
+          </template>
+          <template v-else-if="column.key === 'linetype'">
+            <span class="antd-layer-linetype">{{ record.linetype }}</span>
+          </template>
         </template>
-        <template v-else-if="column.key === 'linetype'">
-          <span class="antd-layer-linetype">{{ record.linetype }}</span>
+        <template #emptyText>
+          <a-empty
+            :description="t('shell.layerPanel.noLayers')"
+            :image-style="{ height: '48px' }"
+          />
         </template>
-      </template>
-    </a-table>
+      </a-table>
+    </div>
 
     <a-modal
       v-model:open="newLayerDialogOpen"
@@ -181,7 +189,7 @@ import {
   type LayerInfo,
   useLayers
 } from '@mlightcad/cad-viewer'
-import { computed, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -220,6 +228,38 @@ const displayedLayers = computed<LayerInfo[]>(() => {
   if (!query) return [...layers]
   return layers.filter(layer => layer.name.toLowerCase().includes(query))
 })
+
+// ── table scroll height ─────────────────────────────────────────────
+// The layer table fills the remaining panel height. scroll.y is measured
+// from the wrapper instead of a `calc(100vh - …)` magic number, so it
+// stays correct when the ribbon collapses or the sider is resized.
+
+const wrapRef = ref<HTMLElement>()
+const scrollY = ref(240)
+
+function measureScrollY() {
+  const wrap = wrapRef.value
+  if (!wrap) return
+  const header =
+    wrap.querySelector<HTMLElement>('.ant-table-header') ??
+    wrap.querySelector<HTMLElement>('.ant-table-thead')
+  const headerHeight = header?.offsetHeight ?? 0
+  const next = wrap.clientHeight - headerHeight
+  if (next > 0) scrollY.value = next
+}
+
+let resizeObserver: ResizeObserver | undefined
+
+onMounted(() => {
+  measureScrollY()
+  resizeObserver = new ResizeObserver(measureScrollY)
+  if (wrapRef.value) resizeObserver.observe(wrapRef.value)
+})
+
+onUnmounted(() => resizeObserver?.disconnect())
+
+// The split header/body layout only exists once the first rows render.
+watch(displayedLayers, () => nextTick(measureScrollY))
 
 const selectedLayer = computed<LayerInfo | null>(
   () =>

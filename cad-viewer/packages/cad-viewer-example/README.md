@@ -1,10 +1,10 @@
 # CAD Viewer Example
 
-A Vue 3 demo that embeds [`@mlightcad/cad-viewer`](https://github.com/mlightcad/cad-viewer/tree/main/packages/cad-viewer): a file-upload landing screen, then the full CAD UI (menus, ribbons, dialogs, command line, status bar) for viewing and editing local DXF/DWG files.
+A Vue 3 demo that embeds [`@mlightcad/cad-viewer`](https://github.com/mlightcad/cad-viewer/tree/main/packages/cad-viewer): a file-upload landing screen, then a full CAD shell built with Ant Design Vue (ribbons, panels, dialogs, command line, status bar) for viewing and editing local DXF/DWG files.
 
 ## Features
 
-- **Full CAD UI** — `MlCadViewer` with toolbars, layer manager, command line, dialogs, and status bar
+- **Full CAD UI** — Ant Design Vue shell with ribbons, layer panel, properties panel, command line, dialogs, and status bar
 - **Local files** — Drag-and-drop or file picker for `.dxf` / `.dwg` before entering the viewer
 - **Open modes** — Read, Review, or Write access when opening a drawing
 - **Internationalization** — Built-in English/Chinese UI via `vue-i18n`; host app can merge custom messages
@@ -67,7 +67,7 @@ The build runs `vue-tsc`, then copies parser workers and `viewer-runtime.iife.js
 
 1. Start the dev server and open the URL shown in the terminal.
 2. On the upload screen, choose **Read**, **Review**, or **Write**, then drop or select a `.dxf` or `.dwg` file.
-3. The full `MlCadViewer` UI loads with your file. Use menus, ribbons, and the command line as in a desktop CAD host.
+3. The full CAD shell loads with your file. Use menus, ribbons, and the command line as in a desktop CAD host.
 4. Run `quit` or `exit` in the command line to close the drawing and return to the upload screen.
 
 ## Supported formats
@@ -83,8 +83,8 @@ Integration patterns useful when embedding `@mlightcad/cad-viewer` in your own V
 
 | Topic | Implementation |
 |-------|----------------|
-| Viewer component | `<MlCadViewer :local-file="file" :mode="openMode" locale="en" base-url="…" @create="onCreate" />` |
-| App bootstrap | `createApp(App).use(i18n).mount('#app')` — `i18n` exported from `@mlightcad/cad-viewer` |
+| Viewer shell | `<AntdCadViewer :local-file="file" :mode="openMode" locale="en" :base-url="…" @create="onCreate" />` (see `src/shell/`) |
+| App bootstrap | `createApp(App).use(Antd).use(i18n).mount('#app')` — `i18n` exported from `@mlightcad/cad-viewer` |
 | Open modes | `AcEdOpenMode` (Read / Review / Write) passed via `:mode` |
 | Custom i18n | `AcApI18n.mergeLocaleMessage('en' \| 'zh', messages)` in `@create` (`src/locale/`) |
 | Custom commands | `AcApDocManager.instance.commandManager.addCommand(…)` — see `quit` / `exit` in `src/commands/` |
@@ -95,11 +95,11 @@ Integration patterns useful when embedding `@mlightcad/cad-viewer` in your own V
 Minimal host wiring in `App.vue`:
 
 ```vue
-<MlCadViewer
+<AntdCadViewer
   locale="en"
   :local-file="store.selectedFile"
   :mode="selectedMode"
-  base-url="https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/"
+  :base-url="'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/'"
   @create="initialize"
 />
 ```
@@ -109,12 +109,13 @@ Minimal host wiring in `App.vue`:
 | Path | Role |
 |------|------|
 | `index.html` | Page shell and loading spinner |
-| `src/main.ts` | Vue app entry; mounts `i18n` from `@mlightcad/cad-viewer` |
-| `src/App.vue` | Upload screen + `MlCadViewer`; registers custom commands on `@create` |
-| `src/components/FileUpload.vue` | Element Plus drag-and-drop uploader with open-mode selector |
+| `src/main.ts` | Vue app entry; mounts Ant Design Vue and `i18n` from `@mlightcad/cad-viewer` |
+| `src/App.vue` | Upload screen + `AntdCadViewer`; registers custom commands on `@create` |
+| `src/components/FileUpload.vue` | Ant Design Vue drag-and-drop uploader with open-mode selector |
 | `src/store.ts` | Reactive `selectedFile` for upload ↔ viewer navigation |
 | `src/locale/` | Custom command descriptions merged into viewer i18n |
 | `src/commands/` | `AcApQuitCmd` — clears `selectedFile` to return to upload |
+| `src/shell/` | Ant Design Vue CAD shell: ribbon, panels, status bar, and viewer setup |
 | `vite.config.ts` | `base: './'`, dev aliases, static copy of workers + HTML runtime |
 | `e2e/` | Playwright tests and DXF fixtures |
 
@@ -122,12 +123,12 @@ Minimal host wiring in `App.vue`:
 
 | Package | Role |
 |---------|------|
-| `@mlightcad/cad-viewer` | `MlCadViewer` component, UI, and `i18n` setup |
+| `@mlightcad/cad-viewer` | UI components, dialogs, commands, composables, and `i18n` setup |
 | `@mlightcad/cad-simple-viewer` | `AcApDocManager`, commands, `AcEdOpenMode`, `AcApI18n` |
 | `@mlightcad/data-model` | Logging and CAD data types |
 | `@mlightcad/cad-html-plugin` | Offline HTML export; supplies `viewer-runtime.iife.js` |
 | `@mlightcad/cad-pdf-plugin` | PDF export (`cpdf`) |
-| `element-plus` | Upload UI and icons (peer of `cad-viewer`) |
+| `ant-design-vue` | Shell UI toolkit: ribbons, panels, dialogs, upload |
 | `vue` / `vue-i18n` | Vue 3 host and internationalization |
 | `three` | Peer of the viewer render stack |
 

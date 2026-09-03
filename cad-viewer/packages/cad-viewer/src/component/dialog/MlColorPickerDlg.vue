@@ -14,7 +14,8 @@
 import { AcCmColor } from '@mlightcad/data-model'
 import { computed, shallowRef, watch } from 'vue'
 
-import { MlBaseDialog, MlColorPickerTabs } from '../common'
+import MlBaseDialog from '../common/MlBaseDialog.vue'
+import MlColorPickerTabs from '../common/MlColorPickerTabs.vue'
 
 /**
  * Props

@@ -5,6 +5,6 @@ export const store = reactive<{
   isNewDrawing: boolean
 }>({
   selectedFile: null,
-  // Start directly in MlCadViewer with a new empty drawing on app load.
+  // Start directly in the CAD shell with a new empty drawing on app load.
   isNewDrawing: true
 })

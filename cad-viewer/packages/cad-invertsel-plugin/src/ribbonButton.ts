@@ -5,9 +5,9 @@ import { invertSelT, startInvertSelLocaleSync } from './i18n'
 /**
  * Ribbon integration without touching host source code.
  *
- * The host ribbon (`@mlightcad/ribbon` inside `@mlightcad/cad-viewer`) has no
- * extension API, so this module injects an "Invert Select" button into the
- * rendered DOM of the Home tab's Utilities group:
+ * Legacy hosts based on `@mlightcad/ribbon` (Element Plus) have no extension
+ * API, so this module injects an "Invert Select" button into the rendered DOM
+ * of the Home tab's Utilities group:
  *
  * - A `MutationObserver` watches for the group element
  *   (`[data-group-id="home-utilities"]`) to appear or re-render.

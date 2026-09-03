@@ -10,6 +10,7 @@ tsconfig.tsbuildinfo
 
 # generated bench artifacts
 packages/cad-viewer-example/bench/out
+tools/bench/fixtures/
 
 # dependencies
 node_modules

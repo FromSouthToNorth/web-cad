@@ -46,7 +46,8 @@ import { AcCmColor } from '@mlightcad/data-model'
 import { AcGiLineWeight } from '@mlightcad/data-model'
 import { computed } from 'vue'
 
-import { MlColorPickerDropdown, MlLineWeightSelect } from '../common'
+import MlColorPickerDropdown from './MlColorPickerDropdown.vue'
+import MlLineWeightSelect from './MlLineWeightSelect.vue'
 
 /**
  * =============================================================

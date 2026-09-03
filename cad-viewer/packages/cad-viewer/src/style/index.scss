@@ -1,6 +1,25 @@
 :root {
   --ml-status-bar-height: 30px;
 
+  /* ── Spacing scale (Ant Design 8px grid + 4px half-step) ── */
+  --ml-space-1: 4px;
+  --ml-space-2: 8px;
+  --ml-space-3: 12px;
+  --ml-space-4: 16px;
+  --ml-space-6: 24px;
+
+  /* ── Corner radius scale ── */
+  --ml-radius-xs: 2px;
+  --ml-radius-sm: 4px;
+  --ml-radius-md: 6px;
+  --ml-radius-lg: 8px;
+  --ml-radius-xl: 12px;
+
+  /* ── Motion durations ── */
+  --ml-motion-fast: 0.1s;
+  --ml-motion-base: 0.2s;
+  --ml-motion-slow: 0.3s;
+
   /* ── Theme: primary ── */
   --ml-theme-primary: #3b82f6;
   --ml-theme-primary-hover: #2563eb;
@@ -16,15 +35,20 @@
   --ml-theme-bg-active: #dbeafe;
   --ml-theme-bg-tag: #dbeafe;
 
-  /* ── Theme: text ── */
+  /* ── Theme: text (WCAG AA ≥ 4.5:1 on bg-base/surface) ── */
   --ml-theme-text-primary: #18181b;
-  --ml-theme-text-secondary: #64748b;
-  --ml-theme-text-muted: #94a3b8;
+  --ml-theme-text-secondary: #475569;
+  --ml-theme-text-muted: #64748b;
   --ml-theme-text-heading: #334155;
 
   /* ── Theme: borders ── */
   --ml-theme-border: #e2e8f0;
-  --ml-theme-border-subtle: rgba(0, 0, 0, 0.06);
+  --ml-theme-border-subtle: rgba(0, 0, 0, 0.08);
+
+  /* ── Theme: elevation ── */
+  --ml-shadow-float:
+    0 6px 16px rgba(15, 23, 42, 0.08),
+    0 3px 6px rgba(15, 23, 42, 0.06);
 }
 
 :root[data-ml-ui-theme='dark'] {
@@ -43,15 +67,20 @@
   --ml-theme-bg-active: rgba(59, 130, 246, 0.14);
   --ml-theme-bg-tag: rgba(59, 130, 246, 0.12);
 
-  /* ── Theme: text ── */
+  /* ── Theme: text (WCAG AA ≥ 4.5:1 on bg-base/surface) ── */
   --ml-theme-text-primary: #e4e4e7;
   --ml-theme-text-secondary: #a1a1aa;
-  --ml-theme-text-muted: #71717a;
+  --ml-theme-text-muted: #90909a;
   --ml-theme-text-heading: #d4d4d8;
 
   /* ── Theme: borders ── */
   --ml-theme-border: rgba(255, 255, 255, 0.06);
-  --ml-theme-border-subtle: rgba(255, 255, 255, 0.08);
+  --ml-theme-border-subtle: rgba(255, 255, 255, 0.1);
+
+  /* ── Theme: elevation (dark themes lean on borders over shadows) ── */
+  --ml-shadow-float:
+    0 6px 16px rgba(0, 0, 0, 0.4),
+    0 3px 6px rgba(0, 0, 0, 0.24);
 }
 
 body {

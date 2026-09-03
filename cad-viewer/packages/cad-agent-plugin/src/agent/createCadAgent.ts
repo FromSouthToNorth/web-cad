@@ -4,6 +4,7 @@ import {
   Experimental_Agent as Agent,
   generateId,
   type InferUIMessageChunk,
+  type ModelMessage,
   stepCountIs,
   type UIMessage,
   validateUIMessages
@@ -87,6 +88,61 @@ function repairToolErrorParts(messages: UIMessage[]): UIMessage[] {
   })
 }
 
+/**
+ * Deep-normalizes a value into a JSON-safe form mirroring `JSON.stringify`
+ * semantics: non-finite numbers become `null`, `bigint` becomes a string,
+ * `Date` becomes its ISO string, and object properties holding
+ * `undefined`/functions are dropped.
+ *
+ * CAD tool results can contain non-JSON-safe values — for example, an empty
+ * drawing's extents are ±Infinity (`AcGeBox3d` initial state). Such a value
+ * re-enters the prompt on the next round as a `tool-result` part, where the
+ * AI SDK validates model messages against a JSON value schema and aborts the
+ * whole request with "Invalid prompt: The messages must be a ModelMessage[]".
+ *
+ * @param value - Any value produced by the agent pipeline.
+ * @returns An equivalent JSON-safe value.
+ */
+function toJsonSafe(value: unknown): unknown {
+  if (value === null) return null
+
+  switch (typeof value) {
+    case 'string':
+    case 'boolean':
+      return value
+    case 'number':
+      return Number.isFinite(value) ? value : null
+    case 'bigint':
+      return value.toString()
+    case 'undefined':
+    case 'function':
+    case 'symbol':
+      return null
+    case 'object': {
+      if (value instanceof Date) return value.toISOString()
+      if (Array.isArray(value)) return value.map(toJsonSafe)
+      const result: Record<string, unknown> = {}
+      for (const [key, entry] of Object.entries(value)) {
+        const entryType = typeof entry
+        if (entryType === 'undefined' || entryType === 'function') continue
+        result[key] = toJsonSafe(entry)
+      }
+      return result
+    }
+  }
+}
+
+/**
+ * JSON-safe copy of model messages about to be sent to the model.
+ *
+ * Only serializable values can round-trip through history, so normalizing is
+ * semantically neutral and prevents the SDK's model-message validation from
+ * failing on the next conversation round.
+ */
+function sanitizeModelMessages(messages: ModelMessage[]): ModelMessage[] {
+  return toJsonSafe(messages) as ModelMessage[]
+}
+
 /** Runtime options that affect agent behavior beyond LLM settings. */
 export interface AgentChatOptions {
   /** When `high-inference`, screenshot verification runs after each drawing round. */
@@ -122,7 +178,7 @@ async function streamAgentRound(options: {
     tools: agent.tools
   })
   const result = agent.stream({
-    prompt: modelMessages,
+    prompt: sanitizeModelMessages(modelMessages),
     abortSignal
   })
 

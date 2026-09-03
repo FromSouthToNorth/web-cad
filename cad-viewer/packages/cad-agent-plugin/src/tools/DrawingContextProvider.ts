@@ -21,6 +21,17 @@ export interface DrawingContextSnapshot {
 }
 
 /**
+ * Replaces non-finite numbers with `0`.
+ *
+ * An empty drawing's extents are ±Infinity (`AcGeBox3d` initial state), which
+ * is not valid JSON and later breaks AI SDK model-message validation when the
+ * context is replayed as conversation history.
+ */
+function finiteOrZero(value: number): number {
+  return Number.isFinite(value) ? value : 0
+}
+
+/**
  * Collects layer, unit, and extent metadata from the active document.
  *
  * @returns A JSON-serializable context object for agent tool calls.
@@ -37,8 +48,16 @@ export function getDrawingContext(): DrawingContextSnapshot {
     layers,
     insunits: db.insunits,
     extents: {
-      min: { x: extents.min.x, y: extents.min.y, z: extents.min.z },
-      max: { x: extents.max.x, y: extents.max.y, z: extents.max.z },
+      min: {
+        x: finiteOrZero(extents.min.x),
+        y: finiteOrZero(extents.min.y),
+        z: finiteOrZero(extents.min.z)
+      },
+      max: {
+        x: finiteOrZero(extents.max.x),
+        y: finiteOrZero(extents.max.y),
+        z: finiteOrZero(extents.max.z)
+      },
       isEmpty: extents.isEmpty()
     },
     documentTitle: doc.docTitle

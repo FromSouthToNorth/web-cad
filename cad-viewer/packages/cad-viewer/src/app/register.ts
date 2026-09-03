@@ -15,21 +15,14 @@ import { markRaw } from 'vue'
 import {
   AcApAttDefCmd,
   AcApAttEditCmd,
-  AcApCountListCmd,
   AcApDrawingUnitsCmd,
   AcApExportHtmlDlgCmd,
   AcApInsertPaletteCmd,
   AcApLayerStateCmd,
-  AcApMarkupPanelCmd,
-  AcApMemCmd,
-  AcApMissedDataCmd,
-  AcApOpenPerfCmd,
   AcApPointStyleCmd,
   AcApPropertiesCmd,
   AcApQSelectCmd,
-  AcApTextStyleCmd,
-  AcApXrefCmd,
-  hatchRibbonCommand
+  AcApTextStyleCmd
 } from '../command'
 import {
   createMlColorIndexPickerToolbarFactory,
@@ -54,24 +47,6 @@ export const registerCmds = () => {
       'layer',
       'layer',
       new AcApLayerStateCmd()
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'hatch',
-      'hatch',
-      hatchRibbonCommand
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'md',
-      'md',
-      new AcApMissedDataCmd()
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'xref',
-      'xref',
-      new AcApXrefCmd()
     )
     register.addCommand(
       AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
@@ -109,32 +84,6 @@ export const registerCmds = () => {
       'insert',
       new AcApInsertPaletteCmd(),
       'blockspalette'
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'countlist',
-      'countlist',
-      new AcApCountListCmd()
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'markuppanel',
-      'markuppanel',
-      new AcApMarkupPanelCmd()
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'mem',
-      'mem',
-      new AcApMemCmd(),
-      'memstat'
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'openperf',
-      'openperf',
-      new AcApOpenPerfCmd(),
-      ['openprofile', 'openprofui']
     )
     register.addCommand(
       AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,

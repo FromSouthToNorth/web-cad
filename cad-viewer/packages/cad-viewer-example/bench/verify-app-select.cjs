@@ -1,5 +1,5 @@
 /**
- * Drives the REAL app shell (App.vue -> MlCadViewer) headless: uploads a DXF
+ * Drives the REAL app shell (App.vue -> AntdCadViewer) headless: uploads a DXF
  * through the FileUpload input, waits for the viewer, box-selects, and
  * compares canvas screenshots.
  *

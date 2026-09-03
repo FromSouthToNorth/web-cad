@@ -25,10 +25,6 @@
     ".": {
       "types": "./dist/cad-viewer.d.ts",
       "import": "./dist/cad-viewer.js"
-    },
-    "./legacy": {
-      "types": "./dist/legacy.d.ts",
-      "import": "./dist/cad-viewer-legacy.js"
     }
   },
   "files": [
@@ -78,9 +74,7 @@
     "@mlightcad/cad-svg-plugin": "workspace:*",
     "@mlightcad/cad-simple-viewer": "workspace:*",
     "@mlightcad/data-model": "workspace:*",
-    "@mlightcad/ribbon": "^0.1.12",
     "@mlightcad/three-renderer": "workspace:*",
-    "@mlightcad/ui-components": "^0.1.9",
     "@vueuse/core": "^11.1.0",
     "ant-design-vue": "^4.2.6",
     "lodash-es": "4.17.21",
@@ -102,12 +96,6 @@
       "optional": true
     },
     "@mlightcad/cad-svg-plugin": {
-      "optional": true
-    },
-    "@mlightcad/ribbon": {
-      "optional": true
-    },
-    "@mlightcad/ui-components": {
       "optional": true
     }
   }

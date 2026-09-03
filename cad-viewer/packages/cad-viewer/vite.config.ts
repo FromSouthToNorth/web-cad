@@ -10,6 +10,7 @@ import peerDepsExternal from 'rollup-plugin-peer-deps-external'
 import vue from '@vitejs/plugin-vue'
 import dts from 'vite-plugin-dts'
 import { libInjectCss } from 'vite-plugin-lib-inject-css'
+import { createLibEntryFileName } from '../vite-config/pluginRollupOutput'
 
 const packageId = 'cad-viewer'
 
@@ -45,17 +46,9 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     outDir: 'dist',
     build: {
       lib: {
-        entry: {
-          index: 'src/index.ts',
-          legacy: 'src/legacy.ts'
-        },
+        entry: 'src/index.ts',
         name: packageId,
-        fileName: (format, entryName) => {
-          const suffix = entryName === 'index' ? '' : `-${entryName}`
-          return format === 'es'
-            ? `${packageId}${suffix}.js`
-            : `${packageId}${suffix}.umd.cjs`
-        },
+        fileName: format => createLibEntryFileName(packageId, format),
         formats: ['es'] as LibraryFormats[]
       },
       minify: true,
@@ -71,14 +64,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         ],
         output: {
           chunkFileNames: `${packageId}-[name]-[hash].js`,
-          // Keep the main entry's stylesheet as `cad-viewer.css` (public URL
-          // consumed by CDN hosts); shared/legacy chunks get `cad-viewer-<name>.css`.
-          // libInjectCss emits asset names that already carry the .css extension.
-          assetFileNames: assetInfo => {
-            const raw = (assetInfo.names?.[0] ?? assetInfo.name ?? 'index')
-              .replace(/\.css$/i, '')
-            return raw === 'index' ? `${packageId}.css` : `${packageId}-${raw}.css`
-          }
+          assetFileNames: `${packageId}[extname]`
         }
       }
     },

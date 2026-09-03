@@ -1,19 +1,34 @@
 <template>
-  <a-config-provider :theme="antdThemeConfig">
+  <a-config-provider :theme="antdThemeConfig" :locale="antdLocale">
     <a-app>
       <div id="app-root">
         <!-- Upload screen when no drawing is open -->
         <div v-if="!showViewer" class="upload-screen">
-          <button
-            type="button"
-            class="theme-toggle"
-            :aria-label="
-              theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+          <a-tooltip
+            :title="
+              theme === 'dark'
+                ? t('fileUpload.switchToLight')
+                : t('fileUpload.switchToDark')
             "
-            @click="toggleTheme"
+            placement="bottom"
           >
-            {{ theme === 'dark' ? '🌙 Dark' : '☀️ Light' }}
-          </button>
+            <a-button
+              type="text"
+              shape="circle"
+              class="theme-toggle"
+              :aria-label="
+                theme === 'dark'
+                  ? t('fileUpload.switchToLight')
+                  : t('fileUpload.switchToDark')
+              "
+              @click="toggleTheme"
+            >
+              <template #icon>
+                <!-- Same palette glyph as the shell status bar theme toggle. -->
+                <BgColorsOutlined />
+              </template>
+            </a-button>
+          </a-tooltip>
           <FileUpload
             @file-select="handleFileSelect"
             @new-drawing="handleNewDrawing"
@@ -42,6 +57,7 @@
 </template>
 
 <script setup lang="ts">
+import { BgColorsOutlined } from '@ant-design/icons-vue'
 import { FontManager } from '@mlightcad/mtext-renderer'
 import {
   AcApDocManager,
@@ -51,15 +67,19 @@ import {
 } from '@mlightcad/cad-simple-viewer'
 import { registerInvertSelPlugin } from '@mlightcad/cad-invertsel-plugin/register'
 import { registerLayerCtxPlugin } from '@mlightcad/cad-layerctx-plugin/register'
+import { useLocale } from '@mlightcad/cad-viewer'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import { AcApQuitCmd } from './commands'
 import FileUpload from './components/FileUpload.vue'
 import AntdCadViewer from './shell/AntdCadViewer.vue'
 import { store } from './store'
-import { buildAntdTheme } from './theme'
+import { antdLocaleFor, buildAntdTheme } from './theme'
 
 type UiTheme = 'light' | 'dark'
+
+const { t } = useI18n()
 
 const THEME_STORAGE_KEY = 'cad-viewer-example:ui-theme'
 
@@ -90,6 +110,11 @@ const applyThemeToPage = (value: UiTheme) => {
 watch(theme, applyThemeToPage, { immediate: true })
 
 const antdThemeConfig = computed(() => buildAntdTheme(theme.value))
+
+// Root ConfigProvider also carries the locale, so antd components on the
+// upload screen (dragger, modals) follow the same i18n as the viewer shell.
+const { effectiveLocale } = useLocale()
+const antdLocale = computed(() => antdLocaleFor(String(effectiveLocale.value)))
 
 const toggleTheme = () => {
   theme.value = theme.value === 'dark' ? 'light' : 'dark'
@@ -208,11 +233,13 @@ const handleNewDrawing = (
 <style scoped>
 #app-root {
   height: 100vh;
+  height: 100dvh;
   position: fixed;
 }
 
 .upload-screen {
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   display: flex;
   justify-content: center;
@@ -229,25 +256,26 @@ const handleNewDrawing = (
   pointer-events: auto;
 }
 
-.theme-toggle {
+.theme-toggle.ant-btn {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: var(--ml-space-4);
+  right: var(--ml-space-4);
   z-index: 1;
-  padding: 6px 12px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   border: 1px solid var(--ml-theme-border-subtle);
-  border-radius: 999px;
   background: var(--ml-theme-bg-surface);
   color: var(--ml-theme-text-primary);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
+  font-size: 14px;
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
+    background-color var(--ml-motion-base) ease,
+    border-color var(--ml-motion-base) ease;
 }
 
-.theme-toggle:hover {
+.theme-toggle.ant-btn:hover {
   background: var(--ml-theme-bg-hover);
+  color: var(--ml-theme-text-primary);
+  border-color: var(--ml-theme-border);
 }
 </style>

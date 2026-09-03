@@ -1,135 +1,127 @@
 <template>
-  <a-config-provider
-    :locale="antdLocale"
-    :theme="antdThemeConfig"
-    class="antd-cad-provider"
-  >
-    <a-app>
-      <div class="antd-cad-shell" :class="themeClass">
-        <!-- Plain div hosts the engine busy indicator (a component ref would
-             hand AcApProgress a Vue instance instead of a DOM element). -->
-        <div ref="layoutRef" class="antd-cad-layout-host">
-          <a-layout class="antd-cad-layout">
-            <a-layout-header class="antd-cad-header">
-              <AntdRibbon :disabled="!editorReady" />
-            </a-layout-header>
-  
-            <a-layout class="antd-cad-body">
-              <div class="antd-cad-sider-wrapper antd-cad-sider-wrapper-left">
-                <a-layout-sider
-                  :collapsed="leftCollapsed"
-                  :collapsed-width="0"
-                  :width="leftWidth"
-                  :trigger="null"
-                  :zero-width-trigger-style="{ display: 'none' }"
-                  class="antd-cad-sider antd-cad-sider-left"
-                >
-                <template v-if="editorReady">
-                  <a-tabs
-                    v-model:active-key="leftActiveTab"
-                    size="small"
-                    class="antd-cad-panel-tabs"
-                    @change="onLeftTabChange"
-                  >
-                    <a-tab-pane key="layers" :tab="t('shell.panels.layers')" />
-                    <a-tab-pane key="blocks" :tab="t('shell.panels.blocks')" />
-                    <a-tab-pane
-                      v-if="store.features.searchPlugin"
-                      key="search"
-                      :tab="t('shell.panels.search')"
-                    />
-                    <a-tab-pane
-                      v-if="store.features.agentPlugin"
-                      key="agent"
-                      :tab="t('shell.panels.agent')"
-                    />
-                    <template #rightExtra>
-                      <a-button
-                        type="text"
-                        size="small"
-                        aria-label="Close panel"
-                        @click="closeLeftPanel"
-                      >
-                        <template #icon><CloseOutlined /></template>
-                      </a-button>
-                    </template>
-                  </a-tabs>
-                  <div class="antd-cad-panel-body">
-                    <AntdLayerPanel v-if="leftActiveTab === 'layers'" />
-                    <AntdBlocksPanel v-else-if="leftActiveTab === 'blocks'" />
-                    <SearchPanel
-                      v-else-if="leftActiveTab === 'search' && store.features.searchPlugin"
-                    />
-                    <AgentChatPanel
-                      v-else-if="leftActiveTab === 'agent' && store.features.agentPlugin"
-                      @close="closeAgentPanel"
-                    />
-                  </div>
-                </template>
-              </a-layout-sider>
-              <div
-                v-if="!leftCollapsed"
-                class="antd-cad-sider-resizer antd-cad-sider-resizer-left"
-                @mousedown="onResizerMouseDown($event, 'left')"
-              ></div>
-              </div>
+  <div class="antd-cad-shell" :class="themeClass">
+    <!-- Plain div hosts the engine busy indicator (a component ref would
+         hand AcApProgress a Vue instance instead of a DOM element). -->
+    <div ref="layoutRef" class="antd-cad-layout-host">
+      <a-layout class="antd-cad-layout">
+        <a-layout-header class="antd-cad-header">
+          <AntdRibbon :disabled="!editorReady" />
+        </a-layout-header>
 
-              <a-layout-content class="antd-cad-content">
-                <div
-                  ref="containerRef"
-                  :class="themeClass"
-                  class="ml-cad-container antd-cad-canvas-host"
-                ></div>
-                <MlDialogManager v-if="editorReady" />
-                <MlFontFileReader v-if="editorReady" />
-              </a-layout-content>
-  
-              <div class="antd-cad-sider-wrapper antd-cad-sider-wrapper-right">
-                <div
-                  v-if="!rightCollapsed"
-                  class="antd-cad-sider-resizer antd-cad-sider-resizer-right"
-                  @mousedown="onResizerMouseDown($event, 'right')"
-                ></div>
-                <a-layout-sider
-                  :collapsed="rightCollapsed"
-                  :collapsed-width="0"
-                  :width="rightWidth"
-                  :trigger="null"
-                  :zero-width-trigger-style="{ display: 'none' }"
-                  class="antd-cad-sider antd-cad-sider-right"
+        <a-layout class="antd-cad-body">
+          <div class="antd-cad-sider-wrapper antd-cad-sider-wrapper-left">
+            <a-layout-sider
+              :collapsed="leftCollapsed"
+              :collapsed-width="0"
+              :width="leftWidth"
+              :trigger="null"
+              :zero-width-trigger-style="{ display: 'none' }"
+              class="antd-cad-sider antd-cad-sider-left"
+            >
+              <template v-if="editorReady">
+                <a-tabs
+                  v-model:active-key="leftActiveTab"
+                  size="small"
+                  class="antd-cad-panel-tabs"
+                  @change="onLeftTabChange"
                 >
-                  <template v-if="editorReady">
-                    <div class="antd-cad-panel-header">
-                      <span>{{ t('shell.panels.properties') }}</span>
-                      <a-button
-                        type="text"
-                        size="small"
-                        aria-label="Close properties panel"
-                        @click="closeRightPanel"
-                      >
-                        <template #icon><CloseOutlined /></template>
-                      </a-button>
-                    </div>
-                    <div class="antd-cad-panel-body">
-                      <AntdPropertiesPanel />
-                    </div>
+                  <a-tab-pane key="layers" :tab="t('shell.panels.layers')" />
+                  <a-tab-pane key="blocks" :tab="t('shell.panels.blocks')" />
+                  <a-tab-pane
+                    v-if="store.features.searchPlugin"
+                    key="search"
+                    :tab="t('shell.panels.search')"
+                  />
+                  <a-tab-pane
+                    v-if="store.features.agentPlugin"
+                    key="agent"
+                    :tab="t('shell.panels.agent')"
+                  />
+                  <template #rightExtra>
+                    <a-button
+                      type="text"
+                      size="small"
+                      aria-label="Close panel"
+                      @click="closeLeftPanel"
+                    >
+                      <template #icon><CloseOutlined /></template>
+                    </a-button>
                   </template>
-                </a-layout-sider>
-              </div>
-            </a-layout>
-  
-            <a-layout-footer class="antd-cad-footer">
-              <AntdStatusBar
-                v-if="editorReady"
-                :disabled="isDocumentOpening"
-                @toggle-theme="emit('toggle-theme')"
-              />
-            </a-layout-footer>
-            </a-layout>
-        </div>
-      </div>
-    </a-app>
-  </a-config-provider>
+                </a-tabs>
+                <div class="antd-cad-panel-body">
+                  <AntdLayerPanel v-if="leftActiveTab === 'layers'" />
+                  <AntdBlocksPanel v-else-if="leftActiveTab === 'blocks'" />
+                  <SearchPanel
+                    v-else-if="leftActiveTab === 'search' && store.features.searchPlugin"
+                  />
+                  <AgentChatPanel
+                    v-else-if="leftActiveTab === 'agent' && store.features.agentPlugin"
+                    @close="closeAgentPanel"
+                  />
+                </div>
+              </template>
+            </a-layout-sider>
+            <div
+              v-if="!leftCollapsed"
+              class="antd-cad-sider-resizer antd-cad-sider-resizer-left"
+              @mousedown="onResizerMouseDown($event, 'left')"
+            ></div>
+          </div>
+
+          <a-layout-content class="antd-cad-content">
+            <div
+              ref="containerRef"
+              :class="themeClass"
+              class="ml-cad-container antd-cad-canvas-host"
+            ></div>
+            <MlDialogManager v-if="editorReady" />
+            <MlFontFileReader v-if="editorReady" />
+          </a-layout-content>
+
+          <div class="antd-cad-sider-wrapper antd-cad-sider-wrapper-right">
+            <div
+              v-if="!rightCollapsed"
+              class="antd-cad-sider-resizer antd-cad-sider-resizer-right"
+              @mousedown="onResizerMouseDown($event, 'right')"
+            ></div>
+            <a-layout-sider
+              :collapsed="rightCollapsed"
+              :collapsed-width="0"
+              :width="rightWidth"
+              :trigger="null"
+              :zero-width-trigger-style="{ display: 'none' }"
+              class="antd-cad-sider antd-cad-sider-right"
+            >
+              <template v-if="editorReady">
+                <div class="antd-cad-panel-header">
+                  <span>{{ t('shell.panels.properties') }}</span>
+                  <a-button
+                    type="text"
+                    size="small"
+                    aria-label="Close properties panel"
+                    @click="closeRightPanel"
+                  >
+                    <template #icon><CloseOutlined /></template>
+                  </a-button>
+                </div>
+                <div class="antd-cad-panel-body">
+                  <AntdPropertiesPanel />
+                </div>
+              </template>
+            </a-layout-sider>
+          </div>
+        </a-layout>
+
+        <a-layout-footer class="antd-cad-footer">
+          <AntdStatusBar
+            v-if="editorReady"
+            :disabled="isDocumentOpening"
+            @toggle-theme="emit('toggle-theme')"
+          />
+        </a-layout-footer>
+      </a-layout>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -139,13 +131,11 @@ import {
   MlDialogManager,
   MlFontFileReader,
   store,
-  useDocument,
-  useLocale
+  useDocument
 } from '@mlightcad/cad-viewer'
-import { computed, defineAsyncComponent, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { antdLocaleFor, buildAntdTheme } from '../theme'
 import AntdRibbon from './ribbon/AntdRibbon.vue'
 import AntdBlocksPanel from './panels/AntdBlocksPanel.vue'
 import AntdLayerPanel from './panels/AntdLayerPanel.vue'
@@ -194,11 +184,8 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { effectiveLocale } = useLocale()
 const { isDocumentOpening } = useDocument()
 
-const antdLocale = computed(() => antdLocaleFor(String(effectiveLocale.value)))
-const antdThemeConfig = computed(() => buildAntdTheme(props.theme))
 const themeClass = computed(() =>
   props.theme === 'dark' ? 'ml-theme-dark' : 'ml-theme-light'
 )
@@ -221,18 +208,46 @@ const { editorReady } = useAntdCadShell({
   onCreated: () => emit('create')
 })
 
+// ── responsive: auto-collapse siders on narrow viewports ──────────
+
+const narrowViewport = ref(false)
+const tightViewport = ref(false)
+
+let mqNarrow: MediaQueryList | undefined
+let mqTight: MediaQueryList | undefined
+
+const onViewportChange = () => {
+  narrowViewport.value = mqNarrow?.matches ?? false
+  tightViewport.value = mqTight?.matches ?? false
+}
+
+onMounted(() => {
+  mqNarrow = window.matchMedia('(max-width: 767px)')
+  mqTight = window.matchMedia('(max-width: 1023px)')
+  onViewportChange()
+  mqNarrow.addEventListener('change', onViewportChange)
+  mqTight.addEventListener('change', onViewportChange)
+})
+
+onUnmounted(() => {
+  mqNarrow?.removeEventListener('change', onViewportChange)
+  mqTight?.removeEventListener('change', onViewportChange)
+})
+
 // ── panel visibility, single source of truth: store.dialogs ──────────
 
 const leftCollapsed = computed(
   () =>
     !store.dialogs.layerManager ||
-    store.dialogs.activePaletteTab === 'entityProperties'
+    store.dialogs.activePaletteTab === 'entityProperties' ||
+    narrowViewport.value
 )
 
 const rightCollapsed = computed(
   () =>
     !store.dialogs.layerManager ||
-    store.dialogs.activePaletteTab !== 'entityProperties'
+    store.dialogs.activePaletteTab !== 'entityProperties' ||
+    tightViewport.value
 )
 
 const leftActiveTab = ref<'layers' | 'blocks' | 'search' | 'agent'>('layers')

@@ -14,6 +14,8 @@ export default {
     subtitle: 'Import DXF drawings into the viewer',
     newDrawing: 'New Drawing',
     or: 'or',
+    switchToLight: 'Switch to light theme',
+    switchToDark: 'Switch to dark theme',
     dropFile: 'Drop file or',
     browse: 'browse',
     openOptions: 'Open options',
@@ -60,6 +62,8 @@ export default {
   shell: {
     ribbon: {
       fileMenu: 'File',
+      collapse: 'Collapse ribbon',
+      expand: 'Expand ribbon',
       undo: 'Undo',
       redo: 'Redo',
       tab: {
@@ -200,6 +204,7 @@ export default {
     },
     layerPanel: {
       searchPlaceholder: 'Search layers',
+      noLayers: 'No layers in this drawing',
       newLayer: 'New layer',
       deleteLayer: 'Delete layer',
       setCurrent: 'Set current',

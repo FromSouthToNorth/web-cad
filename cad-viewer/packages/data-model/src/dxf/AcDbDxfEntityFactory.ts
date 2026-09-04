@@ -155,15 +155,16 @@ export function acdbDxfInEntity(
 
   const upper = acdbDxfKeywordUpper(name)
   // Composite / subclass-dispatched types — not created via empty factory.
+  let entity: AcDbEntity | null
   if (upper === 'POLYLINE') {
-    return acdbDxfInPolyline(filer)
+    entity = acdbDxfInPolyline(filer)
+  } else if (upper === 'DIMENSION') {
+    entity = acdbDxfInDimension(filer)
+  } else {
+    entity = acdbCreateEntityForDxfIn(name)
+    if (!entity) return null
+    entity.dxfIn(filer)
   }
-  if (upper === 'DIMENSION') {
-    return acdbDxfInDimension(filer)
-  }
-
-  const entity = acdbCreateEntityForDxfIn(name)
-  if (!entity) return null
-  entity.dxfIn(filer)
+  entity?.applyDxfFileDefaults()
   return entity
 }

@@ -21,6 +21,10 @@ import {
   stopLayerCtxDispatchTracker
 } from './layerCtxDispatch'
 import {
+  startLayerCtxHistory,
+  stopLayerCtxHistory
+} from './layerCtxHistory'
+import {
   startLayerCtxKeyHandler,
   stopLayerCtxKeyHandler
 } from './layerCtxKeyHandler'
@@ -31,13 +35,14 @@ import { startLayerCtxMenu, stopLayerCtxMenu } from './layerCtxMenu'
  *
  * Bundles the complete feature with zero host source intrusion:
  * - right-click context menu on canvas entities (delete / copy / move /
- *   scale / rotate / deselect), acting on the current selection set; copy,
- *   move and rotate dispatch the host's interactive commands, scale is the
- *   plugin's own interactive command (base point → drag distance = factor,
- *   with live preview jig)
- * - three own system commands (`layctxdel`, `layctxscale`, `layctxdsel`)
- *   executable from the command line
- * - Ctrl/Cmd+Shift+E/C/M/S/R/A keyboard shortcuts
+ *   scale / rotate / offset / deselect), acting on the current selection set;
+ *   copy, move and rotate dispatch the host's interactive commands, scale and
+ *   offset are the plugin's own interactive commands
+ * - AutoCAD-style extras: a "Repeat <last command>" entry on top and a
+ *   navigation menu (pan / zoom) when right-clicking with nothing selected
+ * - four own system commands (`layctxdel`, `layctxscale`, `layctxdsel`,
+ *   `layctxoffset`) executable from the command line
+ * - single-letter keyboard shortcuts (E/C/M/S/R/O)
  * - en/zh/tr/cs UI strings
  *
  * Register it eagerly at application startup via
@@ -97,6 +102,7 @@ export class AcApLayerCtxPlugin implements AcApPlugin {
     startLayerCtxKeyHandler()
     startLayerCtxMenu()
     startLayerCtxDispatchTracker()
+    startLayerCtxHistory()
   }
 
   /**
@@ -109,6 +115,7 @@ export class AcApLayerCtxPlugin implements AcApPlugin {
     stopLayerCtxMenu()
     stopLayerCtxKeyHandler()
     stopLayerCtxDispatchTracker()
+    stopLayerCtxHistory()
 
     const group = AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME
     commandManager.removeCmd(group, LAYERCTX_CMD_DELETE)

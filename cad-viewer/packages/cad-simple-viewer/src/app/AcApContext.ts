@@ -123,8 +123,16 @@ export class AcApContext {
           view.renderer.showLineWeight = showLineWeight
           // Existing line objects may need different geometry/material classes.
           // Regenerate to rebuild scene content using the new display mode.
-          view.clear()
-          args.database.regen()
+          // Skip the rebuild while the scene is still empty (e.g. the drawing
+          // header sets LWDISPLAY mid-open, before any entity converts):
+          // everything converted afterwards already uses the new flag, and a
+          // clear()+regen() here would replay a full conversion-progress
+          // sequence (the open-file bar restarts from ~20-40% after reaching
+          // 100%) and re-dispatch every already-parsed entity for nothing.
+          if (view.hasSceneContent) {
+            view.clear()
+            args.database.regen()
+          }
         }
       }
     })

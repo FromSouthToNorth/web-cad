@@ -783,13 +783,18 @@ def polyline_straight_segments(e):
     if e.is_3d_polyline:
         pts = [v.dxf.location for v in e.vertices]
     elif e.is_2d_polyline:
-        if e.dxf.flags & 6:  # 曲线拟合(2)/样条拟合(4)需走慢速路径
-            return None
-        pts = []
-        for v in e.vertices:
-            if v.dxf.bulge:
+        if e.dxf.flags & 4:  # 样条拟合: 只取样条顶点(flag&8), 框架控制点(flag&16)不是几何
+            pts = [v.dxf.location for v in e.vertices if v.dxf.get("flags", 0) & 8]
+            if not pts:
                 return None
-            pts.append(v.dxf.location)
+        elif e.dxf.flags & 2:  # 曲线拟合(2)需走慢速路径
+            return None
+        else:
+            pts = []
+            for v in e.vertices:
+                if v.dxf.bulge:
+                    return None
+                pts.append(v.dxf.location)
     else:
         return None  # 多面网格等
     if e.is_closed and pts:

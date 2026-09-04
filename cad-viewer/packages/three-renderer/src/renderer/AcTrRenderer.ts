@@ -18,6 +18,7 @@ import { FontManager } from '@mlightcad/mtext-renderer'
 import * as THREE from 'three'
 
 import type { AcTrBatchDrawPolicy } from '../draw/AcTrBatchDrawPolicy'
+import { acTrComputeArcSegmentCount } from '../draw/AcTrArcLod'
 import {
   AcTrEntity,
   AcTrGroup,
@@ -511,14 +512,30 @@ export class AcTrRenderer implements AcGiRenderer<AcTrEntity> {
    * @inheritdoc
    */
   circularArc(arc: AcGeCircArc3d) {
-    return this.linePoints(arc.getPointsFlat(100))
+    return this.linePoints(
+      arc.getPointsFlat(
+        acTrComputeArcSegmentCount(
+          arc.radius,
+          (arc.endAngle - arc.startAngle) / (Math.PI * 2),
+          this._context.arcLodDiagonal
+        )
+      )
+    )
   }
 
   /**
    * @inheritdoc
    */
   ellipticalArc(ellipseArc: AcGeEllipseArc3d) {
-    return this.linePoints(ellipseArc.getPointsFlat(100))
+    return this.linePoints(
+      ellipseArc.getPointsFlat(
+        acTrComputeArcSegmentCount(
+          Math.max(ellipseArc.majorAxisRadius, ellipseArc.minorAxisRadius),
+          (ellipseArc.endAngle - ellipseArc.startAngle) / (Math.PI * 2),
+          this._context.arcLodDiagonal
+        )
+      )
+    )
   }
 
   /**

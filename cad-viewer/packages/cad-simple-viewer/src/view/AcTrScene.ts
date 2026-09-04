@@ -875,6 +875,23 @@ export class AcTrScene {
   }
 
   /**
+   * Returns true when any layout already holds at least one converted entity.
+   * Cheaper than {@link stats}: exits on the first non-empty layout. Display
+   * mode changes (e.g. LWDISPLAY) use this to decide whether the scene must
+   * be rebuilt or whether flipping the renderer flag is enough — during
+   * document open entities convert only at the final flush, so the scene is
+   * still empty while header sysvars are applied.
+   */
+  hasContent() {
+    for (const [_, layout] of this._layouts) {
+      if (layout.entityCount > 0) {
+        return true
+      }
+    }
+    return false
+  }
+
+  /**
    * Updates entity visibility without rebuilding batched geometry.
    */
   setEntityVisible(objectId: AcDbObjectId, visible: boolean) {

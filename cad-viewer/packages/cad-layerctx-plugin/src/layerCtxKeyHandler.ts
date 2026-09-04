@@ -6,7 +6,6 @@ import {
   HOST_CMD_MOVE,
   HOST_CMD_ROTATE,
   LAYERCTX_CMD_DELETE,
-  LAYERCTX_CMD_DESELECT,
   LAYERCTX_CMD_OFFSET,
   LAYERCTX_CMD_SCALE
 } from './layerCtxCommands'
@@ -17,15 +16,16 @@ import {
 } from './layerCtxDispatch'
 import { closeLayerCtxMenu } from './layerCtxMenu'
 
-/** Class of the host viewer's command-line input element. */
-const COMMAND_LINE_INPUT_CLASS = 'ml-cli-text'
-
 /**
- * Maps physical key codes (`e.code`) to object context-menu commands. All
- * shortcuts are Ctrl+Shift+<key> (Cmd+Shift+<key> on macOS) and act on the
- * current selection set. Copy/move/rotate dispatch the host's interactive
- * commands (canvas point picking with preview jig); scale is the plugin's
- * own interactive command.
+ * Maps physical key codes (`e.code`) to object context-menu commands.
+ * Shortcuts are AutoCAD-style bare letter keys (the command-alias first
+ * letters: `M` move, `C` copy, `S` scale, `R` rotate, `O` offset, `E` erase)
+ * and act on the current selection set — no modifier chord is required,
+ * matching how AutoCAD runs aliases straight from the drawing window.
+ * Deselect is intentionally absent: the host viewer clears the selection on
+ * `Escape` (AutoCAD semantics). Copy/move/rotate dispatch the host's
+ * interactive commands (canvas point picking with preview jig); scale is the
+ * plugin's own interactive command.
  */
 const SHORTCUTS: Readonly<Record<string, string>> = {
   KeyE: LAYERCTX_CMD_DELETE,
@@ -33,25 +33,27 @@ const SHORTCUTS: Readonly<Record<string, string>> = {
   KeyM: HOST_CMD_MOVE,
   KeyS: LAYERCTX_CMD_SCALE,
   KeyR: HOST_CMD_ROTATE,
-  KeyO: LAYERCTX_CMD_OFFSET,
-  KeyA: LAYERCTX_CMD_DESELECT
+  KeyO: LAYERCTX_CMD_OFFSET
 }
 
 /**
- * Whether the event is one of the plugin's shortcuts: Ctrl+Shift+<key> on
- * Windows/Linux or Cmd+Shift+<key> on macOS.
+ * Whether the event is one of the plugin's shortcuts: a bare letter key
+ * without any modifier. Modifier chords are left to the host (Ctrl+Z/Y
+ * undo/redo) and the browser.
  */
 const resolveShortcutCommand = (
-  e: Pick<KeyboardEvent, 'code' | 'ctrlKey' | 'metaKey' | 'shiftKey'>
+  e: Pick<KeyboardEvent, 'code' | 'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey'>
 ): string | null => {
-  if (!(e.ctrlKey || e.metaKey) || !e.shiftKey) return null
+  if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return null
   return SHORTCUTS[e.code] ?? null
 }
 
 /**
  * Whether a view-level shortcut may run for this event. Mirrors the host
- * viewer's guards: no IME composition, no editable targets, and the command
- * line only when it is empty and editable.
+ * viewer's guards: no IME composition and no editable targets. Every `INPUT`
+ * target is rejected (including the command line): a bare letter pressed
+ * there must be typed as text — e.g. `M` + Enter in the command line runs
+ * MOVE through the normal alias path, exactly like AutoCAD.
  */
 const shouldHandleViewShortcut = (
   e: Pick<KeyboardEvent, 'target' | 'isComposing' | 'keyCode'>
@@ -68,10 +70,6 @@ const shouldHandleViewShortcut = (
     return false
   }
   if (target?.tagName === 'INPUT') {
-    const input = target as HTMLInputElement
-    if (input.classList.contains(COMMAND_LINE_INPUT_CLASS)) {
-      return input.value.trim() === '' && !input.readOnly
-    }
     return false
   }
 

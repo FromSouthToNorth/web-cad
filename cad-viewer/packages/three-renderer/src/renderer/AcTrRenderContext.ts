@@ -36,6 +36,16 @@ export class AcTrRenderContext extends AcGiContext {
    */
   database: AcDbDatabase | undefined = undefined
 
+  /**
+   * Diagonal of the drawing extent, used as the scale reference for arc
+   * tessellation LOD (M6-1). Maintained by the view per conversion chunk
+   * from the scene's packed batch bounds (see `AcTrArcLod`).
+   *
+   * `0` means the reference is unknown and makes the renderer fall back to
+   * the legacy fixed 100-segment tessellation.
+   */
+  arcLodDiagonal: number = 0
+
   constructor(
     styleManager: AcTrStyleManager = new AcTrStyleManager(),
     batchDrawPolicy: AcTrBatchDrawPolicy = alwaysBatchDrawPolicy

@@ -127,6 +127,38 @@ export class AcApLayerStore {
   }
 
   /**
+   * Freezes or thaws every layer.
+   *
+   * The current layer can never be frozen and is skipped by the service.
+   *
+   * @param isFrozen - `true` to freeze all layers; `false` to thaw all.
+   * @returns `true` when the operation was dispatched.
+   */
+  setAllLayersFrozen(isFrozen: boolean): boolean {
+    const service = this.getLayerService()
+    if (isFrozen) {
+      service.setLayersFrozen(this.getLayers().map(layer => layer.name), true)
+    } else {
+      service.thawAllLayers()
+    }
+    return true
+  }
+
+  /**
+   * Locks or unlocks every layer.
+   *
+   * @param isLocked - `true` to lock all layers; `false` to unlock all.
+   * @returns `true` when the operation was dispatched.
+   */
+  setAllLayersLocked(isLocked: boolean): boolean {
+    this.getLayerService().setLayersLocked(
+      this.getLayers().map(layer => layer.name),
+      isLocked
+    )
+    return true
+  }
+
+  /**
    * Assigns color to a layer in this document.
    *
    * @param layerName - Target layer name.

@@ -3,12 +3,14 @@
     v-model:open="dropdownOpen"
     :trigger="['click']"
     placement="bottomLeft"
+    :disabled="props.disabled"
   >
     <button
       type="button"
       class="antd-ribbon-dropdown"
       :class="{ 'is-disabled': props.disabled }"
       :aria-label="props.label"
+      :disabled="props.disabled"
     >
       <!-- Main click area: executes default command -->
       <div class="antd-ribbon-dropdown-main" @click.stop="handleMainClick">
@@ -22,9 +24,17 @@
       <!-- Arrow: opens the variant menu -->
       <span
         class="antd-ribbon-dropdown-arrow"
-        @click.stop="dropdownOpen = !dropdownOpen"
+        @click.stop="toggleMenu"
       >
         <DownOutlined />
+      </span>
+      <span
+        v-if="keytipShown"
+        class="antd-ribbon-keytip"
+        :class="{ 'is-pending': keytipPending }"
+        aria-hidden="true"
+      >
+        {{ props.keyTip }}
       </span>
     </button>
     <template #overlay>
@@ -51,7 +61,7 @@
 <script setup lang="ts">
 import { DownOutlined } from '@ant-design/icons-vue'
 import type { Component } from 'vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { RibbonDropdownDef } from './ribbonTypes'
@@ -63,6 +73,11 @@ const props = defineProps<{
   label: string
   options: RibbonDropdownDef['options']
   disabled?: boolean
+  keyTip?: string
+  /** Keytip badges visible (ribbon keytip mode, level 2). */
+  keytipActive?: boolean
+  /** Partial keytip typed so far, for prefix highlighting. */
+  keytipBuffer?: string
 }>()
 
 const emit = defineEmits<{
@@ -78,12 +93,27 @@ function optLabel(id: string, fallback: string): string {
   return te(key) ? t(key) : fallback
 }
 
+const keytipShown = computed(
+  () => props.keytipActive === true && props.keyTip !== undefined
+)
+
+const keytipPending = computed(() => {
+  if (!props.keytipBuffer || !props.keyTip) return false
+  return props.keyTip.toLowerCase().startsWith(props.keytipBuffer)
+})
+
 function handleMainClick() {
   if (props.disabled) return
   emit('execute', props.command)
 }
 
+function toggleMenu() {
+  if (props.disabled) return
+  dropdownOpen.value = !dropdownOpen.value
+}
+
 function handleOptionClick(opt: { id: string; command: string }) {
+  if (props.disabled) return
   dropdownOpen.value = false
   emit('execute', opt.command)
 }

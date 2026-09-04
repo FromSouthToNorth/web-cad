@@ -351,6 +351,37 @@ export function useLayers(editor: AcApDocManager) {
   }
 
   /**
+   * Turns every layer off except the current layer.
+   *
+   * @returns `true` when the operation succeeds.
+   */
+  function setAllLayersOffExceptCurrent() {
+    return getLayerStore()?.setAllLayersOffExceptCurrent() ?? false
+  }
+
+  /**
+   * Freezes or thaws every layer.
+   *
+   * The current layer can never be frozen and is skipped by the store.
+   *
+   * @param isFrozen - `true` to freeze all layers; `false` to thaw all.
+   * @returns `true` when the operation succeeds.
+   */
+  function setAllLayersFrozen(isFrozen: boolean) {
+    return getLayerStore()?.setAllLayersFrozen(isFrozen) ?? false
+  }
+
+  /**
+   * Locks or unlocks every layer.
+   *
+   * @param isLocked - `true` to lock all layers; `false` to unlock all.
+   * @returns `true` when the operation succeeds.
+   */
+  function setAllLayersLocked(isLocked: boolean) {
+    return getLayerStore()?.setAllLayersLocked(isLocked) ?? false
+  }
+
+  /**
    * Assigns a new color to a layer.
    *
    * @param layerName - Layer table record name.
@@ -488,6 +519,12 @@ export function useLayers(editor: AcApDocManager) {
     isolateLayer,
     /** Turns all layers on. See {@link setAllLayersOn}. */
     setAllLayersOn,
+    /** Turns all layers off except the current one. See {@link setAllLayersOffExceptCurrent}. */
+    setAllLayersOffExceptCurrent,
+    /** Freezes or thaws every layer. See {@link setAllLayersFrozen}. */
+    setAllLayersFrozen,
+    /** Locks or unlocks every layer. See {@link setAllLayersLocked}. */
+    setAllLayersLocked,
     /** Captures current layer states for undo/previous. See {@link captureLayerSnapshot}. */
     captureLayerSnapshot,
     /** Restores a captured layer snapshot. See {@link applyLayerSnapshot}. */

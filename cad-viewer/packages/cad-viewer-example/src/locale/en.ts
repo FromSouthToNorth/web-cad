@@ -62,6 +62,9 @@ export default {
   shell: {
     ribbon: {
       fileMenu: 'File',
+      tablist: 'Ribbon tabs',
+      locale: 'Language',
+      command: 'Command: {command}',
       collapse: 'Collapse ribbon',
       expand: 'Expand ribbon',
       undo: 'Undo',
@@ -180,6 +183,13 @@ export default {
         units: 'Drawing Units…',
         about: 'About',
         quit: 'Quit'
+      },
+      qat: {
+        qnew: 'New',
+        open: 'Open',
+        qsave: 'Save',
+        undo: 'Undo',
+        redo: 'Redo'
       }
     },
     propertyBar: {
@@ -211,6 +221,12 @@ export default {
       allOn: 'Turn all layers on',
       isolate: 'Isolate layer',
       currentLayer: 'Current: {name}',
+      hideLayer: 'Hide layer {name}',
+      showLayer: 'Show layer {name}',
+      freezeLayer: 'Freeze layer {name}',
+      thawLayer: 'Thaw layer {name}',
+      lockLayer: 'Lock layer {name}',
+      unlockLayer: 'Unlock layer {name}',
       colOn: 'On',
       colFrozen: 'Frozen',
       colLocked: 'Locked',

@@ -62,6 +62,9 @@ export default {
   shell: {
     ribbon: {
       fileMenu: '文件',
+      tablist: '功能区选项卡',
+      locale: '语言',
+      command: '命令：{command}',
       collapse: '折叠功能区',
       expand: '展开功能区',
       undo: '撤销',
@@ -180,6 +183,13 @@ export default {
         units: '图形单位…',
         about: '关于',
         quit: '退出'
+      },
+      qat: {
+        qnew: '新建',
+        open: '打开',
+        qsave: '保存',
+        undo: '撤销',
+        redo: '重做'
       }
     },
     propertyBar: {
@@ -211,6 +221,12 @@ export default {
       allOn: '全部打开',
       isolate: '隔离图层',
       currentLayer: '当前：{name}',
+      hideLayer: '隐藏图层 {name}',
+      showLayer: '显示图层 {name}',
+      freezeLayer: '冻结图层 {name}',
+      thawLayer: '解冻图层 {name}',
+      lockLayer: '锁定图层 {name}',
+      unlockLayer: '解锁图层 {name}',
       colOn: '开',
       colFrozen: '冻结',
       colLocked: '锁定',

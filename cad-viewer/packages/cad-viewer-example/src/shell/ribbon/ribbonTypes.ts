@@ -83,6 +83,8 @@ export interface RibbonTabDef {
   title: string
   panels: RibbonPanelDef[]
   contextual?: RibbonContextualConfig
+  /** Alt-key keytip (e.g. 'H' for Home), shown while keytips are active. */
+  keyTip?: string
 }
 
 // ── QAT (Quick Access Toolbar) ───────────────────────────────────────

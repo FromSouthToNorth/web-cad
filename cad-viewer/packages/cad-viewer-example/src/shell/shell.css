@@ -41,10 +41,6 @@
   flex-direction: column;
 }
 
-.antd-ribbon.is-collapsed .antd-ribbon-panels {
-  display: none;
-}
-
 /* ── QAT row ─────────────────────────────────────────────────── */
 
 .antd-ribbon-qat-row {
@@ -80,6 +76,10 @@
   background: var(--ml-theme-bg-hover);
 }
 
+.antd-qat-app-btn:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ml-theme-primary) 14%, transparent);
+}
+
 .antd-qat-app-icon {
   display: flex;
   align-items: center;
@@ -105,7 +105,7 @@
   background: transparent;
   color: var(--ml-theme-text-secondary);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 16px;
   transition:
     background-color var(--ml-motion-fast),
     color var(--ml-motion-fast);
@@ -114,6 +114,11 @@
 .antd-qat-btn:hover {
   background: var(--ml-theme-bg-hover);
   color: var(--ml-theme-text-primary);
+}
+
+.antd-qat-btn:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ml-theme-primary) 14%, transparent);
+  color: var(--ml-theme-primary);
 }
 
 .antd-qat-btn:disabled {
@@ -178,6 +183,9 @@
 }
 
 .antd-ribbon-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ml-space-1);
   border: none;
   background: transparent;
   padding: 0 var(--ml-space-3);
@@ -192,6 +200,10 @@
     border-color var(--ml-motion-fast),
     background-color var(--ml-motion-fast);
   position: relative;
+}
+
+.antd-ribbon-tab:active:not(.is-active) {
+  color: var(--ml-theme-text-primary);
 }
 
 .antd-ribbon-tab:hover {
@@ -214,6 +226,55 @@
   height: 3px;
   background: var(--tab-context-color, var(--ml-theme-primary));
   border-radius: 0 0 2px 2px;
+}
+
+/* ── keytip badges (Alt-key navigation, AutoCAD style) ────────── */
+
+.antd-ribbon-keytip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--ml-theme-text-secondary);
+  background: var(--ml-theme-bg-surface);
+  border: 1px solid var(--ml-theme-border);
+  border-radius: var(--ml-radius-xs);
+  pointer-events: none;
+}
+
+.antd-ribbon-keytip.is-pending {
+  color: var(--ml-theme-primary);
+  border-color: var(--ml-theme-primary);
+  background: color-mix(
+    in srgb,
+    var(--ml-theme-primary) 10%,
+    var(--ml-theme-bg-surface)
+  );
+}
+
+/* Badges overlay the button's bottom-right corner (above the dropdown
+ * arrow strip on split buttons). */
+.antd-ribbon-button--large,
+.antd-ribbon-dropdown {
+  position: relative;
+}
+
+.antd-ribbon-button--large .antd-ribbon-keytip {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+}
+
+.antd-ribbon-dropdown .antd-ribbon-keytip {
+  position: absolute;
+  right: 2px;
+  bottom: 13px;
 }
 
 /* ── property bar (embedded in the Properties panel) ─────────── */
@@ -249,32 +310,200 @@
   color: var(--ml-theme-text-muted) !important;
 }
 
-/* Layer select lives in the Layer panel, beside the layer tools */
-.antd-layer-select {
-  align-self: center;
-  min-width: 140px !important;
-}
+/* ── layer quick picker (ribbon Layer panel) ───────────────────── */
 
-/* Layer option with color dot */
-.antd-layer-select-option {
+.antd-layer-select-trigger {
   display: flex;
   align-items: center;
   gap: 6px;
+  align-self: center;
+  height: 32px;
+  min-width: 220px;
+  max-width: 260px;
+  padding: 0 var(--ml-space-1) 0 var(--ml-space-2);
+  border: 1px solid var(--ml-theme-border);
+  border-radius: var(--ml-radius-sm);
+  background: var(--ml-theme-bg-base);
+  color: var(--ml-theme-text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    border-color var(--ml-motion-fast),
+    background-color var(--ml-motion-fast);
 }
 
-/* Shared color dot (layer options + color menu items) */
+.antd-layer-select-trigger:hover:not(.is-disabled) {
+  border-color: var(--ml-theme-primary);
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-layer-select-trigger.is-disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.antd-layer-select-trigger-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.antd-layer-select-trigger-arrow {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--ml-theme-text-muted);
+}
+
+/* State steppers inside the trigger */
+.antd-layer-select-trigger-states {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.antd-layer-select-trigger .antd-layer-select-state {
+  width: 26px;
+  height: 26px;
+  font-size: 18px;
+}
+
+.antd-layer-select-trigger .antd-layer-select-state svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Dropdown popup: search on top, scrollable layer rows below */
+.antd-layer-select-menu {
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  max-width: 300px;
+  padding: var(--ml-space-1);
+  background: var(--ml-theme-bg-surface);
+  border: 1px solid var(--ml-theme-border);
+  border-radius: var(--ml-radius-md);
+  box-shadow: var(--ml-shadow-float);
+}
+
+.antd-layer-select-search {
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.antd-layer-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-height: 224px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.antd-layer-select-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ml-space-1);
+  padding-right: var(--ml-space-1);
+  border-radius: var(--ml-radius-sm);
+}
+
+.antd-layer-select-row:hover {
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-layer-select-row.is-current {
+  background: color-mix(in srgb, var(--ml-theme-primary) 10%, transparent);
+}
+
+.antd-layer-select-row-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  padding: 0 var(--ml-space-1);
+  border: none;
+  border-radius: var(--ml-radius-sm);
+  background: transparent;
+  color: var(--ml-theme-text-primary);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.antd-layer-select-row.is-current .antd-layer-select-row-main {
+  font-weight: 600;
+  color: var(--ml-theme-primary);
+}
+
+.antd-layer-select-row-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.antd-layer-select-states {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+/* 24×24 icon button; active state (hidden/frozen/locked) highlights in
+ * the theme primary color, normal state stays muted. */
+.antd-layer-select-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--ml-radius-xs);
+  background: transparent;
+  color: var(--ml-theme-text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  transition:
+    background-color var(--ml-motion-fast),
+    color var(--ml-motion-fast);
+}
+
+.antd-layer-select-state:hover {
+  background: var(--ml-theme-bg-hover);
+  color: var(--ml-theme-text-primary);
+}
+
+.antd-layer-select-state.is-active {
+  color: var(--ml-theme-primary);
+  background: color-mix(in srgb, var(--ml-theme-primary) 10%, transparent);
+}
+
+.antd-layer-select-state svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* CAD layer SVGs (freeze/thaw) omit fill, which defaults to black and
+ * vanishes on dark backgrounds — inherit the button's text colour. */
+.antd-layer-select-state svg path:not([fill]),
+.antd-layer-select-state svg rect:not([fill]),
+.antd-layer-select-state svg circle:not([fill]) {
+  fill: currentColor;
+}
+
+/* Shared color dot (layer rows + color menu items) */
 .antd-property-bar-color-dot {
   width: 10px;
   height: 10px;
   border-radius: var(--ml-radius-xs);
   flex-shrink: 0;
   border: 1px solid var(--ml-theme-border);
-}
-
-.antd-layer-select-option-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .antd-property-bar-linetype {
@@ -446,12 +675,21 @@
 
 /* ── panel area ──────────────────────────────────────────────── */
 
+/* Height is animated from the component (collapse keeps the panels
+ * mounted so quick property controls retain state); `inert` removes the
+ * collapsed region from tab order and AT trees. */
 .antd-ribbon-panels {
+  overflow: hidden;
+  transition: height var(--ml-motion-base) ease;
+}
+
+.antd-ribbon-panels-inner {
   display: flex;
   align-items: stretch;
-  min-height: 88px;
-  padding: var(--ml-space-1) var(--ml-space-2) 0;
+  min-height: 0;
   overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 var(--ml-space-2);
   scrollbar-width: thin;
 }
 
@@ -461,7 +699,7 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  padding: 0 var(--ml-space-2);
+  padding: var(--ml-space-1) var(--ml-space-2) 0;
   border-right: 1px solid var(--ml-theme-border-subtle);
 }
 
@@ -512,6 +750,10 @@ button.antd-ribbon-panel-title--dropdown:hover {
   color: var(--ml-theme-text-secondary);
 }
 
+button.antd-ribbon-panel-title--dropdown:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ml-theme-primary) 14%, transparent);
+}
+
 button.antd-ribbon-panel-title--dropdown:disabled {
   opacity: 0.4;
   cursor: default;
@@ -553,13 +795,17 @@ button.antd-ribbon-panel-title--dropdown:disabled {
   background: var(--ml-theme-bg-hover);
 }
 
+.antd-ribbon-button--large:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ml-theme-primary) 14%, transparent);
+}
+
 .antd-ribbon-button--large:disabled {
   opacity: 0.4;
   cursor: default;
 }
 
 .antd-ribbon-button--large .antd-ribbon-button-icon {
-  font-size: 20px;
+  font-size: 24px;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -569,8 +815,8 @@ button.antd-ribbon-panel-title--dropdown:disabled {
 
 /* SVG icons need explicit sizing */
 .antd-ribbon-button--large .antd-ribbon-button-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
 /* ── SVG icon theme adaptation ─────────────────────────────────
@@ -631,7 +877,7 @@ button.antd-ribbon-panel-title--dropdown:disabled {
   max-width: 46px;
 }
 
-/* Small button: 24×24 icon only */
+/* Small button: 24×24 icon only (16px icon, AutoCAD small size) */
 .antd-ribbon-button--small {
   display: flex;
   align-items: center;
@@ -643,7 +889,7 @@ button.antd-ribbon-panel-title--dropdown:disabled {
   background: transparent;
   color: var(--ml-theme-text-secondary);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
   transition:
     background-color var(--ml-motion-fast),
     color var(--ml-motion-fast);
@@ -654,13 +900,18 @@ button.antd-ribbon-panel-title--dropdown:disabled {
   color: var(--ml-theme-text-primary);
 }
 
+.antd-ribbon-button--small:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ml-theme-primary) 14%, transparent);
+  color: var(--ml-theme-primary);
+}
+
 .antd-ribbon-button--small:disabled {
   opacity: 0.4;
   cursor: default;
 }
 
 .antd-ribbon-button--small .antd-ribbon-button-icon {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -668,8 +919,8 @@ button.antd-ribbon-panel-title--dropdown:disabled {
 }
 
 .antd-ribbon-button--small .antd-ribbon-button-icon svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 /* ── dropdown button ─────────────────────────────────────────── */
@@ -695,7 +946,12 @@ button.antd-ribbon-panel-title--dropdown:disabled {
   background: var(--ml-theme-bg-hover);
 }
 
-.antd-ribbon-dropdown.is-disabled {
+.antd-ribbon-dropdown:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ml-theme-primary) 14%, transparent);
+}
+
+.antd-ribbon-dropdown.is-disabled,
+.antd-ribbon-dropdown:disabled {
   opacity: 0.4;
   cursor: default;
 }
@@ -711,7 +967,7 @@ button.antd-ribbon-panel-title--dropdown:disabled {
 }
 
 .antd-ribbon-dropdown-icon {
-  font-size: 20px;
+  font-size: 24px;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -720,8 +976,8 @@ button.antd-ribbon-panel-title--dropdown:disabled {
 }
 
 .antd-ribbon-dropdown-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
 .antd-ribbon-dropdown-label {
@@ -797,6 +1053,14 @@ button.antd-ribbon-panel-title--dropdown:disabled {
 
 /* ── enhanced tooltip ────────────────────────────────────────── */
 
+/* Host keeps tooltips working on disabled buttons. It must be a real box
+ * (inline-flex, not display: contents): rc-trigger measures the trigger's
+ * bounding rect, which is empty for a display: contents element and would
+ * pin the tooltip to the viewport's top-left corner. */
+.antd-ribbon-tooltip-host {
+  display: inline-flex;
+}
+
 .antd-ribbon-tooltip {
   display: flex;
   align-items: baseline;
@@ -814,6 +1078,12 @@ button.antd-ribbon-panel-title--dropdown:disabled {
   opacity: 0.7;
 }
 
+.antd-ribbon-tooltip-command {
+  padding-top: 2px;
+  font-size: 11px;
+  color: var(--ml-theme-text-muted);
+}
+
 /* ── siders / panels ─────────────────────────────────────────── */
 
 /* Keyboard focus visibility for the shell's custom buttons
@@ -826,6 +1096,9 @@ button.antd-ribbon-panel-title--dropdown:disabled {
 .antd-ribbon-dropdown:focus-visible,
 .antd-ribbon-dropdown-option:focus-visible,
 .antd-ribbon-panel-title--dropdown:focus-visible,
+.antd-layer-select-trigger:focus-visible,
+.antd-layer-select-row-main:focus-visible,
+.antd-layer-select-state:focus-visible,
 .antd-property-bar-swatch:focus-visible,
 .antd-property-bar-color-item:focus-visible,
 .antd-status-layout-tab:focus-visible {

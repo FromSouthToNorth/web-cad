@@ -12,10 +12,13 @@
           :label="labelFor(item.id, item.label)"
           :options="item.options"
           :disabled="props.disabled"
+          :key-tip="item.keyTip"
+          :keytip-active="props.keytipActive"
+          :keytip-buffer="props.keytipBuffer"
           @execute="handleExecute"
         />
 
-        <!-- Simple button -->
+        <!-- Simple button; span host keeps the tooltip working while disabled -->
         <a-tooltip
           v-else
           placement="bottom"
@@ -30,26 +33,40 @@
                 ({{ item.keyTip }})
               </span>
             </div>
+            <div v-if="item.command" class="antd-ribbon-tooltip-command">
+              {{ t('shell.ribbon.command', { command: item.command }) }}
+            </div>
           </template>
-          <button
-            type="button"
-            :class="[
-              'antd-ribbon-button',
-              `antd-ribbon-button--${item.size ?? 'large'}`
-            ]"
-            :disabled="props.disabled"
-            @click="handleExecute(item.command)"
-          >
-            <span class="antd-ribbon-button-icon">
-              <component :is="item.icon" />
-            </span>
-            <span
-              v-if="(item.size ?? 'large') === 'large'"
-              class="antd-ribbon-button-label"
+          <span class="antd-ribbon-tooltip-host">
+            <button
+              type="button"
+              :class="[
+                'antd-ribbon-button',
+                `antd-ribbon-button--${item.size ?? 'large'}`
+              ]"
+              :disabled="props.disabled"
+              :aria-keyshortcuts="item.keyTip ? `Alt+${item.keyTip}` : undefined"
+              @click="handleExecute(item.command)"
             >
-              {{ labelFor(item.id, item.label) }}
-            </span>
-          </button>
+              <span class="antd-ribbon-button-icon">
+                <component :is="item.icon" />
+              </span>
+              <span
+                v-if="(item.size ?? 'large') === 'large'"
+                class="antd-ribbon-button-label"
+              >
+                {{ labelFor(item.id, item.label) }}
+              </span>
+              <span
+                v-if="keytipShown(item)"
+                class="antd-ribbon-keytip"
+                :class="{ 'is-pending': keytipPending(item) }"
+                aria-hidden="true"
+              >
+                {{ item.keyTip }}
+              </span>
+            </button>
+          </span>
         </a-tooltip>
       </template>
     </div>
@@ -104,13 +121,17 @@ import { DownOutlined } from '@ant-design/icons-vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { RibbonItemDef } from './ribbonTypes'
 import AntdDropdownButton from './AntdDropdownButton.vue'
+import type { RibbonItemDef } from './ribbonTypes'
 
 const props = defineProps<{
   title: string
   items: RibbonItemDef[]
   disabled?: boolean
+  /** Keytip badges visible (ribbon keytip mode, level 2). */
+  keytipActive?: boolean
+  /** Partial keytip typed so far, for prefix highlighting. */
+  keytipBuffer?: string
 }>()
 
 const emit = defineEmits<{
@@ -136,6 +157,17 @@ const overflowItems = computed(() =>
 function labelFor(id: string, fallback: string): string {
   const key = `shell.ribbon.button.${id}`
   return te(key) ? t(key) : fallback
+}
+
+// ── keytip badges ────────────────────────────────────────────────────
+
+function keytipShown(item: RibbonItemDef): boolean {
+  return props.keytipActive === true && item.keyTip !== undefined
+}
+
+function keytipPending(item: RibbonItemDef): boolean {
+  if (!props.keytipBuffer) return false
+  return (item.keyTip ?? '').toLowerCase().startsWith(props.keytipBuffer)
 }
 
 function handleExecute(command: string) {

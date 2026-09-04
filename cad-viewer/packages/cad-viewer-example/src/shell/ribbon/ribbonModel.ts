@@ -26,11 +26,11 @@ import {
   PictureOutlined,
   RedoOutlined,
   ReloadOutlined,
+  RobotFilled,
   RotateRightOutlined,
   SaveOutlined,
   SearchOutlined,
   SwapOutlined,
-  RobotFilled,
   ToolOutlined,
   UndoOutlined,
   UnlockOutlined
@@ -65,14 +65,14 @@ import {
   iconLayerUnisolate,
   iconLine,
   iconMeasureAngle,
-  iconMeasureArea,
   iconMeasureArc,
+  iconMeasureArea,
   iconMeasureDistance,
   iconMeasurePoint,
   iconMline,
   iconMove,
-  iconMultiPoints,
   iconMtext,
+  iconMultiPoints,
   iconOffset,
   iconPan,
   iconPolygon,
@@ -127,6 +127,7 @@ function dropdown(
 export const qatItems: QatItemDef[] = [
   { id: 'qnew', command: 'qnew', icon: FileAddOutlined, label: 'New' },
   { id: 'open', command: 'open', icon: FolderOpenOutlined, label: 'Open' },
+  { id: 'qsave', command: 'qsave', icon: SaveOutlined, label: 'Save' },
   { id: 'undo', command: 'undo', icon: UndoOutlined, label: 'Undo' },
   { id: 'redo', command: 'redo', icon: RedoOutlined, label: 'Redo' }
 ]
@@ -327,26 +328,31 @@ export const ribbonTabs: RibbonTabDef[] = [
   {
     id: 'home',
     title: 'Home',
+    keyTip: 'H',
     panels: [drawPanel, modifyPanel, annotationPanel, layerPanel, propertiesPanel, utilitiesPanel]
   },
   {
     id: 'insert',
     title: 'Insert',
+    keyTip: 'I',
     panels: [insertPanel]
   },
   {
     id: 'review',
     title: 'Review',
+    keyTip: 'R',
     panels: [markupPanel]
   },
   {
     id: 'measure',
     title: 'Measure',
+    keyTip: 'M',
     panels: [measurePanel]
   },
   {
     id: 'view',
     title: 'View',
+    keyTip: 'V',
     panels: [viewPanel]
   }
 ]

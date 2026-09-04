@@ -252,26 +252,33 @@ for t in list(msp.query("TEXT")):
 for e in list(msp.query("LWPOLYLINE POLYLINE")):
     attribs = common_attribs(e)
     try:
-        p = path.make_path(e)
-        segs = flatten_path_to_lines(p)
-    except Exception:
-        # 退化方案: 直接按顶点连线
         if e.dxftype() == "LWPOLYLINE":
-            pts = [Vec3(pt[0], pt[1], 0) for pt in e.get_points("xy")]
-            closed = e.closed
+            segs = lwpolyline_straight_segments(e)
         else:
-            pts = [v.dxf.location for v in e.vertices]
-            closed = e.is_closed
-        if closed and pts:
-            pts.append(pts[0])
-        segs = [(a, b) for a, b in zip(pts, pts[1:]) if not a.isclose(b, abs_tol=EPS)]
+            segs = polyline_straight_segments(e)
+    except Exception:
+        segs = None
+    if segs is None:
+        try:
+            p = path.make_path(e)
+            segs = flatten_path_to_lines(p)
+        except Exception:
+            # 退化方案: 直接按顶点连线
+            ...
     for a, b in segs:
         msp.add_line(a, b, dxfattribs=dict(attribs))
-    msp.delete_entity(e)
+    doomed.append(e)
 ```
 
 - 查询所有 `LWPOLYLINE`(轻量多段线)和 `POLYLINE`(旧式多段线)
-- 优先使用 `path.make_path` 创建路径对象,调用 `flatten_path_to_lines` 离散为直线段(弦高误差 ≤ 0.05)
+- 优先走快速路径直接按顶点连线(`lwpolyline_straight_segments` / `polyline_straight_segments`):
+  - `LWPOLYLINE`:全部顶点无凸度时直接返回线段,有凸度返回 `None`
+  - `POLYLINE` 3D 多段线:按顶点顺序连线
+  - `POLYLINE` 2D 样条拟合(flags & 4):**只取 flag & 8 的样条顶点**,框架控制点(flag & 16)是 B 样条数据不是几何,必须剔除(详见 `docs/03-缺陷修复与功能改造/样条拟合多段线打散重叠直线修复总结.md`)
+  - `POLYLINE` 2D 曲线拟合(flags & 2):返回 `None` 走慢速路径
+  - `POLYLINE` 2D 普通:顶点无凸度时直接连线,有凸度返回 `None`
+  - 多面网格等:返回 `None`
+- 快速路径不可用时走慢速路径:`path.make_path` 创建路径对象,调用 `flatten_path_to_lines` 离散为直线段(弦高误差 ≤ 0.05)
 - 若路径创建失败,退化方案:
   - `LWPOLYLINE`:提取顶点 XY 坐标,构造 `Vec3`
   - `POLYLINE`:提取 `vertices` 的 `location`
@@ -281,12 +288,13 @@ for e in list(msp.query("LWPOLYLINE POLYLINE")):
 - 删除原多段线
 
 **目的**:
-- 多段线包含弧段、凸度等复杂信息,前端解析复杂
+- 多段线包含弧段、凸度、样条拟合等复杂信息,前端解析复杂
 - 打散为直线段后,前端只需处理 `LINE` 实体
 
 **实现细节**:
 - `flatten_path_to_lines` 会将圆弧、样条曲线离散为直线段,弦高误差控制在 0.05
 - 闭合多段线会补回起点,保证首尾相接
+- 样条拟合多段线的样条顶点为等间隔采样(每边 8 点),首尾间留有约 1/8 边长的采样缺口,闭合补回的弦段近似该段真实 B 样条弧,弦高误差可忽略
 
 ### 2.11 阶段 10:删除短线段
 
@@ -634,8 +642,9 @@ MAX_EXPLODE_DEPTH = 32           # 块递归打散最大层数
 3. **直线快速路径**:
    - HATCH 边界全为直线时(`PolylinePath` 无凸度 / `EdgePath` 全为 `LineEdge`)直接生成 LINE,
      跳过 `path.from_hatch` + `flattening` 的曲线离散流程
-   - LWPOLYLINE 无凸度、POLYLINE 无凸度且无曲线/样条拟合时,直接按顶点连线,跳过 `path.make_path`
-   - 矿山图纸实测 100% 命中快速路径
+   - LWPOLYLINE 无凸度、POLYLINE 无凸度且无曲线拟合时直接按顶点连线,跳过 `path.make_path`;
+     样条拟合 POLYLINE(flags & 4)也走快速路径,只取 flag & 8 样条顶点(框架控制点不是几何)
+   - 矿山图纸实测几乎全部命中快速路径
 
 4. **块打散循环**:
    - 每轮只做一次 `msp.query("INSERT")` 全扫描,打散失败的句柄记入 `failed` 集合不再重试

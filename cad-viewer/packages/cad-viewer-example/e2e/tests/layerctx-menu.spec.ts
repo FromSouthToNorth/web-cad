@@ -1,6 +1,7 @@
-import { expect, test, type Page } from '@playwright/test'
-import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+import { expect, type Locator, type Page,test } from '@playwright/test'
 
 import { uploadFixture } from '../helpers/fileUpload'
 
@@ -81,10 +82,13 @@ async function waitForPickableLine(page: Page) {
       async () => {
         await rightClickCanvasCenter(page)
         await page.waitForTimeout(300)
-        const opened = (await page.locator(MENU).count()) > 0
-        if (opened) {
-          await page.keyboard.press('Escape')
-        }
+        // The object menu (with its title) only opens once the line was
+        // picked; an unpicked empty-canvas right-click shows the navigation
+        // menu instead, which must not count as "pickable".
+        const opened = (await page.locator(MENU_TITLE).count()) > 0
+        // Always dismiss whichever menu opened: it sits under the cursor, so
+        // the next right-click would hit the menu itself and never re-pick.
+        await page.keyboard.press('Escape')
         return opened
       },
       { timeout: 60_000 }
@@ -176,6 +180,11 @@ test('右键菜单：结构/键盘导航 + 复制/移动/缩放执行后保留�
   await expect(items.nth(5)).toContainText('Deselect All')
   await expect(items.nth(6)).toContainText('Delete')
   await expect(items.nth(6)).toHaveClass(/ml-layerctx-menu__item--danger/)
+  // AutoCAD-style mnemonic underlines on the access-key letters.
+  await expect(items.nth(0).locator('u')).toHaveText('C')
+  await expect(items.nth(1).locator('u')).toHaveText('M')
+  await expect(items.nth(3).locator('u')).toHaveText('R')
+  await expect(items.nth(6).locator('u')).toHaveText('e')
 
   // --- keyboard navigation: open focuses first item; arrows/Home move focus ---
   const focusedText = () =>
@@ -244,12 +253,17 @@ test('右键菜单：结构/键盘导航 + 复制/移动/缩放执行后保留�
   await page.waitForTimeout(500)
   await expectMenuForSelection(page, 1)
 
-  // --- 快捷键取消选择：关闭菜单并清空选择 ---
+  // --- 快捷键取消选择：Esc 关闭菜单，再次 Esc 清空选择；空选中右键弹出导航菜单 ---
   await rightClickEmptyCorner(page)
   await expect(page.locator(MENU)).toBeVisible()
-  await page.keyboard.press('Control+Shift+KeyA')
+  await page.keyboard.press('Escape')
   await expect(page.locator(MENU)).toHaveCount(0)
+  await page.keyboard.press('Escape')
   await rightClickEmptyCorner(page)
+  await expect(page.locator(MENU)).toBeVisible()
+  await expect(page.locator(MENU_TITLE)).toHaveCount(0)
+  await expect(page.locator(MENU_ITEM).filter({ hasText: 'Pan' })).toHaveCount(1)
+  await page.keyboard.press('Escape')
   await expect(page.locator(MENU)).toHaveCount(0)
 })
 
@@ -282,5 +296,166 @@ test('右键缩放：拖动时实时预览随光标更新', async ({ page }) => 
   await page.keyboard.type('2')
   await page.keyboard.press('Enter')
   
+  await expectMenuForSelection(page, 1)
+})
+
+test('快捷键：AutoCAD 风格单键直接触发命令，输入框内照常打字', async ({
+  page
+}) => {
+  await loadFixtureLine(page)
+  await waitForPickableLine(page)
+
+  // Select the line, then dismiss the menu (selection is retained).
+  await rightClickCanvasCenter(page)
+  await expect(page.locator(MENU)).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.locator(MENU)).toHaveCount(0)
+
+  // Bare `M` starts MOVE on the selection (AutoCAD alias style, no chord).
+  await page.keyboard.press('m')
+  await expect(page.locator(CLI_PROMPT)).toContainText('Specify base point')
+  await page.keyboard.press('Escape')
+
+  // While the command line is focused the same key must type text instead.
+  const cliInput = page.locator('.ml-cli-text')
+  await cliInput.click()
+  await page.keyboard.press('m')
+  await expect(cliInput).toHaveValue('m')
+  await page.keyboard.press('Escape')
+  // Canvas mousedown is preventDefaulted by the viewer, so clicking the
+  // canvas never blurs the command line — blur it explicitly instead.
+  await cliInput.blur()
+
+  // Bare `E` erases the selection; the corner right-click then opens the
+  // navigation menu (no selection) instead of the object menu.
+  await page.keyboard.press('e')
+  await page.waitForTimeout(300)
+  await rightClickEmptyCorner(page)
+  await expect(page.locator(MENU)).toBeVisible()
+  await expect(page.locator(MENU_ITEM)).toHaveCount(3) // Repeat / Pan / Zoom
+  await expect(page.locator(MENU_ITEM).first()).toContainText('Repeat')
+  await expect(page.locator(MENU_ITEM).filter({ hasText: 'Pan' })).toHaveCount(1)
+  await page.keyboard.press('Escape')
+  await expect(page.locator(MENU)).toHaveCount(0)
+})
+
+test('右键菜单：颜色随明暗主题切换', async ({ page }) => {
+  await loadFixtureLine(page)
+
+  // The navigation menu (empty-canvas right-click) uses the same themed
+  // stylesheet as the object menu, and opening it needs no entity pick — so
+  // this test is immune to render contention under parallel workers.
+  const openMenuColors = async () => {
+    await expect
+      .poll(
+        async () => {
+          await rightClickEmptyCorner(page)
+          return (await page.locator(MENU).count()) > 0
+        },
+        { timeout: 30_000 }
+      )
+      .toBe(true)
+    const menu: Locator = page.locator(MENU)
+    await expect(menu).toBeVisible()
+    const colors = await menu.evaluate(el => {
+      const style = getComputedStyle(el)
+      return { bg: style.backgroundColor, text: style.color }
+    })
+    await page.keyboard.press('Escape')
+    await expect(menu).toHaveCount(0)
+    return colors
+  }
+
+  const before = await openMenuColors()
+  const wasDark = await page.evaluate(() =>
+    document.documentElement.classList.contains('dark')
+  )
+
+  // Status-bar theme toggle switches the shell theme.
+  await page.locator('.antd-status-toggle:has(.anticon-bg-colors)').click()
+  await expect(page.locator('html')).toHaveClass(wasDark ? /^(?!.*\bdark\b)/ : /\bdark\b/)
+
+  const after = await openMenuColors()
+
+  const light = wasDark ? after : before
+  const dark = wasDark ? before : after
+  expect(light.bg).toBe('rgb(255, 255, 255)')
+  expect(light.text).toBe('rgb(48, 49, 51)')
+  expect(dark.bg).toBe('rgb(29, 30, 31)')
+  expect(dark.text).toBe('rgb(229, 234, 243)')
+})
+
+test('重复上次命令：置顶显示、可一键重跑；无选中时弹出导航菜单', async ({
+  page
+}) => {
+  await loadFixtureLine(page)
+  await waitForPickableLine(page)
+
+  // Nothing executed yet: no repeat entry in the object menu.
+  await rightClickCanvasCenter(page)
+  await expect(page.locator(MENU_ITEM)).toHaveCount(7)
+  await page.keyboard.press('Escape')
+
+  // Run Move through the menu; it becomes the last command.
+  await rightClickCanvasCenter(page)
+  await page.locator(MENU_ITEM).filter({ hasText: 'Move' }).click()
+  await expect(page.locator(CLI_PROMPT)).toContainText('Specify base point')
+  {
+    const box = await canvasBox(page)
+    await page.mouse.click(box.x + box.width * 0.4, box.y + box.height / 2)
+    await page.mouse.click(
+      box.x + box.width * 0.4,
+      box.y + box.height / 2 + 60
+    )
+  }
+
+  // The object menu now leads with "Repeat Move" (8 items total).
+  await rightClickCanvasCenter(page)
+  const items = page.locator(MENU_ITEM)
+  await expect(items).toHaveCount(8)
+  await expect(items.nth(0)).toContainText('Repeat Move')
+  await expect(items.nth(2).locator('u')).toHaveText('M')
+  await page.keyboard.press('Escape')
+
+  // Clear the selection: the empty-canvas right-click now opens the
+  // navigation menu (repeat / pan / zoom), without object ops or a title.
+  await page.keyboard.press('Escape')
+  await rightClickEmptyCorner(page)
+  await expect(page.locator(MENU)).toBeVisible()
+  await expect(page.locator(MENU_TITLE)).toHaveCount(0)
+  await expect(page.locator(MENU_ITEM)).toHaveCount(3)
+  await expect(page.locator(MENU_ITEM).first()).toContainText('Repeat Move')
+  await expect(
+    page.locator(MENU_ITEM).filter({ hasText: 'Pan' })
+  ).toHaveCount(1)
+  await expect(
+    page.locator(MENU_ITEM).filter({ hasText: 'Zoom' })
+  ).toHaveCount(1)
+  await expect(
+    page.locator(MENU_ITEM).filter({ hasText: 'Copy' })
+  ).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await expect(page.locator(MENU)).toHaveCount(0)
+
+  // Re-pick the moved line (60 px below center) and actually re-run through
+  // the repeat item.
+  {
+    const box = await canvasBox(page)
+    await page.mouse.click(
+      box.x + box.width / 2,
+      box.y + box.height / 2 + 60,
+      { button: 'right' }
+    )
+  }
+  await page.locator(MENU_ITEM).first().click()
+  await expect(page.locator(CLI_PROMPT)).toContainText('Specify base point')
+  {
+    const box = await canvasBox(page)
+    await page.mouse.click(box.x + box.width * 0.5, box.y + box.height / 2)
+    await page.mouse.click(
+      box.x + box.width * 0.5,
+      box.y + box.height / 2 - 60
+    )
+  }
   await expectMenuForSelection(page, 1)
 })

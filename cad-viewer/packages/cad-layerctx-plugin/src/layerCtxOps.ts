@@ -27,7 +27,10 @@ export function deleteSelectedEntitiesCtx(): boolean {
   const ids = view.selectionSet.ids
   if (ids.length === 0) return false
 
-  const count = doc.entityService.eraseEntities(ids)
+  let count = 0
+  doc.entityService.runEdit('Delete', () => {
+    count = doc.entityService.eraseEntities(ids)
+  })
   view.selectionSet.clear()
   if (count > 0) {
     showMessage(

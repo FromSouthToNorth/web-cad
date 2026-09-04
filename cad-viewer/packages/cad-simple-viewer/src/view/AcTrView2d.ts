@@ -245,6 +245,16 @@ export class AcTrView2d extends AcEdBaseView {
    * document open.
    */
   private _convertEpoch = 0
+  /**
+   * Running union of converted entity boxes during the current open, used as
+   * the arc tessellation LOD scale reference (see `AcTrRenderContext.arcLodDiagonal`).
+   *
+   * `scene.box` cannot serve this role: the active layout is only selected
+   * after the open completes, so the scene box is empty while the conversion
+   * drain runs. The union box grows monotonically, which keeps the LOD
+   * conservative — early chunks just fall back to the legacy 100 segments.
+   */
+  private _openUnionBox = new THREE.Box3()
   /** Last time progressive open marked the canvas dirty for paint. */
   private _lastProgressivePaintAt = 0
   /** Mid-open WebGL paints while progressive convert was still running. */
@@ -1833,6 +1843,16 @@ export class AcTrView2d extends AcEdBaseView {
   }
 
   /**
+   * Whether the scene already holds converted drawing content. Display-mode
+   * changes (e.g. LWDISPLAY) rebuild the scene only when this is true; while
+   * a document is still opening (entities are event-batched until the final
+   * flush) the scene is empty and flipping the renderer flag suffices.
+   */
+  get hasSceneContent(): boolean {
+    return this._scene.hasContent()
+  }
+
+  /**
    * @inheritdoc
    */
   getEntityVisible(objectId: AcDbObjectId) {
@@ -2084,6 +2104,8 @@ export class AcTrView2d extends AcEdBaseView {
     this._appliedDepthRangeZ = null
     this._lastDepthRangeAutoCheckAt = 0
     this._missedImages.clear()
+    this._renderer.context.arcLodDiagonal = 0
+    this._openUnionBox.makeEmpty()
     this._renderer.dispose()
   }
 
@@ -2596,6 +2618,13 @@ export class AcTrView2d extends AcEdBaseView {
   ) {
     const epoch = this._convertEpoch
     const progressive = this._progressiveRendering && !options.forExport
+    // Keep the arc tessellation LOD scale reference in sync with the running
+    // union of converted entity boxes (scene.box is empty until the active
+    // layout is selected after open). Monotone growth means the ratio only
+    // over-estimates and never under-tessellates a visible primitive.
+    this._renderer.context.arcLodDiagonal = this._openUnionBox.isEmpty()
+      ? 0
+      : this._openUnionBox.min.distanceTo(this._openUnionBox.max)
     // Time-budgeted yields keep the canvas painting during large open chunks
     // (count-based yields alone stall on expensive INSERT / hatch batches).
     // Prefer setTimeout(0) over rAF: waiting a full frame per yield inflated
@@ -2650,6 +2679,9 @@ export class AcTrView2d extends AcEdBaseView {
             for (const directMeta of directMetas) {
               unionBox.union(directMeta.wcsBbox)
             }
+            if (!unionBox.isEmpty()) {
+              this._openUnionBox.union(unionBox)
+            }
             let registerSpatialIndex = true
             for (const directMeta of directMetas) {
               const appended = this._scene.addDirectEntity(
@@ -2698,6 +2730,9 @@ export class AcTrView2d extends AcEdBaseView {
           threeEntity.ownerId = entity.ownerId
           threeEntity.layerName = entity.layer
           threeEntity.visible = entity.visibility !== false
+          if (!threeEntity.wcsBbox.isEmpty()) {
+            this._openUnionBox.union(threeEntity.wcsBbox)
+          }
           if (
             threeEntity instanceof AcTrGroup &&
             (threeEntity as AcTrGroup).isOnTheSameLayer

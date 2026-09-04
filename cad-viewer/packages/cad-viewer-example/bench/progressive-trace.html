@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>open progress trace bench</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #111;
+        color: #eee;
+        font-family: monospace;
+      }
+      #bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9;
+        padding: 4px 10px;
+        background: rgba(0, 0, 0, 0.75);
+        font-size: 13px;
+      }
+      #cad-root {
+        position: fixed;
+        inset: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cad-root"></div>
+    <div id="bar">status: initializing…</div>
+    <script type="module" src="/bench/progressive-trace.ts"></script>
+  </body>
+</html>

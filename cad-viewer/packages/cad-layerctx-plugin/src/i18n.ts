@@ -11,6 +11,9 @@ export type LayerCtxMessageKey =
   | 'menuRotate'
   | 'menuOffset'
   | 'menuDeselect'
+  | 'menuPan'
+  | 'menuZoom'
+  | 'menuRepeat'
   | 'menuTitleSelected'
   | 'jigScaleBasePoint'
   | 'jigScaleReferencePoint'
@@ -34,6 +37,9 @@ const MESSAGES: Record<AcApLocale, LayerCtxMessages> = {
     menuRotate: 'Rotate',
     menuOffset: 'Offset',
     menuDeselect: 'Deselect All',
+    menuPan: 'Pan',
+    menuZoom: 'Zoom',
+    menuRepeat: 'Repeat {command}',
     menuTitleSelected: 'Selected: {count} object(s)',
     jigScaleBasePoint: 'Specify base point for scale',
     jigScaleReferencePoint: 'Specify reference length (first point)',
@@ -54,6 +60,9 @@ const MESSAGES: Record<AcApLocale, LayerCtxMessages> = {
     menuRotate: '旋转',
     menuOffset: '偏移',
     menuDeselect: '取消选择',
+    menuPan: '平移',
+    menuZoom: '视图缩放',
+    menuRepeat: '重复 {command}',
     menuTitleSelected: '已选中 {count} 个对象',
     jigScaleBasePoint: '指定缩放基点',
     jigScaleReferencePoint: '指定参考长度（第一点）',
@@ -74,6 +83,9 @@ const MESSAGES: Record<AcApLocale, LayerCtxMessages> = {
     menuRotate: 'Döndür',
     menuOffset: 'Ofsetle',
     menuDeselect: 'Seçimi Kaldır',
+    menuPan: 'Kaydır',
+    menuZoom: 'Yakınlaştır',
+    menuRepeat: '{command} komutunu tekrarla',
     menuTitleSelected: 'Seçili: {count} nesne',
     jigScaleBasePoint: 'Ölçek için taban noktası belirtin',
     jigScaleReferencePoint: 'Referans uzunluğu belirtin (ilk nokta)',
@@ -94,6 +106,9 @@ const MESSAGES: Record<AcApLocale, LayerCtxMessages> = {
     menuRotate: 'Otočit',
     menuOffset: 'Odsadit',
     menuDeselect: 'Zrušit výběr',
+    menuPan: 'Posun',
+    menuZoom: 'Zoom',
+    menuRepeat: 'Opakovat {command}',
     menuTitleSelected: 'Vybráno: {count} objektů',
     jigScaleBasePoint: 'Zadejte základní bod měřítka',
     jigScaleReferencePoint: 'Zadejte referenční délku (první bod)',

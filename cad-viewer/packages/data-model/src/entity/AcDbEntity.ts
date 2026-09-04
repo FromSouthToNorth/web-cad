@@ -422,6 +422,24 @@ export abstract class AcDbEntity extends AcDbObject {
   }
 
   /**
+   * Applies DXF file defaults right after reading this entity from a DXF file.
+   *
+   * Per DXF spec, an entity whose color group (62/420) is absent defaults to
+   * ByLayer (256) — not CECOLOR. CECOLOR only seeds entities created
+   * programmatically (see {@link resolveEffectiveProperties}, mirroring
+   * `AcDbEntity::setDatabaseDefaults`). The DXF entity factory calls this
+   * right after dxfIn so that {@link resolveEffectiveProperties} doesn't bake
+   * CECOLOR into file-loaded entities on append.
+   *
+   * @internal
+   */
+  applyDxfFileDefaults() {
+    if (this._color == null) {
+      this._color = new AcCmColor()
+    }
+  }
+
+  /**
    * Returns whether transparency has been explicitly assigned on this entity.
    */
   protected hasExplicitTransparency() {

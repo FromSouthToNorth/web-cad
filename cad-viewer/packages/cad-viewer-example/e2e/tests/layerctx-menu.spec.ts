@@ -185,6 +185,10 @@ test('右键菜单：结构/键盘导航 + 复制/移动/缩放执行后保留�
   await expect(items.nth(1).locator('u')).toHaveText('M')
   await expect(items.nth(3).locator('u')).toHaveText('R')
   await expect(items.nth(6).locator('u')).toHaveText('e')
+  // Dynamic width: the menu hugs its content instead of a fixed 200px floor.
+  const menuBox = await page.locator(MENU).boundingBox()
+  expect(menuBox).not.toBeNull()
+  expect(menuBox!.width).toBeLessThan(190)
 
   // --- keyboard navigation: open focuses first item; arrows/Home move focus ---
   const focusedText = () =>

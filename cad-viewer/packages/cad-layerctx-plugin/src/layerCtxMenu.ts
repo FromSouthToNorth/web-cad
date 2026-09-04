@@ -213,7 +213,7 @@ function ensureMenuStyle(): void {
   --mlctx-danger-soft: color-mix(in srgb, var(--mlctx-danger) 12%, transparent);
 
   position: fixed;
-  min-width: 200px;
+  width: max-content;
   max-width: 320px;
   padding: 4px;
   background: var(--mlctx-bg);

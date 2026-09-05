@@ -1533,6 +1533,11 @@ button.antd-ribbon-panel-title--dropdown:disabled {
 .antd-cad-canvas-host {
   position: absolute;
   inset: 0;
+  /* Prevent the browser's default touch gestures (scroll, zoom) from
+   * competing with OrbitControls and the canvas selection logic. */
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 /* ── footer / status bar ─────────────────────────────────────── */
@@ -1621,4 +1626,77 @@ button.antd-ribbon-panel-title--dropdown:disabled {
 
 .ml-cad-container .ml-cli-bar {
   height: 30px;
+}
+
+/* ── mobile responsive overrides (≤767px) ─────────────────────────
+ * On narrow viewports the shell collapses the ribbon panels, widens
+ * sider resizer hit-targets, and enlarges touch-sensitive controls to
+ * meet the iOS HIG 44×44 pt minimum.
+ * ─────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  /* Ribbon panels hidden in compact mode (controlled via .is-compact class) */
+  .antd-ribbon.is-compact .antd-ribbon-panels {
+    display: none;
+  }
+
+  /* Mobile floating action bar (replaces hidden ribbon panels) */
+  .antd-ribbon-mobile-actions {
+    display: flex;
+    gap: 4px;
+    padding: 4px 8px;
+    justify-content: flex-end;
+    align-items: center;
+    border-top: 1px solid var(--ml-theme-border-subtle);
+  }
+
+  .antd-mobile-action-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: var(--ml-radius-sm);
+    background: transparent;
+    color: var(--ml-theme-text-primary);
+    font-size: 20px;
+    cursor: pointer;
+    transition: background-color var(--ml-motion-fast);
+  }
+
+  .antd-mobile-action-btn:hover,
+  .antd-mobile-action-btn:active {
+    background: var(--ml-theme-bg-hover);
+  }
+
+  /* Sider resizer: widen the hit-target for fat-finger tolerance */
+  .antd-cad-sider-resizer {
+    width: 12px;
+  }
+
+  .antd-cad-sider-resizer::after {
+    left: 5px;
+    width: 2px;
+  }
+
+  /* Status bar: trim coordinate display width */
+  .antd-status-coords {
+    min-width: auto;
+    padding: 0 var(--ml-space-1);
+    font-size: 11px;
+  }
+
+  /* Ribbon tabs: ensure touch-friendly tab height */
+  .antd-ribbon-tab {
+    min-height: 44px;
+    padding: 0 var(--ml-space-2);
+  }
+
+  /* Ribbon QAT row: tighten spacing */
+  .antd-ribbon-qat-row {
+    height: auto;
+    min-height: 36px;
+    flex-wrap: wrap;
+  }
 }

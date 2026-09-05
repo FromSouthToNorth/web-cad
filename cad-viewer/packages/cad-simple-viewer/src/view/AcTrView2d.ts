@@ -323,9 +323,16 @@ export class AcTrView2d extends AcEdBaseView {
     mergedOptions.container = container
     container.style.overflow = 'hidden'
 
+    // Detect mobile / low-power devices to downgrade rendering quality
+    // and conserve battery. The heuristic (touch + narrow viewport) avoids
+    // false-positives on touch-enabled laptops.
+    const isMobileDevice =
+      'ontouchstart' in window && window.innerWidth < 1024
+
     const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true
+      antialias: !isMobileDevice,
+      alpha: true,
+      powerPreference: 'high-performance'
     })
     container.appendChild(renderer.domElement)
     renderer.domElement.style.display = 'block'
@@ -340,7 +347,12 @@ export class AcTrView2d extends AcEdBaseView {
       this.setCalculateSizeCallback(options.calculateSizeCallback)
     }
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    // Cap pixel ratio lower on mobile to reduce fragment-shader load.
+    renderer.setPixelRatio(
+      isMobileDevice
+        ? Math.min(window.devicePixelRatio, 1.5)
+        : Math.min(window.devicePixelRatio, 2)
+    )
     renderer.setSize(this.width, this.height)
 
     this._renderer = new AcTrRenderer(renderer)
@@ -508,6 +520,111 @@ export class AcTrView2d extends AcEdBaseView {
       selectionStartWcs = null
       selectionStartCanvas = null
     })
+
+    // ── touch selection & long-press (mobile) ──────────────────────
+    // On touch devices, OrbitControls consumes single-finger pan and
+    // two-finger dolly. We detect taps (short press without significant
+    // movement) to trigger entity selection, and long-presses to emit
+    // a context-menu event that the shell can display as a popup.
+    if (isMobileDevice) {
+      let touchStartTime = 0
+      let touchStartPos = { x: 0, y: 0 }
+      let isTouchDragging = false
+      let longPressTimer: ReturnType<typeof setTimeout> | null = null
+
+      const TOUCH_TAP_MAX_DURATION = 300
+      const TOUCH_TAP_MAX_DISTANCE = 10
+      const LONG_PRESS_DURATION = 500
+
+      const clearLongPress = () => {
+        if (longPressTimer !== null) {
+          clearTimeout(longPressTimer)
+          longPressTimer = null
+        }
+      }
+
+      this.canvas.addEventListener(
+        'touchstart',
+        (e: TouchEvent) => {
+          if (e.touches.length !== 1) {
+            clearLongPress()
+            return
+          }
+          touchStartTime = Date.now()
+          touchStartPos = {
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY
+          }
+          isTouchDragging = false
+
+          longPressTimer = setTimeout(() => {
+            if (!isTouchDragging) {
+              const canvas = this.viewportToCanvas(touchStartPos)
+              const wcs = this.screenToWorld(canvas)
+              const picked = this.pick(wcs)
+              if (picked.length > 0) {
+                this.setLastPickedEntityId(picked[0].id)
+                this.applySelection([picked[0].id], 'replace')
+              }
+              this.events.contextMenu.dispatch({
+                screenX: touchStartPos.x,
+                screenY: touchStartPos.y,
+                entityId: picked.length > 0 ? picked[0].id : undefined
+              })
+            }
+          }, LONG_PRESS_DURATION)
+        },
+        { passive: true }
+      )
+
+      this.canvas.addEventListener(
+        'touchmove',
+        (e: TouchEvent) => {
+          if (e.touches.length !== 1) {
+            clearLongPress()
+            return
+          }
+          const dx = e.touches[0].clientX - touchStartPos.x
+          const dy = e.touches[0].clientY - touchStartPos.y
+          if (
+            Math.sqrt(dx * dx + dy * dy) > TOUCH_TAP_MAX_DISTANCE
+          ) {
+            isTouchDragging = true
+            clearLongPress()
+          }
+        },
+        { passive: true }
+      )
+
+      this.canvas.addEventListener(
+        'touchend',
+        (e: TouchEvent) => {
+          clearLongPress()
+          const elapsed = Date.now() - touchStartTime
+          if (
+            elapsed > TOUCH_TAP_MAX_DURATION ||
+            isTouchDragging ||
+            !canHandleSelectionGesture()
+          ) {
+            return
+          }
+          const touch = e.changedTouches[0]
+          const canvas = this.viewportToCanvas({
+            x: touch.clientX,
+            y: touch.clientY
+          })
+          const wcs = this.screenToWorld(canvas)
+          const picked = this.pick(wcs)
+          if (picked.length > 0) {
+            this.setLastPickedEntityId(picked[0].id)
+            this.applySelection([picked[0].id], 'replace')
+          } else {
+            this.selectionSet.clear()
+          }
+        },
+        { passive: true }
+      )
+    }
 
     this.canvas.addEventListener('dblclick', e => {
       if (e.button !== 0) return

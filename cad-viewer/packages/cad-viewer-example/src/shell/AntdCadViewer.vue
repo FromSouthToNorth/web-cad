@@ -5,7 +5,12 @@
     <div ref="layoutRef" class="antd-cad-layout-host">
       <a-layout class="antd-cad-layout">
         <a-layout-header class="antd-cad-header">
-          <AntdRibbon :disabled="!editorReady" />
+          <AntdRibbon
+            :disabled="!editorReady"
+            :compact="narrowViewport"
+            @toggle-layer-panel="toggleLeftPanel"
+            @toggle-theme="emit('toggle-theme')"
+          />
         </a-layout-header>
 
         <a-layout class="antd-cad-body">
@@ -326,6 +331,10 @@ const onLeftTabChange = (key: string | number) => {
 
 const closeLeftPanel = () => {
   store.dialogs.layerManager = false
+}
+
+const toggleLeftPanel = () => {
+  store.dialogs.layerManager = !store.dialogs.layerManager
 }
 
 const closeAgentPanel = () => {

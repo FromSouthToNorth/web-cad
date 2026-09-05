@@ -93,6 +93,12 @@ export default defineConfig(({ command, mode }) => {
       outDir: 'dist',
       modulePreload: false,
       minify: true,
+      // Target ES2020 for modern mobile browsers (saves polyfill bytes
+      // vs the default es2015/es2017 target).
+      target: 'es2020',
+      // Inline assets ≤4 KB as data-URIs to reduce HTTP requests on
+      // high-latency mobile connections.
+      assetsInlineLimit: 4096,
       rollupOptions: {
         input: {
           main: resolve(__dirname, 'index.html')

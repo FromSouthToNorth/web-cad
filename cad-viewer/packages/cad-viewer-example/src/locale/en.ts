@@ -210,7 +210,8 @@ export default {
       lineweight: 'Show lineweights',
       dynamicInput: 'Dynamic input',
       theme: 'Switch theme',
-      fullscreen: 'Fullscreen'
+      fullscreen: 'Fullscreen',
+      zoomExtents: 'Zoom extents'
     },
     layerPanel: {
       searchPlaceholder: 'Search layers',

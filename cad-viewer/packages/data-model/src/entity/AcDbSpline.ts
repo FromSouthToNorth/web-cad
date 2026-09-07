@@ -255,8 +255,8 @@ export class AcDbSpline extends AcDbCurve {
     return null
   }
 
-  /** The underlying geometric spline object */
-  private _geo!: AcGeSpline3d
+  /** Backing for the lazily materialized geometric spline object. */
+  private _geoData: AcGeSpline3d | null = null
   /** Knot tolerance (DXF group 42) */
   private _knotTolerance = 1e-6
   /** Control-point tolerance (DXF group 43) */
@@ -265,6 +265,35 @@ export class AcDbSpline extends AcDbCurve {
   private _fitTolerance = 1e-9
   /** Extrusion / plane normal (DXF group 210) */
   private _normal = new AcGeVector3d(0, 0, 1)
+
+  /**
+   * The underlying geometric spline object. Materialized lazily so that
+   * factory-created entities (dxfIn path) never build a dummy spline.
+   */
+  private get _geo(): AcGeSpline3d {
+    if (this._geoData == null) {
+      const controlPoints = [
+        { x: 0, y: 0, z: 0 },
+        { x: 1, y: 0, z: 0 },
+        { x: 2, y: 0, z: 0 },
+        { x: 3, y: 0, z: 0 }
+      ]
+      const knots = [0, 0, 0, 0, 1, 1, 1, 1]
+      this._geoData =
+        AcGeSpline3d.fromControlPoints(
+          controlPoints,
+          knots,
+          undefined,
+          3,
+          false
+        ) ?? new AcGeSpline3d(controlPoints, knots, undefined, 3, false)
+    }
+    return this._geoData
+  }
+
+  private set _geo(value: AcGeSpline3d) {
+    this._geoData = value
+  }
 
   /**
    * Creates a new spline entity from control points.
@@ -317,6 +346,7 @@ export class AcDbSpline extends AcDbCurve {
    * const spline = new AcDbSpline(fitPoints, AcGeKnotParameterizationType.Uniform);
    * ```
    */
+  constructor()
   constructor(
     fitPoints: AcGePoint3dLike[],
     knotParam: AcGeKnotParameterizationType,
@@ -325,6 +355,9 @@ export class AcDbSpline extends AcDbCurve {
   )
   constructor(a?: unknown, b?: unknown, c?: unknown, d?: unknown, e?: unknown) {
     super()
+    // No-arg construction is the dxfIn factory path: geometry is built by
+    // dxfIn, and the lazy _geo accessor materializes the default on demand.
+    if (a === undefined) return
     this.rebuild(
       a as AcGePoint3dLike[],
       b as number[],

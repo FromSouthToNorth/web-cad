@@ -210,7 +210,8 @@ export default {
       lineweight: '显示线宽',
       dynamicInput: '动态输入',
       theme: '切换主题',
-      fullscreen: '全屏'
+      fullscreen: '全屏',
+      zoomExtents: '缩放至范围'
     },
     layerPanel: {
       searchPlaceholder: '搜索图层',

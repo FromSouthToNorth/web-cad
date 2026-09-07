@@ -353,14 +353,16 @@ export class AcTrBatchedPoint extends AcTrBatchedPointBase {
     const batchGeometry = this.geometry
     const geometryInfo = this._geometryInfo[geometryId]
 
-    applyGeometryAt(
+    const boundsChanged = applyGeometryAt(
       geometryInfo,
       batchGeometry,
       geometry,
       'AcTrBatchedPoint',
       geometryId
     )
-    this.invalidateFrustumBounds()
+    if (boundsChanged) {
+      this.invalidateFrustumBounds()
+    }
 
     return geometryId
   }

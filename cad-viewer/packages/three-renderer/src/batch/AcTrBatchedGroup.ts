@@ -511,6 +511,11 @@ export class AcTrBatchedGroup extends THREE.Group {
       }
       for (const batch of batches) {
         batch.material = material
+        if (batch instanceof AcTrBatchedLine) {
+          // A layer rebind may swap a dash-capable material onto a batch that
+          // deferred its lineDistance attribute; arm it before any highlight.
+          batch.ensureLineDistanceAttribute()
+        }
       }
       if (material.id !== oldId) {
         group.delete(oldId)

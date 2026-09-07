@@ -95,6 +95,21 @@ export interface AcEdViewRenderFrameEventArgs {
 }
 
 /**
+ * Interface to define arguments of context-menu events.
+ *
+ * On touch devices, a long-press at a screen position triggers this event
+ * so the shell can display a context-menu popup at the given coordinates.
+ */
+export interface AcEdContextMenuEventArgs {
+  /** Screen X coordinate (client coordinates) of the context-menu trigger */
+  screenX: number
+  /** Screen Y coordinate (client coordinates) of the context-menu trigger */
+  screenY: number
+  /** Entity id under the trigger point, if any */
+  entityId?: AcDbObjectId
+}
+
+/**
  * Enumeration of view interaction modes.
  *
  * The view mode determines how the view responds to user mouse interactions:
@@ -268,7 +283,12 @@ export abstract class AcEdBaseView {
     /** Fired when mouse stops hovering over an entity */
     unhover: new AcCmEventManager<AcEdViewHoverEventArgs>(),
     /** Fired when a frame is rendered */
-    renderFrame: new AcCmEventManager<AcEdViewRenderFrameEventArgs>()
+    renderFrame: new AcCmEventManager<AcEdViewRenderFrameEventArgs>(),
+    /**
+     * Fired on mobile when a long-press triggers a context-menu request.
+     * The shell listens to this to display a context-menu popup.
+     */
+    contextMenu: new AcCmEventManager<AcEdContextMenuEventArgs>()
   }
 
   /**

@@ -1,5 +1,11 @@
 <template>
-  <div class="antd-ribbon" :class="{ 'is-collapsed': isCollapsed }">
+  <div
+    class="antd-ribbon"
+    :class="{
+      'is-collapsed': isCollapsed,
+      'is-compact': compact
+    }"
+  >
     <!-- QAT + tabs + locale share the header row -->
     <div class="antd-ribbon-qat-row">
       <AntdQat
@@ -55,7 +61,10 @@
           :aria-label="t('shell.ribbon.locale')"
           @change="onLocaleChange"
         />
+        <!-- In compact (mobile) mode hide the collapse toggle — panels
+             are replaced by the floating action bar below. -->
         <a-tooltip
+          v-if="!compact"
           :title="isCollapsed ? t('shell.ribbon.expand') : t('shell.ribbon.collapse')"
           placement="bottom"
         >
@@ -75,8 +84,10 @@
 
     <!-- Panel area; quick property controls live in the Properties panel.
          Kept mounted while collapsed (height animation) but inert so the
-         hidden controls are unreachable for keyboard/screen readers. -->
+         hidden controls are unreachable for keyboard/screen readers.
+         Hidden entirely in compact (mobile) mode. -->
     <div
+      v-if="!compact"
       ref="panelsRegion"
       class="antd-ribbon-panels"
       role="tabpanel"
@@ -106,11 +117,49 @@
         </AntdRibbonPanel>
       </div>
     </div>
+
+    <!-- Mobile floating action bar: replaces ribbon panels with the most
+         commonly needed viewport commands on narrow screens. -->
+    <div v-if="compact && !disabled" class="antd-ribbon-mobile-actions">
+      <a-tooltip :title="t('shell.status.zoomExtents')" placement="top">
+        <button
+          type="button"
+          class="antd-mobile-action-btn"
+          @click="run('ZOOM\nExtents')"
+        >
+          <FullscreenOutlined />
+        </button>
+      </a-tooltip>
+      <a-tooltip :title="t('shell.panels.layers')" placement="top">
+        <button
+          type="button"
+          class="antd-mobile-action-btn"
+          @click="emit('toggle-layer-panel')"
+        >
+          <AppstoreOutlined />
+        </button>
+      </a-tooltip>
+      <a-tooltip :title="t('shell.status.theme')" placement="top">
+        <button
+          type="button"
+          class="antd-mobile-action-btn"
+          @click="emit('toggle-theme')"
+        >
+          <BgColorsOutlined />
+        </button>
+      </a-tooltip>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { DownOutlined, UpOutlined } from '@ant-design/icons-vue'
+import {
+  AppstoreOutlined,
+  BgColorsOutlined,
+  DownOutlined,
+  FullscreenOutlined,
+  UpOutlined
+} from '@ant-design/icons-vue'
 import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
 import {
   LOCALE_OPTIONS,
@@ -131,6 +180,16 @@ const { t } = useI18n()
 
 const props = defineProps<{
   disabled?: boolean
+  /**
+   * Compact mode for narrow (mobile) viewports: hides the ribbon panels
+   * and shows a floating action bar with essential viewport commands.
+   */
+  compact?: boolean
+}>()
+
+const emit = defineEmits<{
+  'toggle-layer-panel': []
+  'toggle-theme': []
 }>()
 
 // ── tabs ─────────────────────────────────────────────────────────────

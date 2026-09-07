@@ -559,6 +559,9 @@ export function copyGeometryIndices(
  * @param geometry - Source geometry payload to write.
  * @param typeName - Batch class name included in error messages.
  * @param slotId - Geometry slot id written into the `slotId` vertex attribute.
+ * @returns `false` when the slot's new vertex data produces the same local
+ *   bounding box as the cached one (callers skip the frustum-bounds
+ *   invalidation); `true` otherwise.
  * @throws {Error} When the source geometry exceeds the slot's reserved capacity.
  */
 export function applyGeometryAt<T extends AcTrBatchGeometryLike>(
@@ -606,7 +609,23 @@ export function applyGeometryAt<T extends AcTrBatchGeometryLike>(
     )
   }
 
-  geometryInfo.boundingBox = null
+  // Skip the frustum-bounds invalidation when the slot's new vertex data
+  // produces the same local box as the cached one (e.g. a rewrite that moves
+  // nothing). Identical positions yield bitwise-identical boxes, so exact
+  // equality is a sound cheap comparison. All other packing work still runs.
+  let boundsChanged = true
+  const cachedBox = geometryInfo.boundingBox
+  if (cachedBox != null) {
+    // Always recompute: the source's own box may be stale (rebased in place
+    // after it was first computed).
+    geometry.computeBoundingBox()
+    if (geometry.boundingBox != null && geometry.boundingBox.equals(cachedBox)) {
+      boundsChanged = false
+    }
+  }
+  if (boundsChanged) {
+    geometryInfo.boundingBox = null
+  }
 
   if (isBatchGeometryActive(geometryInfo.flags)) {
     delete geometryInfo.hiddenDrawSnapshot
@@ -620,6 +639,7 @@ export function applyGeometryAt<T extends AcTrBatchGeometryLike>(
   }
 
   writeSlotIdRange(batchGeometry, vertexStart, reservedVertexCount, slotId)
+  return boundsChanged
 }
 
 /**

@@ -549,6 +549,22 @@ const handleNewDrawing = () => {
   .setting-block--full {
     grid-column: 1 / -1;
   }
+
+  /* Enlarge touch targets for mobile (iOS HIG 44pt minimum) */
+  .pill-segment :deep(.ant-radio-button-wrapper) {
+    line-height: 36px;
+    font-size: 12px;
+  }
+
+  .new-drawing-button {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .upload-dropzone :deep(.ant-upload-dragger) {
+    min-height: 120px;
+    padding: var(--ml-space-6) var(--ml-space-4);
+  }
 }
 
 @media (max-width: 400px) {

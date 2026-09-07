@@ -82,8 +82,10 @@ import {
   iconRay,
   iconRect,
   iconSelect,
+  iconSetting,
   iconSplineFitPoints,
   iconSwitchBg,
+  iconTunnel,
   iconXline,
   iconZoomToBox,
   iconZoomToExtent
@@ -256,6 +258,14 @@ const utilitiesPanel: RibbonPanelDef = {
     btn('agent', 'agent', RobotFilled, 'CAD\nAgent', 'large'),
     btn('regen', 'regen', ReloadOutlined, 'Regen', 'small', 'RE'),
     btn('invertSelect', 'invertsel', SwapOutlined, 'Invert\nSelect', 'small'),
+    btn('drawTunnel', 'drawtunnel', iconTunnel, 'Draw\nTunnel', 'small'),
+    btn(
+      'tunnelSettings',
+      'tunnelsettings',
+      iconSetting,
+      'Tunnel\nSettings',
+      'small'
+    ),
     btn('search', 'search', SearchOutlined, 'Search', 'small'),
     btn('switchBg', 'switchbg', iconSwitchBg, 'Switch\nBackground', 'small')
   ]

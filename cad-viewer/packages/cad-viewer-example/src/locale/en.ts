@@ -133,6 +133,8 @@ export default {
         redo: 'Redo',
         regen: 'Regen',
         invertSelect: 'Invert Selection',
+        drawTunnel: 'Draw Tunnel',
+        tunnelSettings: 'Tunnel Settings',
         search: 'Object Search',
         agent: 'CAD Agent',
         switchBg: 'Switch BG',

@@ -23,6 +23,8 @@ bw-cad-view/
 │       ├── cad-agent-plugin/   # AI 智能助手插件
 │       ├── cad-simple-ui-plugin/
 │       ├── cad-invertsel-plugin/
+│       ├── cad-layerctx-plugin/       # 图层右键上下文菜单插件
+│       ├── cad-tunnel-plugin/         # 绘制巷道插件（GeoJSON → 巷道/立井/煤仓）
 │       ├── cad-viewer-example/        # 全功能查看器示例应用
 │       ├── cad-simple-viewer-cli/     # 无头 CLI 工具
 │       └── examples/                  # 示例服务

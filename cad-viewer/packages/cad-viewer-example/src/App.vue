@@ -67,6 +67,7 @@ import {
 } from '@mlightcad/cad-simple-viewer'
 import { registerInvertSelPlugin } from '@mlightcad/cad-invertsel-plugin/register'
 import { registerLayerCtxPlugin } from '@mlightcad/cad-layerctx-plugin/register'
+import { registerTunnelPlugin } from '@mlightcad/cad-tunnel-plugin/register'
 import { useLocale } from '@mlightcad/cad-viewer'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -147,6 +148,13 @@ const initialize = () => {
   // Layer-manager right-click context menu (delete/copy/cut/move-scale/
   // rotate/deselect) also ships as a plugin with zero host modifications.
   void registerLayerCtxPlugin(AcApDocManager.instance.pluginManager)
+
+  // Tunnel (巷道) drawing plugin: fetches GeoJSON tunnel data and draws the
+  // points / lines / areas / labels without parsing any DWG/DXF file. The
+  // sample dataset is served from the app's public/geojson/ folder.
+  void registerTunnelPlugin(AcApDocManager.instance.pluginManager, {
+    url: `${import.meta.env.BASE_URL}geojson/tunnel.json`
+  })
 }
 
 const BASE_URL = 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/'

@@ -1108,8 +1108,11 @@ const INNER_TO_OUTER_MAX_RATIO = 0.75
 
 /**
  * A sampled centerline point with local width used for wide polyline rendering.
+ *
+ * Shared with centerline-based custom entities (e.g. `AcDbRoadway`) so their
+ * constant-width strokes render through the same tessellation path.
  */
-interface WidePolylinePoint {
+export interface WidePolylinePoint {
   x: number
   y: number
   width: number
@@ -1129,7 +1132,10 @@ interface WidePolylinePoint {
  * @returns An area ready for fill rendering, or `null` when no valid area can
  * be constructed.
  */
-function createWidePolylineArea(points: WidePolylinePoint[], closed: boolean) {
+export function createWidePolylineArea(
+  points: WidePolylinePoint[],
+  closed: boolean
+) {
   if (points.length < 2) return null
   if (closed) {
     return createWidePolylineAreaForSingleProfile(points, true)

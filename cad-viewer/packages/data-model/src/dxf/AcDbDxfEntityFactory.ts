@@ -6,6 +6,7 @@ import { AcDbAttribute } from '../entity/AcDbAttribute'
 import { AcDbAttributeDefinition } from '../entity/AcDbAttributeDefinition'
 import { AcDbBlockReference } from '../entity/AcDbBlockReference'
 import { AcDbCircle } from '../entity/AcDbCircle'
+import { acdbCreateCustomEntity } from '../entity/AcDbCustomEntityRegistry'
 import { AcDbEllipse } from '../entity/AcDbEllipse'
 import type { AcDbEntity } from '../entity/AcDbEntity'
 import { AcDbFace } from '../entity/AcDbFace'
@@ -107,7 +108,10 @@ export function acdbCreateEntityForDxfIn(typeName: string): AcDbEntity | null {
     case '3DSOLID':
       return new AcDb3dSolid('')
     default:
-      return null
+      // Custom entity types registered via acdbRegisterCustomEntity() (see
+      // AcDbCustomEntity.rxInit) are resolved here so that host applications
+      // and plugins can add entity types without touching this switch.
+      return acdbCreateCustomEntity(type)
   }
 }
 

@@ -13,6 +13,14 @@ export {
 export { AcDbBlockReference } from './AcDbBlockReference'
 export { AcDbCircle } from './AcDbCircle'
 export { AcDbCurve } from './AcDbCurve'
+export { AcDbCenterlineCurve } from './AcDbCenterlineCurve'
+export { AcDbCustomEntity } from './AcDbCustomEntity'
+export {
+  acdbCreateCustomEntity,
+  acdbHasCustomEntity,
+  acdbRegisterCustomEntity
+} from './AcDbCustomEntityRegistry'
+export type { AcDbCustomEntityFactory } from './AcDbCustomEntityRegistry'
 export { AcDbEllipse } from './AcDbEllipse'
 export { AcDbEntity } from './AcDbEntity'
 export type {
@@ -98,6 +106,7 @@ export {
   AcDbRasterImageImageDisplayOpt
 } from './AcDbRasterImage'
 export { AcDbRay } from './AcDbRay'
+export { AcDbRoadway } from './AcDbRoadway'
 export { AcDbShape } from './AcDbShape'
 export { AcDbViewport } from './AcDbViewport'
 export { AcDbWipeout } from './AcDbWipeout'

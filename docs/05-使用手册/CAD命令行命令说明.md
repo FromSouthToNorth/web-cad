@@ -9,7 +9,7 @@
 
 1. **内置命令**：`cad-simple-viewer` 的 `AcApDocManager.registerCommands()`（`cad-viewer/packages/cad-simple-viewer/src/app/AcApDocManager.ts:1224`），约 80 个绘制/编辑/图层/测量/批注命令，全部挂在 `ACAD` 命令组下。
 2. **系统变量命令**：`AcDbSysVarManager` 中登记的 55 个系统变量（如 `CLAYER`、`LTSCALE`）也各注册为一个命令，可在命令行直接输入变量名查询/设置。
-3. **面板类命令**：`cad-viewer` 的 `register.ts` 补充注册 18 个 UI 面板/对话框命令；各插件（PDF/SVG/HTML/搜索/反选/图层右键/AI）注册 10 余个插件命令。
+3. **面板类命令**：`cad-viewer` 的 `register.ts` 补充注册 18 个 UI 面板/对话框命令；各插件（PDF/SVG/HTML/搜索/反选/图层右键/绘制巷道/AI）注册 10 余个插件命令。
 
 命令特性：
 
@@ -78,6 +78,7 @@
 | `insert` | `blockspalette` | 打开块插入面板（`cad-viewer` 注册） |
 | `imageattach` | `iat` | 将光栅图像作为外部参照附着到当前图形 |
 | `xattach` | `xa` | 将 DWG/DXF 图形作为外部参照附着 |
+| `drawtunnel` | `tunnel` | 从 GeoJSON 数据（HTTP 请求，无需解析 DWG/DXF）绘制巷道规划对象：点/线/面/文字（`cad-tunnel-plugin` 插件，Ribbon「实用工具」组有对应按钮；详见 [绘制巷道插件使用说明](绘制巷道插件使用说明.md)） |
 
 ## 五、修改命令
 
@@ -92,6 +93,7 @@
 | `redo` | | 重做上一次撤销的操作 |
 | `hideobjects` | | 临时隐藏所选对象的显示 |
 | `unisolateobjects` | | 重新显示 HIDEOBJECTS 隐藏的所有对象 |
+| `tunnelclear` | | 清除 `drawtunnel` 绘制的巷道对象（按巷道图层批量删除，`cad-tunnel-plugin` 插件；详见 [绘制巷道插件使用说明](绘制巷道插件使用说明.md)） |
 
 ## 六、选择命令
 

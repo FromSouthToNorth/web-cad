@@ -1,0 +1,1821 @@
+{
+  "code": 100,
+  "mesg": null,
+  "data": {
+    "params": {
+      "data": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "id": "016B41FC-C8F3-4394-82CF-8E6E43C666C7",
+            "type": "Feature",
+            "properties": {
+              "id": "016B41FC-C8F3-4394-82CF-8E6E43C666C7",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "1105进风巷",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6125570,
+                  41.7148730,
+                  1670.00
+                ],
+                [
+                  96.6067891,
+                  41.7197171,
+                  1670.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "047B2728-4F74-466E-86B6-64DFF813A0CD",
+            "type": "Feature",
+            "properties": {
+              "id": "047B2728-4F74-466E-86B6-64DFF813A0CD",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "主水仓",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#00ffff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6093677,
+                  41.7128049,
+                  1628.00
+                ],
+                [
+                  96.6092996,
+                  41.7128786,
+                  1628.00
+                ],
+                [
+                  96.6089328,
+                  41.7132834,
+                  1623.00
+                ],
+                [
+                  96.6089281,
+                  41.7133721,
+                  1623.00
+                ],
+                [
+                  96.6089570,
+                  41.7134136,
+                  1623.00
+                ],
+                [
+                  96.6090113,
+                  41.7134507,
+                  1623.00
+                ],
+                [
+                  96.6094083,
+                  41.7136325,
+                  1623.00
+                ],
+                [
+                  96.6094787,
+                  41.7136255,
+                  1623.00
+                ],
+                [
+                  96.6095343,
+                  41.7136035,
+                  1623.00
+                ],
+                [
+                  96.6096047,
+                  41.7135394,
+                  1623.00
+                ],
+                [
+                  96.6096523,
+                  41.7134856,
+                  1623.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "067B05F8-FB4B-40C4-A292-5E82CFE2E202",
+            "type": "Feature",
+            "properties": {
+              "id": "067B05F8-FB4B-40C4-A292-5E82CFE2E202",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "主排水泵房变电所",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#00ffff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6099950,
+                  41.7136293,
+                  1630.00
+                ],
+                [
+                  96.6103410,
+                  41.7138089,
+                  1637.00
+                ],
+                [
+                  96.6106540,
+                  41.7134690,
+                  1637.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "0D3FAF76-A9EA-4DF4-8453-6E4CDACF9E9D",
+            "type": "Feature",
+            "properties": {
+              "id": "0D3FAF76-A9EA-4DF4-8453-6E4CDACF9E9D",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "中部通风联络巷",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6133732,
+                  41.7137813,
+                  1670.00
+                ],
+                [
+                  96.6129694,
+                  41.7141196,
+                  1672.00
+                ],
+                [
+                  96.6128334,
+                  41.7142354,
+                  1672.00
+                ],
+                [
+                  96.6130010,
+                  41.7144990,
+                  1670.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "152B3CF5-0EF4-45C7-8E19-A5F6DE1C12BD",
+            "type": "Feature",
+            "properties": {
+              "id": "152B3CF5-0EF4-45C7-8E19-A5F6DE1C12BD",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "1015工作面停采线",
+              "tunnelType": 25,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6067891,
+                  41.7197171,
+                  1670.00
+                ],
+                [
+                  96.6082930,
+                  41.7200760,
+                  1685.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "189910C5-A97E-4E0F-A417-18ADBCFDB778",
+            "type": "Feature",
+            "properties": {
+              "id": "189910C5-A97E-4E0F-A417-18ADBCFDB778",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "中央辅运大巷",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6176869,
+                  41.7171105,
+                  1738.36
+                ],
+                [
+                  96.6170532,
+                  41.7167764,
+                  1738.00
+                ],
+                [
+                  96.6157326,
+                  41.7160939,
+                  1721.00
+                ],
+                [
+                  96.6151613,
+                  41.7157987,
+                  1711.00
+                ],
+                [
+                  96.6147472,
+                  41.7155844,
+                  1711.00
+                ],
+                [
+                  96.6137551,
+                  41.7150717,
+                  1680.00
+                ],
+                [
+                  96.6132492,
+                  41.7148102,
+                  1671.00
+                ],
+                [
+                  96.6121887,
+                  41.7142628,
+                  1665.00
+                ],
+                [
+                  96.6106540,
+                  41.7134690,
+                  1637.00
+                ],
+                [
+                  96.6098120,
+                  41.7130350,
+                  1630.00
+                ],
+                [
+                  96.6093677,
+                  41.7128049,
+                  1628.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "22234BAB-245F-4B09-A558-23F0C3D83B9A",
+            "type": "Feature",
+            "properties": {
+              "id": "22234BAB-245F-4B09-A558-23F0C3D83B9A",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#00ffff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6098502,
+                  41.7135877,
+                  1623.00
+                ],
+                [
+                  96.6096523,
+                  41.7134856,
+                  1623.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "252DF084-3ABA-48F9-9DFC-5BE8BB210B02",
+            "type": "Feature",
+            "properties": {
+              "id": "252DF084-3ABA-48F9-9DFC-5BE8BB210B02",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "单轨吊充电硐室",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#0000ff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6151609,
+                  41.7147051,
+                  1718.00
+                ],
+                [
+                  96.6147579,
+                  41.7150437,
+                  1710.00
+                ],
+                [
+                  96.6145594,
+                  41.7152095,
+                  1690.00
+                ],
+                [
+                  96.6141990,
+                  41.7151180,
+                  1690.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "409316B8-ABA2-4248-9F02-38DC2DB96867",
+            "type": "Feature",
+            "properties": {
+              "id": "409316B8-ABA2-4248-9F02-38DC2DB96867",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "副斜井",
+              "tunnelType": 14,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6267179,
+                  41.7145865,
+                  1932.30
+                ],
+                [
+                  96.6247934,
+                  41.7151314,
+                  1889.00
+                ],
+                [
+                  96.6228072,
+                  41.7156770,
+                  1845.50
+                ],
+                [
+                  96.6190629,
+                  41.7167214,
+                  1750.10
+                ],
+                [
+                  96.6185546,
+                  41.7168626,
+                  1738.90
+                ]
+              ]
+            }
+          },
+          {
+            "id": "41679536-5BDF-49A6-96C2-D9C9C3E73D72",
+            "type": "Feature",
+            "properties": {
+              "id": "41679536-5BDF-49A6-96C2-D9C9C3E73D72",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "主斜井机尾联络巷",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6197602,
+                  41.7176283,
+                  1733.00
+                ],
+                [
+                  96.6190656,
+                  41.7178223,
+                  1733.30
+                ]
+              ]
+            }
+          },
+          {
+            "id": "427D7D86-5F34-443B-88C4-286DE1404E98",
+            "type": "Feature",
+            "properties": {
+              "id": "427D7D86-5F34-443B-88C4-286DE1404E98",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#00ffff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6162586,
+                  41.7158190,
+                  1721.40
+                ],
+                [
+                  96.6159824,
+                  41.7160507,
+                  1721.40
+                ],
+                [
+                  96.6155505,
+                  41.7164148,
+                  1710.00
+                ],
+                [
+                  96.6142523,
+                  41.7175081,
+                  1710.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "45C43CEF-2B86-487D-8E87-D7F9F07ECFB4",
+            "type": "Feature",
+            "properties": {
+              "id": "45C43CEF-2B86-487D-8E87-D7F9F07ECFB4",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "回风斜井",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#0000ff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6268360,
+                  41.7175030,
+                  1931.30
+                ],
+                [
+                  96.6237473,
+                  41.7175199,
+                  1831.30
+                ],
+                [
+                  96.6206410,
+                  41.7175370,
+                  1740.60
+                ]
+              ]
+            }
+          },
+          {
+            "id": "4B6D40DF-C074-4624-9185-F341356467E6",
+            "type": "Feature",
+            "properties": {
+              "id": "4B6D40DF-C074-4624-9185-F341356467E6",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6132492,
+                  41.7148102,
+                  1671.00
+                ],
+                [
+                  96.6125570,
+                  41.7148730,
+                  1670.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "4E4BB781-E8E2-4D69-AB7C-4C0FC3447338",
+            "type": "Feature",
+            "properties": {
+              "id": "4E4BB781-E8E2-4D69-AB7C-4C0FC3447338",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "架空乘人器硐室",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6201009,
+                  41.7175317,
+                  1733.15
+                ],
+                [
+                  96.6194679,
+                  41.7172014,
+                  1731.00
+                ],
+                [
+                  96.6190481,
+                  41.7172589,
+                  1727.45
+                ]
+              ]
+            }
+          },
+          {
+            "id": "4F32720B-5DA6-4DAD-B620-606EEAEC3360",
+            "type": "Feature",
+            "properties": {
+              "id": "4F32720B-5DA6-4DAD-B620-606EEAEC3360",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "1015工作面切眼",
+              "tunnelType": 28,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.5931715,
+                  41.7311540,
+                  1680.00
+                ],
+                [
+                  96.5942460,
+                  41.7318700,
+                  1690.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "616692BC-DCC2-4D79-B755-97F1BE40C5A5",
+            "type": "Feature",
+            "properties": {
+              "id": "616692BC-DCC2-4D79-B755-97F1BE40C5A5",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "1105回风顺槽",
+              "tunnelType": 26,
+              "coalbed": "0100",
+              "color": "#0000ff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6082930,
+                  41.7200760,
+                  1685.00
+                ],
+                [
+                  96.6009940,
+                  41.7262050,
+                  1690.00
+                ],
+                [
+                  96.6006476,
+                  41.7264959,
+                  1690.00
+                ],
+                [
+                  96.5942460,
+                  41.7318700,
+                  1690.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "63711DCA-20E7-455A-8A74-AF0B46C76F7D",
+            "type": "Feature",
+            "properties": {
+              "id": "63711DCA-20E7-455A-8A74-AF0B46C76F7D",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "辅运联络巷",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6190656,
+                  41.7178223,
+                  1733.30
+                ],
+                [
+                  96.6176869,
+                  41.7171105,
+                  1738.36
+                ]
+              ]
+            }
+          },
+          {
+            "id": "69B47837-CC95-4CED-A092-113E6C3271F2",
+            "type": "Feature",
+            "properties": {
+              "id": "69B47837-CC95-4CED-A092-113E6C3271F2",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6185546,
+                  41.7168626,
+                  1738.90
+                ],
+                [
+                  96.6183749,
+                  41.7169126,
+                  1738.84
+                ],
+                [
+                  96.6176869,
+                  41.7171105,
+                  1738.36
+                ]
+              ]
+            }
+          },
+          {
+            "id": "6CD06524-3566-45F5-9AFF-165104073E7F",
+            "type": "Feature",
+            "properties": {
+              "id": "6CD06524-3566-45F5-9AFF-165104073E7F",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6093677,
+                  41.7128049,
+                  1628.00
+                ],
+                [
+                  96.6097093,
+                  41.7124338,
+                  1642.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "6D6D0CCC-4486-4A95-B8F7-3D1C196BF559",
+            "type": "Feature",
+            "properties": {
+              "id": "6D6D0CCC-4486-4A95-B8F7-3D1C196BF559",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "管子道",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6106474,
+                  41.7129201,
+                  1652.48
+                ],
+                [
+                  96.6103061,
+                  41.7132902,
+                  1634.00
+                ],
+                [
+                  96.6099950,
+                  41.7136293,
+                  1630.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "79CCBE0C-A72F-4F42-B1F2-6B25D51A3602",
+            "type": "Feature",
+            "properties": {
+              "id": "79CCBE0C-A72F-4F42-B1F2-6B25D51A3602",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "1015工作面巷道",
+              "tunnelType": 29,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.5995722,
+                  41.7257793,
+                  1679.78
+                ],
+                [
+                  96.6006476,
+                  41.7264959,
+                  1690.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "7D7FA2D7-4DB9-498F-BE00-4C38D6D8CB53",
+            "type": "Feature",
+            "properties": {
+              "id": "7D7FA2D7-4DB9-498F-BE00-4C38D6D8CB53",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "中央回风大巷",
+              "tunnelType": 17,
+              "coalbed": "0100",
+              "color": "#0000ff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6183722,
+                  41.7163648,
+                  1738.40
+                ],
+                [
+                  96.6181590,
+                  41.7162547,
+                  1735.40
+                ],
+                [
+                  96.6169614,
+                  41.7156357,
+                  1734.00
+                ],
+                [
+                  96.6158435,
+                  41.7150582,
+                  1730.00
+                ],
+                [
+                  96.6152736,
+                  41.7147627,
+                  1718.00
+                ],
+                [
+                  96.6151609,
+                  41.7147051,
+                  1718.00
+                ],
+                [
+                  96.6133732,
+                  41.7137813,
+                  1670.00
+                ],
+                [
+                  96.6098502,
+                  41.7119622,
+                  1641.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "828A416A-711C-4294-9DE0-E54C2BB42060",
+            "type": "Feature",
+            "properties": {
+              "id": "828A416A-711C-4294-9DE0-E54C2BB42060",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "1105胶带顺槽",
+              "tunnelType": 27,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6067891,
+                  41.7197171,
+                  1670.00
+                ],
+                [
+                  96.5995722,
+                  41.7257793,
+                  1679.78
+                ],
+                [
+                  96.5994940,
+                  41.7258450,
+                  1679.89
+                ],
+                [
+                  96.5931715,
+                  41.7311540,
+                  1680.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "8532ABE7-03E4-4083-9F3C-D8FFABC5D730",
+            "type": "Feature",
+            "properties": {
+              "id": "8532ABE7-03E4-4083-9F3C-D8FFABC5D730",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "机头硐室",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#00ffff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6174570,
+                  41.7164370,
+                  1721.60
+                ],
+                [
+                  96.6171853,
+                  41.7166662,
+                  1721.60
+                ],
+                [
+                  96.6166556,
+                  41.7171074,
+                  1710.00
+                ],
+                [
+                  96.6154432,
+                  41.7181246,
+                  1710.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "97B2D9F0-CEAE-419F-B746-99151D57F2EA",
+            "type": "Feature",
+            "properties": {
+              "id": "97B2D9F0-CEAE-419F-B746-99151D57F2EA",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "胶带石门",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6208036,
+                  41.7173369,
+                  1735.60
+                ],
+                [
+                  96.6201009,
+                  41.7175317,
+                  1733.15
+                ],
+                [
+                  96.6197602,
+                  41.7176283,
+                  1733.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "9A065974-B7F0-4E31-892D-8B5FD0BCC6D9",
+            "type": "Feature",
+            "properties": {
+              "id": "9A065974-B7F0-4E31-892D-8B5FD0BCC6D9",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "大巷联络巷",
+              "tunnelType": 22,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6098502,
+                  41.7119622,
+                  1641.00
+                ],
+                [
+                  96.6095102,
+                  41.7123313,
+                  1641.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "9C673FCC-93E9-42DF-96B1-8E08C3277D53",
+            "type": "Feature",
+            "properties": {
+              "id": "9C673FCC-93E9-42DF-96B1-8E08C3277D53",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "永久避难硐室",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6121548,
+                  41.7136985,
+                  1663.00
+                ],
+                [
+                  96.6121887,
+                  41.7142628,
+                  1665.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "ADB64E96-9260-4F44-ADDD-61F59CAD0277",
+            "type": "Feature",
+            "properties": {
+              "id": "ADB64E96-9260-4F44-ADDD-61F59CAD0277",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "1105回风巷",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#0000ff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6144656,
+                  41.7148925,
+                  1690.00
+                ],
+                [
+                  96.6141990,
+                  41.7151180,
+                  1690.00
+                ],
+                [
+                  96.6140620,
+                  41.7152310,
+                  1680.00
+                ],
+                [
+                  96.6135130,
+                  41.7156930,
+                  1685.00
+                ],
+                [
+                  96.6082930,
+                  41.7200760,
+                  1685.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "ADC535B3-370E-48F0-8A9E-5661419E79C2",
+            "type": "Feature",
+            "properties": {
+              "id": "ADC535B3-370E-48F0-8A9E-5661419E79C2",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "主排水泵房",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#00ffff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6098120,
+                  41.7130350,
+                  1630.00
+                ],
+                [
+                  96.6095440,
+                  41.7133270,
+                  1630.00
+                ],
+                [
+                  96.6095010,
+                  41.7133730,
+                  1630.00
+                ],
+                [
+                  96.6096720,
+                  41.7134630,
+                  1630.00
+                ],
+                [
+                  96.6098720,
+                  41.7135660,
+                  1630.00
+                ],
+                [
+                  96.6099950,
+                  41.7136293,
+                  1630.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "C0BB68B6-2CF0-443C-BF13-FB496015AD9B",
+            "type": "Feature",
+            "properties": {
+              "id": "C0BB68B6-2CF0-443C-BF13-FB496015AD9B",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6132680,
+                  41.7142740,
+                  1670.00
+                ],
+                [
+                  96.6130010,
+                  41.7144990,
+                  1670.00
+                ],
+                [
+                  96.6128660,
+                  41.7146130,
+                  1670.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "C15E263C-9369-422D-A192-3DFFF3B56CF2",
+            "type": "Feature",
+            "properties": {
+              "id": "C15E263C-9369-422D-A192-3DFFF3B56CF2",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "中央胶带大巷",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6197602,
+                  41.7176283,
+                  1733.00
+                ],
+                [
+                  96.6190481,
+                  41.7172589,
+                  1727.45
+                ],
+                [
+                  96.6183749,
+                  41.7169126,
+                  1721.87
+                ],
+                [
+                  96.6177566,
+                  41.7165923,
+                  1721.65
+                ],
+                [
+                  96.6174570,
+                  41.7164370,
+                  1721.60
+                ],
+                [
+                  96.6165590,
+                  41.7159738,
+                  1721.45
+                ],
+                [
+                  96.6162586,
+                  41.7158190,
+                  1721.40
+                ],
+                [
+                  96.6157872,
+                  41.7155756,
+                  1721.00
+                ],
+                [
+                  96.6152166,
+                  41.7152811,
+                  1712.00
+                ],
+                [
+                  96.6147579,
+                  41.7150437,
+                  1710.00
+                ],
+                [
+                  96.6144656,
+                  41.7148925,
+                  1690.00
+                ],
+                [
+                  96.6138104,
+                  41.7145534,
+                  1680.00
+                ],
+                [
+                  96.6132680,
+                  41.7142740,
+                  1670.00
+                ],
+                [
+                  96.6121548,
+                  41.7136985,
+                  1663.00
+                ],
+                [
+                  96.6106474,
+                  41.7129201,
+                  1652.48
+                ],
+                [
+                  96.6097093,
+                  41.7124338,
+                  1642.00
+                ],
+                [
+                  96.6095102,
+                  41.7123313,
+                  1641.00
+                ],
+                [
+                  96.6092145,
+                  41.7121790,
+                  1638.90
+                ]
+              ]
+            }
+          },
+          {
+            "id": "CC93DF87-1058-4383-89D6-D6235558CF0F",
+            "type": "Feature",
+            "properties": {
+              "id": "CC93DF87-1058-4383-89D6-D6235558CF0F",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "单轨吊充电检修硐室",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6158435,
+                  41.7150582,
+                  1730.00
+                ],
+                [
+                  96.6157326,
+                  41.7160939,
+                  1721.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "CEDCC9C9-D607-499E-8067-4E91D7FA6C6F",
+            "type": "Feature",
+            "properties": {
+              "id": "CEDCC9C9-D607-499E-8067-4E91D7FA6C6F",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "一采区变电所",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6152736,
+                  41.7147627,
+                  1718.00
+                ],
+                [
+                  96.6152166,
+                  41.7152811,
+                  1712.00
+                ],
+                [
+                  96.6151613,
+                  41.7157987,
+                  1711.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "D077AB2D-917D-4457-8431-4F9BD4A72765",
+            "type": "Feature",
+            "properties": {
+              "id": "D077AB2D-917D-4457-8431-4F9BD4A72765",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "主斜井",
+              "tunnelType": 13,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6286558,
+                  41.7151462,
+                  1931.30
+                ],
+                [
+                  96.6247559,
+                  41.7162326,
+                  1831.30
+                ],
+                [
+                  96.6208036,
+                  41.7173369,
+                  1735.60
+                ]
+              ]
+            }
+          },
+          {
+            "id": "D76C0DB6-0577-4170-8442-800C837EAB1C",
+            "type": "Feature",
+            "properties": {
+              "id": "D76C0DB6-0577-4170-8442-800C837EAB1C",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "主水仓",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#00ffff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6092996,
+                  41.7128786,
+                  1628.00
+                ],
+                [
+                  96.6088289,
+                  41.7129487,
+                  1626.00
+                ],
+                [
+                  96.6087773,
+                  41.7129833,
+                  1626.00
+                ],
+                [
+                  96.6084333,
+                  41.7133694,
+                  1623.00
+                ],
+                [
+                  96.6084722,
+                  41.7134951,
+                  1623.00
+                ],
+                [
+                  96.6093291,
+                  41.7139414,
+                  1623.00
+                ],
+                [
+                  96.6093942,
+                  41.7139569,
+                  1623.00
+                ],
+                [
+                  96.6094653,
+                  41.7139534,
+                  1623.00
+                ],
+                [
+                  96.6095249,
+                  41.7139309,
+                  1623.00
+                ],
+                [
+                  96.6095752,
+                  41.7138873,
+                  1623.00
+                ],
+                [
+                  96.6098502,
+                  41.7135877,
+                  1623.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "E0DF8BFB-893C-4BC6-AFA9-F97F6FAC5B6C",
+            "type": "Feature",
+            "properties": {
+              "id": "E0DF8BFB-893C-4BC6-AFA9-F97F6FAC5B6C",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelName": "",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6138104,
+                  41.7145534,
+                  1680.00
+                ],
+                [
+                  96.6137551,
+                  41.7150717,
+                  1680.00
+                ]
+              ]
+            }
+          },
+          {
+            "id": "F2C9D7FE-E18E-4BA2-BA05-DAF07A5848CB",
+            "type": "Feature",
+            "properties": {
+              "id": "F2C9D7FE-E18E-4BA2-BA05-DAF07A5848CB",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#0000ff",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6206410,
+                  41.7175370,
+                  1740.60
+                ],
+                [
+                  96.6190630,
+                  41.7167210,
+                  1758.49
+                ],
+                [
+                  96.6183722,
+                  41.7163648,
+                  1738.40
+                ]
+              ]
+            }
+          },
+          {
+            "id": "F6FD4A6F-F4F3-4717-A735-DFE14CE4AC94",
+            "type": "Feature",
+            "properties": {
+              "id": "F6FD4A6F-F4F3-4717-A735-DFE14CE4AC94",
+              "mineName": "窑街煤电天宝煤业",
+              "tunnelType": 0,
+              "coalbed": "0100",
+              "color": "#808080",
+              "columns": [
+                {
+                  "title": "id: ",
+                  "dataIndex": "id"
+                },
+                {
+                  "title": "名称: ",
+                  "dataIndex": "tunnelName"
+                }
+              ]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  96.6128660,
+                  41.7146130,
+                  1670.00
+                ],
+                [
+                  96.6125570,
+                  41.7148730,
+                  1670.00
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "generalFunc": "TunnelLineString"
+  },
+  "mesgInfo": null,
+  "timestamp": 1788764205893,
+  "dataList": null
+}

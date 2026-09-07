@@ -332,6 +332,21 @@ importers:
         specifier: ^0.12.4
         version: 0.12.4(three@0.172.0)
 
+  packages/cad-tunnel-plugin:
+    devDependencies:
+      '@mlightcad/cad-simple-viewer':
+        specifier: workspace:*
+        version: link:../cad-simple-viewer
+      '@mlightcad/data-model':
+        specifier: workspace:*
+        version: link:../data-model
+      '@mlightcad/geometry-engine':
+        specifier: workspace:*
+        version: link:../geometry-engine
+      '@mlightcad/graphic-interface':
+        specifier: workspace:*
+        version: link:../graphic-interface
+
   packages/cad-viewer:
     devDependencies:
       '@ant-design/icons-vue':
@@ -427,6 +442,9 @@ importers:
       '@mlightcad/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
+      '@mlightcad/cad-tunnel-plugin':
+        specifier: workspace:*
+        version: link:../cad-tunnel-plugin
       '@mlightcad/cad-viewer':
         specifier: workspace:*
         version: link:../cad-viewer

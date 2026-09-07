@@ -378,14 +378,16 @@ export class AcTrBatchedMesh extends AcTrBatchedMeshBase {
 
     const batchGeometry = this.geometry
     const geometryInfo = this._geometryInfo[geometryId]
-    applyGeometryAt(
+    const boundsChanged = applyGeometryAt(
       geometryInfo,
       batchGeometry,
       geometry,
       'AcTrBatchedMesh',
       geometryId
     )
-    this.invalidateFrustumBounds()
+    if (boundsChanged) {
+      this.invalidateFrustumBounds()
+    }
 
     return geometryId
   }

@@ -4,7 +4,7 @@ import {
   AcGeMatrix3d,
   AcGePoint3d,
   AcGePoint3dLike,
-  acgeTransformOcsPointToWcs,
+  acgeTransformOcsPointToWcsInto,
   acgeTransformWcsPointToOcs,
   AcGeVector3d,
   AcGeVector3dLike
@@ -16,6 +16,10 @@ import { AcDbOsnapMode } from '../misc/AcDbOsnapMode'
 import { AcDbCurve } from './AcDbCurve'
 import { AcDbEntityProperties } from './AcDbEntityProperties'
 import { acdbForEachGripIndex } from './AcDbGripHelpers'
+
+/** Reused across dxfIn to avoid per-entity temporaries (parse is sequential). */
+const _dxfInPointA = /*@__PURE__*/ new AcGePoint3d()
+const _dxfInPointB = /*@__PURE__*/ new AcGePoint3d()
 
 /**
  * Represents a line entity in AutoCAD.
@@ -46,10 +50,26 @@ export class AcDbLine extends AcDbCurve {
     return 'LINE'
   }
 
-  /** The underlying geometric line object */
-  private _geo: AcGeLine3d
+  /** Backing for the lazily materialized geometric line object. */
+  private _geoData: AcGeLine3d | null = null
   /** Extrusion / OCS normal (DXF group 210) */
   private _normal: AcGeVector3d = new AcGeVector3d(0, 0, 1)
+
+  /**
+   * The underlying geometric line object. Materialized lazily so that
+   * factory-created entities (dxfIn path) never allocate a default line
+   * that dxfIn would immediately replace.
+   */
+  private get _geo(): AcGeLine3d {
+    if (this._geoData == null) {
+      this._geoData = new AcGeLine3d(new AcGePoint3d(), new AcGePoint3d())
+    }
+    return this._geoData
+  }
+
+  private set _geo(value: AcGeLine3d) {
+    this._geoData = value
+  }
   /** Thickness along the normal (DXF group 39) */
   private _thickness = 0
 
@@ -70,9 +90,13 @@ export class AcDbLine extends AcDbCurve {
    * );
    * ```
    */
-  constructor(start: AcGePoint3dLike, end: AcGePoint3dLike) {
+  constructor()
+  constructor(start: AcGePoint3dLike, end: AcGePoint3dLike)
+  constructor(start?: AcGePoint3dLike, end?: AcGePoint3dLike) {
     super()
-    this._geo = new AcGeLine3d(start, end)
+    if (start !== undefined && end !== undefined) {
+      this._geo = new AcGeLine3d(start, end)
+    }
   }
 
   /**
@@ -522,13 +546,21 @@ export class AcDbLine extends AcDbCurve {
       }
     }
 
-    const normal = new AcGeVector3d(nx, ny, nz)
-    if (normal.lengthSq() > 0) {
-      this.normal.copy(normal.normalize())
+    if (nx * nx + ny * ny + nz * nz > 0) {
+      this.normal.set(nx, ny, nz).normalize()
     }
     this.thickness = thickness
-    this.startPoint = acgeTransformOcsPointToWcs({ x: x1, y: y1, z: z1 }, this.normal)
-    this.endPoint = acgeTransformOcsPointToWcs({ x: x2, y: y2, z: z2 }, this.normal)
+    acgeTransformOcsPointToWcsInto(
+      _dxfInPointA,
+      { x: x1, y: y1, z: z1 },
+      this.normal
+    )
+    acgeTransformOcsPointToWcsInto(
+      _dxfInPointB,
+      { x: x2, y: y2, z: z2 },
+      this.normal
+    )
+    this._geo = new AcGeLine3d(_dxfInPointA, _dxfInPointB)
     return this
   }
 

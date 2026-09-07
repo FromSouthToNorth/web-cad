@@ -172,7 +172,30 @@ export class AcCmObject<T extends AcCmAttributes = any> {
     // Extract attributes and options.
     const unset = options.unset
     const silent = options.silent
-    const changes = []
+
+    if (!unset) {
+      // Fast path: when every written value is reference-equal to the current
+      // value, no attribute walk can produce changes. Replicate the session
+      // bookkeeping (snapshot + changed reset) exactly, then return — the
+      // per-attribute deep `isEqual` walks are the only work skipped.
+      let allUnchanged = true
+      for (const attr in attrs) {
+        if (this.attributes[attr] !== attrs[attr]) {
+          allUnchanged = false
+          break
+        }
+      }
+      if (allUnchanged) {
+        if (!this._changing) {
+          this._previousAttributes = clone(this.attributes)
+          this.changed = {}
+        }
+        return this
+      }
+    }
+
+    // `changes` is allocated lazily: sets that change nothing never dispatch.
+    let changes: string[] | null = null
     const changing = this._changing
     this._changing = true
 
@@ -188,7 +211,18 @@ export class AcCmObject<T extends AcCmAttributes = any> {
     // For each `set` attribute, update or delete the current value.
     for (const attr in attrs) {
       val = attrs[attr]
-      if (!isEqual(current[attr], val)) changes.push(attr)
+      if (!unset && current[attr] === val) {
+        // Reference-equal: no write, no change event. `changed` still needs
+        // reconciling against the session snapshot when the attribute was
+        // mutated earlier in this session and set back to its current value.
+        if (prev[attr] === val || isEqual(prev[attr], val)) {
+          delete changed[attr]
+        } else {
+          changed[attr] = val
+        }
+        continue
+      }
+      if (!isEqual(current[attr], val)) (changes || (changes = [])).push(attr)
       if (!isEqual(prev[attr], val)) {
         changed[attr] = val
       } else {
@@ -200,14 +234,16 @@ export class AcCmObject<T extends AcCmAttributes = any> {
     // Trigger all relevant attribute changes.
     if (!silent) {
       // @ts-expect-error just keep backbone implementation as is
-      if (changes.length) this._pending = options
-      for (let i = 0; i < changes.length; i++) {
-        this.events.attrChanged.dispatch({
-          object: this,
-          attrName: changes[i],
-          attrValue: current[changes[i]],
-          options: options
-        })
+      if (changes) this._pending = options
+      if (changes) {
+        for (let i = 0; i < changes.length; i++) {
+          this.events.attrChanged.dispatch({
+            object: this,
+            attrName: changes[i],
+            attrValue: current[changes[i]],
+            options: options
+          })
+        }
       }
     }
 

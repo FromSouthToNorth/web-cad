@@ -123,7 +123,7 @@ function getOrCreateHighlightUniforms(
  * @param material - Material candidate for the highlight patch.
  * @returns Dash mode, or `'none'` when the material must not be patched.
  */
-function resolveDashMode(
+export function resolveDashMode(
   material: THREE.Material
 ): AcTrBatchHighlightDashMode {
   if (material.type === 'LineMaterial') {
@@ -464,10 +464,14 @@ export function patchMaterialForBatchHighlight(material: THREE.Material) {
  */
 export function bindBatchHighlightUniforms(
   material: THREE.Material | THREE.Material[],
-  state: AcTrBatchHighlightState
+  state: AcTrBatchHighlightState,
+  renderer?: THREE.WebGLRenderer
 ) {
   const materials = Array.isArray(material) ? material : [material]
   const texture = state.uploadMaskTexture()
+  if (renderer) {
+    state.uploadPendingMaskRegion(renderer)
+  }
 
   for (const entry of materials) {
     patchMaterialForBatchHighlight(entry)
@@ -526,6 +530,6 @@ export function installBatchHighlightRenderer(
     if (!state.hasAnyHighlight() || !material) {
       return
     }
-    bindBatchHighlightUniforms(material, state)
+    bindBatchHighlightUniforms(material, state, renderer)
   }
 }

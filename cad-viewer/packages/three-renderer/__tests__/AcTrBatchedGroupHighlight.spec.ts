@@ -43,7 +43,7 @@ function findBatchedLine(group: AcTrBatchedGroup): AcTrBatchedLine | undefined {
 }
 
 describe('AcTrBatchedGroup slot-mask highlight', () => {
-  it('writes slotId and lineDistance when batching line geometry', () => {
+  it('writes slotId and materializes lineDistance on first highlight', () => {
     const group = new AcTrBatchedGroup()
     group.addEntity(createBatchedLineEntity('line-1'))
 
@@ -52,8 +52,12 @@ describe('AcTrBatchedGroup slot-mask highlight', () => {
     const slotId = batchedLine!.geometry.getAttribute(BATCH_SLOT_ID_ATTRIBUTE)
     expect(slotId).toBeDefined()
     expect(slotId.getX(0)).toBe(0)
-    // Every packed line now carries per-entity cumulative distances so the
-    // selection-dash shader can discard highlighted fragments.
+    // lineDistance is deferred until the first highlight needs it (B1 lazy
+    // attribute); selecting materializes per-entity cumulative distances for
+    // the selection-dash shader.
+    expect(batchedLine!.geometry.getAttribute('lineDistance')).toBeUndefined()
+
+    group.select('line-1')
     const lineDistance = batchedLine!.geometry.getAttribute('lineDistance')
     expect(lineDistance).toBeDefined()
     expect(lineDistance.getX(0)).toBe(0)

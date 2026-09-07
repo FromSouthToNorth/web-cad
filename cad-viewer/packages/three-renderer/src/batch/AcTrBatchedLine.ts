@@ -20,12 +20,30 @@ import {
   resolveReservedCount,
   validateGeometry
 } from './AcTrBatchedMixin'
+import { resolveDashMode } from './highlight/AcTrBatchHighlightShaders'
+import type { AcTrBatchHighlightKind } from './highlight'
 import { syncBatchDrawVisibilityAfterOptimize } from './drawVisibility'
 
 /** Reusable scratch box for bounds queries. */
 const _box = /*@__PURE__*/ new THREE.Box3()
 /** Reusable scratch vector for bounds expansion. */
 const _vector = /*@__PURE__*/ new THREE.Vector3()
+
+/**
+ * Whether thin-line batches defer the `lineDistance` attribute until the
+ * first selection highlight actually needs it. The attribute costs ~25% of
+ * line-batch vertex memory; batches that are never highlighted never pay it
+ * while enabled. Disable to restore the eager behavior.
+ */
+let _batchLineDistanceLazyEnabled = true
+
+export function acTrSetBatchLineDistanceLazyEnabled(enabled: boolean): void {
+  _batchLineDistanceLazyEnabled = enabled
+}
+
+export function acTrIsBatchLineDistanceLazyEnabled(): boolean {
+  return _batchLineDistanceLazyEnabled
+}
 
 /**
  * Mixin base produced by {@link createAcTrBatchedMixin} for indexed line batches.
@@ -86,6 +104,12 @@ export class AcTrBatchedLine extends AcTrBatchedLineBase {
   private _geometryInitialized = false
 
   /**
+   * True while this batch's material has no dash wiring and the `lineDistance`
+   * attribute is deferred until the first highlight needs it.
+   */
+  private _lineDistanceDeferred: boolean
+
+  /**
    * Creates a new line batch with preallocated buffer capacities.
    *
    * @param maxVertexCount - Initial vertex capacity; defaults to `1000`.
@@ -103,6 +127,10 @@ export class AcTrBatchedLine extends AcTrBatchedLineBase {
     // cached user options
     this._maxVertexCount = maxVertexCount
     this._maxIndexCount = maxIndexCount
+    this._lineDistanceDeferred =
+      acTrIsBatchLineDistanceLazyEnabled() &&
+      material != null &&
+      resolveDashMode(material) === 'line'
   }
 
   /**
@@ -307,7 +335,10 @@ export class AcTrBatchedLine extends AcTrBatchedLineBase {
     this.rebaseGeometryInPlace(geometry, worldOffset)
     // Every packed line geometry carries entity-local cumulative distances so
     // the selection-dash shader can discard fragments along highlighted slots.
-    AcTrBufferGeometryUtil.computeSegmentLineDistances(geometry)
+    // Deferred batches (solid materials) skip this until the first highlight.
+    if (!this._lineDistanceDeferred) {
+      AcTrBufferGeometryUtil.computeSegmentLineDistances(geometry)
+    }
     this._initializeGeometry(geometry)
     this._validateGeometry(geometry)
 
@@ -450,23 +481,129 @@ export class AcTrBatchedLine extends AcTrBatchedLineBase {
       throw new Error('AcTrBatchedLine: Maximum geometry count reached.')
     }
 
-    if (!geometry.hasAttribute('lineDistance')) {
+    if (
+      !this._lineDistanceDeferred &&
+      !geometry.hasAttribute('lineDistance')
+    ) {
       AcTrBufferGeometryUtil.computeSegmentLineDistances(geometry)
     }
     this._validateGeometry(geometry)
 
     const batchGeometry = this.geometry
     const geometryInfo = this._geometryInfo[geometryId]
-    applyGeometryAt(
+    const boundsChanged = applyGeometryAt(
       geometryInfo,
       batchGeometry,
       geometry,
       'AcTrBatchedLine',
       geometryId
     )
-    this.invalidateFrustumBounds()
+    if (boundsChanged) {
+      this.invalidateFrustumBounds()
+    }
 
     return geometryId
+  }
+
+  override setHighlightAt(
+    geometryId: number,
+    kind: AcTrBatchHighlightKind,
+    enabled: boolean
+  ) {
+    const changed = super.setHighlightAt(geometryId, kind, enabled)
+    if (changed) {
+      this.ensureLineDistanceAttribute()
+    }
+    return changed
+  }
+
+  /**
+   * Materializes the deferred `lineDistance` attribute when the current
+   * material has dash wiring. Called on the first highlight and by
+   * {@link AcTrBatchedGroup.updateMaterial} after layer rebinds swap a
+   * dash-capable material onto a previously solid batch.
+   */
+  ensureLineDistanceAttribute() {
+    if (!this._lineDistanceDeferred) return
+    const material = Array.isArray(this.material)
+      ? this.material[0]
+      : this.material
+    if (material == null || resolveDashMode(material) !== 'line') {
+      // Only the per-vertex dash wiring consumes lineDistance; wide-line
+      // ('line2') and unpatched ('none') materials must not receive it.
+      return
+    }
+
+    const packed = this.geometry
+    const packedPosition = packed.getAttribute('position') as
+      | THREE.BufferAttribute
+      | undefined
+    if (!packedPosition) return
+    const packedIndex = packed.getIndex() as THREE.BufferAttribute | null
+
+    // Sizing pass: scratch arrays cover the largest active slot.
+    let maxSlotVertices = 2
+    let maxSlotIndices = 2
+    for (let i = 0; i < this._geometryCount; i++) {
+      const info = this._geometryInfo[i]
+      if (!isBatchGeometryActive(info.flags)) continue
+      maxSlotVertices = Math.max(maxSlotVertices, info.vertexCount)
+      maxSlotIndices = Math.max(maxSlotIndices, info.indexCount)
+    }
+
+    const itemSize = packedPosition.itemSize
+    const distances = new Float32Array(packedPosition.count)
+    const slotGeometry = new THREE.BufferGeometry()
+    const positionScratch = new Float32Array(maxSlotVertices * itemSize)
+    const indexScratch = packedIndex
+      ? new Uint32Array(maxSlotIndices)
+      : undefined
+
+    for (let i = 0; i < this._geometryCount; i++) {
+      const info = this._geometryInfo[i]
+      if (!isBatchGeometryActive(info.flags)) continue
+      const vertexCount = info.vertexCount
+      if (vertexCount < 2) continue
+
+      // Rebuild the slot's local geometry in the scratch object and reuse the
+      // eager distance computation (segment-pair cumulative, entity-local).
+      positionScratch.set(
+        packedPosition.array.subarray(
+          info.vertexStart * itemSize,
+          (info.vertexStart + vertexCount) * itemSize
+        ),
+        0
+      )
+      slotGeometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(
+          positionScratch.subarray(0, vertexCount * itemSize),
+          itemSize
+        )
+      )
+      if (indexScratch && packedIndex) {
+        for (let k = 0; k < info.indexCount; k++) {
+          indexScratch[k] =
+            packedIndex.array[info.indexStart + k] - info.vertexStart
+        }
+        slotGeometry.setIndex(
+          new THREE.BufferAttribute(
+            indexScratch.subarray(0, info.indexCount),
+            1
+          )
+        )
+      }
+      AcTrBufferGeometryUtil.computeSegmentLineDistances(slotGeometry)
+      const slotDistances = slotGeometry.getAttribute(
+        'lineDistance'
+      ) as THREE.BufferAttribute
+      distances.set(slotDistances.array, info.vertexStart)
+    }
+
+    const attribute = new THREE.Float32BufferAttribute(distances, 1)
+    attribute.needsUpdate = true
+    packed.setAttribute('lineDistance', attribute)
+    this._lineDistanceDeferred = false
   }
 
   /**

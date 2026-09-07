@@ -7,6 +7,21 @@ export type AcTrBatchHighlightKind = 'select' | 'hover'
 const MAX_MASK_TEXTURE_DIMENSION = 4096
 
 /**
+ * Whether the GPU-side mask upload uses `gl.texSubImage2D` for the dirty
+ * window instead of re-uploading the whole texture via `needsUpdate`. Falls
+ * back to the full path whenever the renderer or texture is unavailable.
+ */
+let _batchMaskPartialUploadEnabled = true
+
+export function acTrSetBatchMaskPartialUploadEnabled(enabled: boolean): void {
+  _batchMaskPartialUploadEnabled = enabled
+}
+
+export function acTrIsBatchMaskPartialUploadEnabled(): boolean {
+  return _batchMaskPartialUploadEnabled
+}
+
+/**
  * Computes a 2D mask texture layout that fits `slotCount` slots within GPU
  * dimension limits.
  *
@@ -68,6 +83,16 @@ export class AcTrBatchHighlightState {
    * between uploads so unchanged pixels survive incremental rewrites.
    */
   private _maskData: Uint8Array | null = null
+  /**
+   * Pending single-row dirty window (pixels) awaiting a partial GPU upload,
+   * or `null` when the next upload is handled by three.js (`needsUpdate`).
+   */
+  private _pendingUploadRegion: {
+    x: number
+    y: number
+    width: number
+    height: number
+  } | null = null
 
   /**
    * Returns the number of slots the mask texture must cover for correct UV
@@ -287,15 +312,88 @@ export class AcTrBatchHighlightState {
       this.maskTexture.needsUpdate = true
       this.maskTextureWidth = width
       this.maskTextureHeight = height
+      this._pendingUploadRegion = null
     } else {
       this.maskTexture.image.data = data
-      this.maskTexture.needsUpdate = true
+      if (
+        acTrIsBatchMaskPartialUploadEnabled() &&
+        this.recordPendingUploadRegion(width, startSlot, endSlot)
+      ) {
+        // Partial upload deferred to the per-object render hook, which has
+        // the GL context; the CPU window is already written into `data`.
+      } else {
+        this.maskTexture.needsUpdate = true
+      }
     }
 
     this.dirty = false
     this._dirtyRangeStart = Infinity
     this._dirtyRangeEnd = -1
     return this.maskTexture
+  }
+
+  /**
+   * Records the pixel rect for the dirty slot window when it fits in a single
+   * texture row. Cross-row windows fall back to a full texture upload.
+   */
+  private recordPendingUploadRegion(
+    width: number,
+    startSlot: number,
+    endSlot: number
+  ) {
+    if (startSlot > endSlot) return false
+    const y0 = Math.floor(startSlot / width)
+    const y1 = Math.floor(endSlot / width)
+    if (y0 !== y1) return false
+    this._pendingUploadRegion = {
+      x: startSlot % width,
+      y: y0,
+      width: endSlot - startSlot + 1,
+      height: 1
+    }
+    return true
+  }
+
+  /**
+   * Uploads the pending dirty window with a raw `gl.texSubImage2D` call.
+   * Invoked from the per-object `onBeforeRender` hook, which receives the
+   * renderer. Falls back to the three.js full-texture path when the texture
+   * has not been uploaded yet (e.g. first frame after creation).
+   */
+  uploadPendingMaskRegion(renderer: THREE.WebGLRenderer) {
+    const region = this._pendingUploadRegion
+    const texture = this.maskTexture
+    if (region == null || texture == null) return
+    const glTexture = (
+      renderer.properties.get(texture) as
+        | { __webglTexture?: WebGLTexture }
+        | undefined
+    )?.__webglTexture
+    if (!glTexture) {
+      texture.needsUpdate = true
+      this._pendingUploadRegion = null
+      return
+    }
+    const gl = renderer.getContext()
+    const image = texture.image as {
+      data: Uint8Array
+      width: number
+      height: number
+    }
+    const rowStart = (region.y * image.width + region.x) * 4
+    gl.bindTexture(gl.TEXTURE_2D, glTexture)
+    gl.texSubImage2D(
+      gl.TEXTURE_2D,
+      0,
+      region.x,
+      region.y,
+      region.width,
+      region.height,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      image.data.subarray(rowStart, rowStart + region.width * 4)
+    )
+    this._pendingUploadRegion = null
   }
 
   /**

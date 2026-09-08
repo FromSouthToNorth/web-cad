@@ -10,6 +10,7 @@ export type TunnelMessageKey =
   | 'ribbonSettingsTooltip'
   | 'draw.urlPrompt'
   | 'draw.noUrl'
+  | 'draw.loading'
   | 'draw.noDocument'
   | 'draw.fetchFailed'
   | 'draw.parseFailed'
@@ -32,14 +33,15 @@ export type TunnelMessageKey =
 
 const MESSAGES: Record<AcApLocale, Record<TunnelMessageKey, string>> = {
   en: {
-    ribbonLabel: 'Draw\nTunnel',
+    ribbonLabel: 'Read\nTunnel',
     ribbonTooltip:
-      'Draw tunnel planning objects (points, lines, areas, text) from a GeoJSON data source.',
+      'Read tunnel planning objects (points, lines, areas, text) from a GeoJSON data source.',
     ribbonSettingsLabel: 'Tunnel\nSettings',
     ribbonSettingsTooltip:
       'Open the tunnel settings panel (line width, label size, label collision avoidance).',
     'draw.urlPrompt': 'GeoJSON data URL:',
     'draw.noUrl': 'No data URL provided, cancelled.',
+    'draw.loading': 'Reading tunnel data…',
     'draw.noDocument': 'No drawing document is open.',
     'draw.fetchFailed': 'Failed to fetch GeoJSON data:',
     'draw.parseFailed': 'Failed to parse GeoJSON data:',
@@ -64,14 +66,15 @@ const MESSAGES: Record<AcApLocale, Record<TunnelMessageKey, string>> = {
       'Applied: width {width}, label size {height}, collision avoidance {collision} ({updated} objects updated, {shown} labels shown, {hidden} hidden).'
   },
   zh: {
-    ribbonLabel: '绘制\n巷道',
+    ribbonLabel: '读取\n巷道',
     ribbonTooltip:
-      '从 GeoJSON 数据源绘制巷道规划对象（点、线、面、文字）。',
+      '从 GeoJSON 数据源读取巷道数据并绘制规划对象（点、线、面、文字）。',
     ribbonSettingsLabel: '巷道\n设置',
     ribbonSettingsTooltip:
       '打开巷道设置面板（线宽、名称大小、名称碰撞避让）。',
     'draw.urlPrompt': 'GeoJSON 数据地址（URL）：',
     'draw.noUrl': '未提供数据地址，已取消。',
+    'draw.loading': '正在读取巷道数据…',
     'draw.noDocument': '当前没有打开的图纸文档。',
     'draw.fetchFailed': '获取 GeoJSON 数据失败：',
     'draw.parseFailed': '解析 GeoJSON 数据失败：',
@@ -102,6 +105,7 @@ const MESSAGES: Record<AcApLocale, Record<TunnelMessageKey, string>> = {
       'Tünel ayarları panelini açar (çizgi kalınlığı, yazı boyutu, çakışma önleme).',
     'draw.urlPrompt': 'GeoJSON veri URL:',
     'draw.noUrl': 'Veri URL verilmedi, iptal edildi.',
+    'draw.loading': 'Tünel verisi okunuyor…',
     'draw.noDocument': 'Açık bir çizim belgesi yok.',
     'draw.fetchFailed': 'GeoJSON verisi alınamadı:',
     'draw.parseFailed': 'GeoJSON verisi çözümlenemedi:',
@@ -134,6 +138,7 @@ const MESSAGES: Record<AcApLocale, Record<TunnelMessageKey, string>> = {
       'Otevře panel nastavení štol (tloušťka čáry, velikost popisku, předcházení kolizím).',
     'draw.urlPrompt': 'URL dat GeoJSON:',
     'draw.noUrl': 'Nebyla zadána adresa dat, zrušeno.',
+    'draw.loading': 'Načítání dat štol…',
     'draw.noDocument': 'Není otevřen žádný výkresový dokument.',
     'draw.fetchFailed': 'Nepodařilo se načíst data GeoJSON:',
     'draw.parseFailed': 'Nepodařilo se analyzovat data GeoJSON:',

@@ -4,7 +4,7 @@ import {
   acdbDxfInEntity,
   acdbHostApplicationServices
 } from '@mlightcad/data-model'
-import { AcGePoint3d } from '@mlightcad/geometry-engine'
+import { AcGeMatrix3d, AcGePoint3d } from '@mlightcad/geometry-engine'
 
 import { CoalBunker } from '../src/entity/CoalBunker'
 import { ShaftRoadway } from '../src/entity/ShaftRoadway'
@@ -76,6 +76,23 @@ describe('ShaftRoadway', () => {
     expect(shaft.radius).toBe(15)
     shaft.outer = -1
     expect(shaft.outer).toBe(5)
+  })
+
+  it('moves and rotates with transformBy', () => {
+    const shaft = new ShaftRoadway(
+      new AcGePoint3d(10, 0, 0),
+      new AcGePoint3d(10, 0, 500)
+    )
+
+    shaft.transformBy(new AcGeMatrix3d().makeTranslation(5, -3, 2))
+    expect(shaft.bottom.x).toBeCloseTo(15)
+    expect(shaft.bottom.y).toBeCloseTo(-3)
+    expect(shaft.bottom.z).toBeCloseTo(2)
+    expect(shaft.top.z).toBeCloseTo(502)
+
+    shaft.transformBy(new AcGeMatrix3d().makeRotationZ(Math.PI / 2))
+    expect(shaft.bottom.x).toBeCloseTo(3)
+    expect(shaft.bottom.y).toBeCloseTo(15)
   })
 
   it('exposes the 立井信息 property group with coordinates', () => {

@@ -52,63 +52,70 @@ export class AcApDrawTunnelCmd extends AcEdCommand {
     const url = await this.resolveUrl(context, options)
     if (url == null) return
 
-    let featureCollection
-    try {
-      const response = await fetch(url)
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} ${response.statusText}`.trim())
+    // The fetch/conversion/append runs under the host busy overlay (same
+    // spinner the DXF export uses), so reading slow data sources stays
+    // visible to the user.
+    await this.withBusyIndicator(async () => {
+      let featureCollection
+      try {
+        const response = await fetch(url)
+        if (!response.ok) {
+          throw new Error(
+            `HTTP ${response.status} ${response.statusText}`.trim()
+          )
+        }
+        featureCollection = parseTunnelGeoJson(await response.json())
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error)
+        log.error(`[cad-tunnel] ${tunnelT('draw.fetchFailed')} ${detail}`)
+        return
       }
-      featureCollection = parseTunnelGeoJson(await response.json())
-    } catch (error) {
-      const detail = error instanceof Error ? error.message : String(error)
-      log.error(`[cad-tunnel] ${tunnelT('draw.fetchFailed')} ${detail}`)
-      return
-    }
 
-    const doc = AcApDocManager.instance.curDocument
-    if (!doc) {
-      log.error(`[cad-tunnel] ${tunnelT('draw.noDocument')}`)
-      return
-    }
-    const db = doc.database
+      const doc = AcApDocManager.instance.curDocument
+      if (!doc) {
+        log.error(`[cad-tunnel] ${tunnelT('draw.noDocument')}`)
+        return
+      }
+      const db = doc.database
 
-    let result
-    try {
-      result = geojsonToEntities(featureCollection, { ...options, db })
-    } catch (error) {
-      const detail = error instanceof Error ? error.message : String(error)
-      log.error(`[cad-tunnel] ${tunnelT('draw.parseFailed')} ${detail}`)
-      return
-    }
+      let result
+      try {
+        result = geojsonToEntities(featureCollection, { ...options, db })
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error)
+        log.error(`[cad-tunnel] ${tunnelT('draw.parseFailed')} ${detail}`)
+        return
+      }
 
-    if (result.entityCount === 0) {
-      log.warn(`[cad-tunnel] ${tunnelT('draw.noData')}`)
-      return
-    }
+      if (result.entityCount === 0) {
+        log.warn(`[cad-tunnel] ${tunnelT('draw.noData')}`)
+        return
+      }
 
-    acapRunDatabaseEdit(db, 'drawtunnel', () => {
-      for (const layer of result.layers) ensureLayer(db, layer)
-      db.tables.blockTable.modelSpace.appendEntity(result.entities)
-    })
+      acapRunDatabaseEdit(db, 'drawtunnel', () => {
+        for (const layer of result.layers) ensureLayer(db, layer)
+        db.tables.blockTable.modelSpace.appendEntity(result.entities)
+      })
 
-    log.info(
-      `[cad-tunnel] ${tunnelT('draw.done', {
-        total: result.entityCount,
-        ...result.counts
-      })}`
-    )
-
-    if (result.labelsHidden > 0) {
       log.info(
-        `[cad-tunnel] ${tunnelT('draw.labelsHidden', {
-          count: result.labelsHidden
+        `[cad-tunnel] ${tunnelT('draw.done', {
+          total: result.entityCount,
+          ...result.counts
         })}`
       )
-    }
 
-    if (options.fitView !== false) {
-      context.view.zoomToFitDrawing()
-    }
+      if (result.labelsHidden > 0) {
+        log.info(
+          `[cad-tunnel] ${tunnelT('draw.labelsHidden', {
+            count: result.labelsHidden
+          })}`
+        )
+      }
+
+      if (options.fitView !== false) {
+        context.view.zoomToFitDrawing()
+      }
+    }, tunnelT('draw.loading'))
   }
 
   private async resolveUrl(

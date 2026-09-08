@@ -3,7 +3,7 @@
 「绘制巷道」规划插件：**不解析任何 DWG/DXF 文件**，直接从 GeoJSON 数据（HTTP 请求返回，例如 axios/fetch）绘制自定义对象——点、线（巷道中心线 `TunnelRoadway`）、面（闭合多段线 + SOLID 填充）、文字标注。
 
 - 命令：`drawtunnel`（别名 `tunnel`）、`tunnelclear`
-- Ribbon：自动注入「实用工具」分组的 **绘制巷道**、**巷道设置** 按钮（Home → Utilities）
+- Ribbon：自动注入「实用工具」分组的 **读取巷道**、**巷道设置** 按钮（Home → Utilities）
 - 设置面板：巷道线宽、名称大小（0 = 自动）、名称碰撞避让，控件变化即防抖自动应用（合并为一次可撤销事务）
 - 名称标注：默认按数据范围自动定高，并做**碰撞避让**（重叠名称自动隐藏，长者优先）
 - 巷道属性：选中巷道实体后，属性面板展示「巷道信息」分组（巷道名称 / 巷道类型 / 煤层），随 DXF 往返
@@ -32,7 +32,7 @@ void registerTunnelPlugin(AcApDocManager.instance.pluginManager, {
 })
 ```
 
-点击 Ribbon「绘制巷道」按钮（或在命令行输入 `drawtunnel`）即从配置的 URL 拉取数据并绘制；
+点击 Ribbon「读取巷道」按钮（或在命令行输入 `drawtunnel`）即从配置的 URL 拉取数据并绘制；
 「巷道设置」按钮打开设置面板；`tunnelclear` 清除插件绘制的全部对象。
 
 ## GeoJSON → 实体映射

@@ -8,6 +8,7 @@ import {
 import {
   AcGeBox3d,
   AcGeCircArc3d,
+  AcGeMatrix3d,
   AcGePoint3d,
   AcGePoint3dLike,
   AcGeVector3d,
@@ -178,6 +179,18 @@ export class ShaftRoadway extends AcDbCustomEntity {
   override getOffsetCurves(_offsetDist: number): AcDbCurve[] {
     // Offsetting a compound symbol is not meaningful.
     return []
+  }
+
+  /**
+   * Moves / rotates / mirrors the symbol for the MOVE, ROTATE, COPY and
+   * similar commands. The base {@link AcDbEntity.transformBy} is a no-op, so
+   * without this override the symbol would stay at its original position
+   * after those commands.
+   */
+  override transformBy(matrix: AcGeMatrix3d): this {
+    this._bottom = toPoint(this._bottom.applyMatrix4(matrix))
+    this._top = toPoint(this._top.applyMatrix4(matrix))
+    return this
   }
 
   subWorldDraw(renderer: AcGiRenderer): AcGiEntity | undefined {

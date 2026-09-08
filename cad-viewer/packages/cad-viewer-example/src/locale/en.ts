@@ -133,7 +133,7 @@ export default {
         redo: 'Redo',
         regen: 'Regen',
         invertSelect: 'Invert Selection',
-        drawTunnel: 'Draw Tunnel',
+        drawTunnel: 'Read Tunnel',
         tunnelSettings: 'Tunnel Settings',
         search: 'Object Search',
         agent: 'CAD Agent',

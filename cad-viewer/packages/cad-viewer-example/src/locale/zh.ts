@@ -133,7 +133,7 @@ export default {
         redo: '重做',
         regen: '重生成',
         invertSelect: '反选',
-        drawTunnel: '绘制巷道',
+        drawTunnel: '读取巷道',
         tunnelSettings: '巷道设置',
         search: '对象搜索',
         agent: 'CAD 助手',

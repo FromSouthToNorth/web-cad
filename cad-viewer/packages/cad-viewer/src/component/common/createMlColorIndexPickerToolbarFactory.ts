@@ -1,6 +1,6 @@
-import { type MTextToolbarColorPickerFactory } from '@mlightcad/cad-simple-viewer'
-import { AcCmColor } from '@mlightcad/data-model'
-import { AcTrMTextColorUtil } from '@mlightcad/three-renderer'
+import { type MTextToolbarColorPickerFactory } from '@hy/cad-simple-viewer'
+import { AcCmColor } from '@hy/data-model'
+import { AcTrMTextColorUtil } from '@hy/three-renderer'
 import { createApp, h, ref, shallowRef } from 'vue'
 
 import { i18n } from '../../locale'

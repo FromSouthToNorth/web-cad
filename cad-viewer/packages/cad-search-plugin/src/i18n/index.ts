@@ -1,4 +1,4 @@
-import { AcApI18n, type AcApLocale } from '@mlightcad/cad-simple-viewer'
+import { AcApI18n, type AcApLocale } from '@hy/cad-simple-viewer'
 
 import { searchCs } from './cs'
 import { searchEn } from './en'

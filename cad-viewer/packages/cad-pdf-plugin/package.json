@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-pdf-plugin",
+  "name": "@hy/cad-pdf-plugin",
   "version": "1.6.1",
   "license": "MIT",
   "type": "module",
@@ -43,16 +43,16 @@
     "lint:fix": "eslint --fix --quiet src/"
   },
   "devDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/cad-svg-plugin": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/cad-svg-plugin": "workspace:*",
+    "@hy/data-model": "workspace:*",
     "jspdf": "^4.2.1",
     "pdfjs-dist": "^5.6.205",
     "svg2pdf.js": "^2.7.0"
   },
   "peerDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
-    "@mlightcad/cad-svg-plugin": "workspace:*"
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*",
+    "@hy/cad-svg-plugin": "workspace:*"
   }
 }

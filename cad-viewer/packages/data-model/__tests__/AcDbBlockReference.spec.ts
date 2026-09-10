@@ -1,5 +1,5 @@
-import { AcCmColor } from '@mlightcad/common'
-import { AcGeMatrix3d, AcGePoint3d } from '@mlightcad/geometry-engine'
+import { AcCmColor } from '@hy/common'
+import { AcGeMatrix3d, AcGePoint3d } from '@hy/geometry-engine'
 
 import { acdbHostApplicationServices, AcDbDxfFiler } from '../src/base'
 import { AcDbBlockTableRecord, AcDbDatabase } from '../src/database'

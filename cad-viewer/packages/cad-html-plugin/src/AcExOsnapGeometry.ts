@@ -3,13 +3,13 @@
  *
  * Thin orchestration layer: converts {@link AcExOsnapPrimitive} via
  * {@link primitiveToAcGeCurve}, then calls `AcGeLine2d`, `AcGeCircArc2d`,
- * `AcGeEllipseArc2d`, and `AcGeNurbsCurve` from `@mlightcad/data-model`
+ * `AcGeEllipseArc2d`, and `AcGeNurbsCurve` from `@hy/data-model`
  * (geometry-engine) for all snap math.
  *
  * @packageDocumentation
  */
 
-import type { AcGePoint2dLike } from '@mlightcad/data-model'
+import type { AcGePoint2dLike } from '@hy/data-model'
 
 import {
   type AcExOsnapAcGeCurve,

@@ -1,4 +1,4 @@
-import { AcCmColor } from '@mlightcad/common'
+import { AcCmColor } from '@hy/common'
 import {
   AcGeArea2d,
   AcGeBox3d,
@@ -8,7 +8,7 @@ import {
   AcGePolyline2d,
   AcGeVector3d,
   AcGeVector3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 import {
   AcGiEntity,
   AcGiLineWeight,
@@ -18,7 +18,7 @@ import {
   AcGiRenderer,
   AcGiStyleType,
   AcGiTextStyle
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import type { AcDbTypedValue } from '../base/AcDbTypedValue'

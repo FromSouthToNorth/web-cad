@@ -6,7 +6,7 @@ import {
   AcGeBox2d,
   AcGePoint2dLike,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcApDocManager, AcApSettingManager } from '../../../app'
 import { AcApI18n } from '../../../i18n'

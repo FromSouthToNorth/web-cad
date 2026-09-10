@@ -1,4 +1,4 @@
-import { AcCmColor, AcCmTransparency } from '@mlightcad/common'
+import { AcCmColor, AcCmTransparency } from '@hy/common'
 
 import { acdbHostApplicationServices } from '../src/base/AcDbHostApplicationServices'
 import { AcDbDatabase } from '../src/database/AcDbDatabase'

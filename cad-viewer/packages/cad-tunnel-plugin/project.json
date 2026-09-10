@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-tunnel-plugin",
+  "name": "@hy/cad-tunnel-plugin",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/cad-tunnel-plugin/src",
   "projectType": "library",

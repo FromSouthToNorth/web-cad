@@ -2,7 +2,7 @@ import {
   AcApDocManager,
   AcEdMTextEditor,
   AcEdOpenMode
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 import { type LayerCtxMessageKey, layerCtxT } from './i18n'
 import {

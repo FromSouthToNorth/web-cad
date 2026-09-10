@@ -1,7 +1,7 @@
-# @mlightcad/cad-simple-viewer-cli
+# @hy/cad-simple-viewer-cli
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://img.shields.io/npm/v/@mlightcad/cad-simple-viewer-cli.svg)](https://www.npmjs.com/package/@mlightcad/cad-simple-viewer-cli)
+[![npm version](https://img.shields.io/npm/v/@hy/cad-simple-viewer-cli.svg)](https://www.npmjs.com/package/@hy/cad-simple-viewer-cli)
 
 AcCoreConsole-style **headless** CLI for MLight CAD Viewer. Install from npm, open a DXF/DWG (or start blank), run an AutoCAD-like **`.scr` command script**, and save exports (`pngout`, `-chtml`, `cdxf`, …) to disk.
 
@@ -10,14 +10,14 @@ Requires **Node.js 20+**. The CLI uses headless Chromium via Playwright; on firs
 ## Install
 
 ```bash
-npm install -g @mlightcad/cad-simple-viewer-cli
+npm install -g @hy/cad-simple-viewer-cli
 npx playwright install chromium
 ```
 
 Or as a project dependency:
 
 ```bash
-npm install -D @mlightcad/cad-simple-viewer-cli
+npm install -D @hy/cad-simple-viewer-cli
 npx playwright install chromium
 ```
 
@@ -27,7 +27,7 @@ npx playwright install chromium
 # Export a drawing to PNG (sample script shipped with the package)
 cad-simple-viewer-cli \
   -i ./drawing.dwg \
-  -s node_modules/@mlightcad/cad-simple-viewer-cli/examples/export-png.scr \
+  -s node_modules/@hy/cad-simple-viewer-cli/examples/export-png.scr \
   -o ./out
 
 # Global install: same, with your own script
@@ -94,7 +94,7 @@ Layer edits need `--mode write`. Export commands write files via browser downloa
 
 ## Sample scripts
 
-After install, examples live under `node_modules/@mlightcad/cad-simple-viewer-cli/examples/` (or the global package folder):
+After install, examples live under `node_modules/@hy/cad-simple-viewer-cli/examples/` (or the global package folder):
 
 | Script | Purpose |
 |--------|---------|
@@ -111,14 +111,14 @@ After install, examples live under `node_modules/@mlightcad/cad-simple-viewer-cl
 Batch helpers (from your project after `npm install -D`):
 
 ```bash
-node node_modules/@mlightcad/cad-simple-viewer-cli/examples/batch-export-png.mjs ./drawings ./out-png
-node node_modules/@mlightcad/cad-simple-viewer-cli/examples/batch-export-html.mjs ./drawings ./out-html
+node node_modules/@hy/cad-simple-viewer-cli/examples/batch-export-png.mjs ./drawings ./out-png
+node node_modules/@hy/cad-simple-viewer-cli/examples/batch-export-html.mjs ./drawings ./out-html
 ```
 
 ## Programmatic API
 
 ```js
-import { runHeadless } from '@mlightcad/cad-simple-viewer-cli'
+import { runHeadless } from '@hy/cad-simple-viewer-cli'
 
 const { outputDir, savedFiles } = await runHeadless({
   inputPath: './drawing.dwg',   // optional; omit for blank drawing

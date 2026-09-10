@@ -3,7 +3,7 @@ import {
   AcGiLineTypePatternElement,
   AcGiLineWeight,
   AcGiSubEntityTraits
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /** Runtime style options passed from {@link AcSvgRenderer}. */
 export interface AcSvgStyleContext {

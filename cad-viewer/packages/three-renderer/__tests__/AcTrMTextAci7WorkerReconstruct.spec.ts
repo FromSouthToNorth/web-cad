@@ -1,7 +1,7 @@
 import {
   AcCmColor,
   ACGI_LIGHT_THEME_FOREGROUND
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   buildWorkerMaterialColorSettings,
   MTextColor,

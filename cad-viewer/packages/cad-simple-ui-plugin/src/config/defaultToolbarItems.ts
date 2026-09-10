@@ -3,7 +3,7 @@ import {
   type AcEdUiTheme,
   isMarkupVisible,
   isMeasurementVisible
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 import {
   ICON_ANNOTATION,

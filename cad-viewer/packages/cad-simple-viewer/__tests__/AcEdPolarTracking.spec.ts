@@ -2,7 +2,7 @@ import {
   AcDbDatabase,
   AcDbSystemVariables,
   AcDbSysVarManager
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import {
   constrainToTracking,

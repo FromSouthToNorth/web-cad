@@ -1,4 +1,4 @@
-import { AcDbObjectId } from '@mlightcad/data-model'
+import { AcDbObjectId } from '@hy/data-model'
 import RBush from 'rbush'
 
 import { AcEdSpatialQueryResultItem } from '../editor/view'

@@ -1,7 +1,7 @@
 # CAD Simple Viewer
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://img.shields.io/npm/v/@mlightcad/cad-simple-viewer.svg)](https://www.npmjs.com/package/@mlightcad/cad-simple-viewer)
+[![npm version](https://img.shields.io/npm/v/@hy/cad-simple-viewer.svg)](https://www.npmjs.com/package/@hy/cad-simple-viewer)
 
 This package provides the **high-performance** core components of a CAD viewer such as document management, command handling, and collaboration between the UI and rendering engines. It's designed for optimal performance when handling large CAD files.
 
@@ -35,7 +35,7 @@ Use `cad-simple-viewer` if you need **core CAD logic only** (document management
 ## Installation
 
 ```bash
-npm install @mlightcad/cad-simple-viewer
+npm install @hy/cad-simple-viewer
 ```
 
 ## Usage
@@ -73,7 +73,7 @@ The `LockAndFade` isolation keyword matches AutoCAD naming but the viewer **lock
 ## Web Worker deployment
 
 The viewer ships an MTEXT layout worker. DXF is parsed by the built-in converter
-in `@mlightcad/data-model` (no separate worker). **DWG support is opt-in**: this
+in `@hy/data-model` (no separate worker). **DWG support is opt-in**: this
 package does not depend on or register `@mlightcad/libredwg-converter` (GPL).
 Hosts that need DWG must add that dependency (or another converter), deploy its
 worker (+ wasm) assets, register the converter, and optionally pass
@@ -84,11 +84,11 @@ import {
   AcApDocManager,
   LIBREDWG_PARSER_WORKER_FILE,
   MTEXT_RENDERER_WORKER_FILE
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   AcDbDatabaseConverterManager,
   AcDbFileType
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { AcDbLibreDwgConverter } from '@mlightcad/libredwg-converter'
 
 const dwgParserUrl = `./workers/${LIBREDWG_PARSER_WORKER_FILE}`
@@ -158,7 +158,7 @@ manager.events.workersReady.addEventListener(({ ready }) => {
 - `AcApPanCmd` - Pan command
 - `AcApSelectCmd` - Selection command
 
-SVG export (`csvg`) is provided by the optional `@mlightcad/cad-svg-plugin` package.
+SVG export (`csvg`) is provided by the optional `@hy/cad-svg-plugin` package.
 
 ### Editor Components
 

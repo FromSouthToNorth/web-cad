@@ -1,11 +1,11 @@
 /**
- * Public API types for `@mlightcad/cad-agent-plugin/register`.
+ * Public API types for `@hy/cad-agent-plugin/register`.
  * Copied to `lib/` by `pnpm build:types`; keep in sync with `src/register.ts`.
  */
 import type {
   AcApLocale,
   AcApPluginManager
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 /** Registered name of the CAD Agent plugin in the plugin manager. */
 export declare const AGENT_PLUGIN_NAME: 'AgentPlugin'
@@ -16,7 +16,7 @@ export declare const AGENT_PLUGIN_TRIGGERS: readonly ['agent']
 /**
  * Registers the CAD Agent plugin for lazy loading.
  *
- * Import from `@mlightcad/cad-agent-plugin/register` so the main bundle
+ * Import from `@hy/cad-agent-plugin/register` so the main bundle
  * is not pulled into the application entry chunk.
  */
 export declare function registerLazyAgentPlugin(

@@ -5,7 +5,7 @@ import {
   AcGiMTextAttachmentPoint,
   AcGiMTextFlowDirection,
   AcGiSubEntityTraits
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import {
   buildSvgMText,

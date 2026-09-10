@@ -172,8 +172,8 @@
 
 <script setup lang="ts">
 import { FileAddOutlined, InboxOutlined } from '@ant-design/icons-vue'
-import { AcApOpenViewMode, AcEdOpenMode } from '@mlightcad/cad-simple-viewer'
-import { log } from '@mlightcad/data-model'
+import { AcApOpenViewMode, AcEdOpenMode } from '@hy/cad-simple-viewer'
+import { log } from '@hy/data-model'
 import type { UploadProps } from 'ant-design-vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

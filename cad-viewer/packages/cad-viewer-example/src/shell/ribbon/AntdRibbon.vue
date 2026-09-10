@@ -161,12 +161,12 @@ import {
   FullscreenOutlined,
   UpOutlined
 } from '@ant-design/icons-vue'
-import { AcApDocManager, eventBus } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager, eventBus } from '@hy/cad-simple-viewer'
 import {
   LOCALE_OPTIONS,
   useDocument,
   useLocale
-} from '@mlightcad/cad-viewer'
+} from '@hy/cad-viewer'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 

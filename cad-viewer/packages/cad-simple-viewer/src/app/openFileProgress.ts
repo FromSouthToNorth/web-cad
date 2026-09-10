@@ -1,4 +1,4 @@
-import { AcDbProgressdEventArgs } from '@mlightcad/data-model'
+import { AcDbProgressdEventArgs } from '@hy/data-model'
 
 /**
  * Returns whether an open-file progress event represents a terminal state.

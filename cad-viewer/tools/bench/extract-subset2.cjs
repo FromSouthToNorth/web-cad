@@ -1,6 +1,6 @@
 'use strict'
 const { readFile, writeFile } = require('node:fs/promises')
-const { AcDbDatabase, AcDbDatabaseConverterManager, AcDbFileType, acdbHostApplicationServices, AcDbNativeDxfConverter } = require('@mlightcad/data-model')
+const { AcDbDatabase, AcDbDatabaseConverterManager, AcDbFileType, acdbHostApplicationServices, AcDbNativeDxfConverter } = require('@hy/data-model')
 async function main() {
   const [inFile, outFile] = process.argv.slice(2)
   const limits = { LINE: 4000, ARC: 800, TEXT: 600, HATCH: 300, CIRCLE: 100, POINT: 5, SPLINE: 3 }

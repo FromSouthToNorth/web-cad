@@ -1,6 +1,6 @@
-# @mlightcad/cad-layerctx-plugin
+# @hy/cad-layerctx-plugin
 
-画布对象右键上下文菜单插件，面向基于 [`@mlightcad/cad-simple-viewer`](../cad-simple-viewer) 的 CAD 查看器应用。功能完整内聚于本包，宿主库仅含一处配套修复（见下「宿主配套修复」）：
+画布对象右键上下文菜单插件，面向基于 [`@hy/cad-simple-viewer`](../cad-simple-viewer) 的 CAD 查看器应用。功能完整内聚于本包，宿主库仅含一处配套修复（见下「宿主配套修复」）：
 
 - 画布中右键任意实体弹出上下文菜单（先自动选中该实体，标准 CAD 右键语义），七项操作全部作用于**当前选中对象**：
   | 菜单项 | 命令 | 快捷键 | 说明 |
@@ -37,8 +37,8 @@
 在应用启动、文档管理器创建之后注册一次（例如在 viewer 的 `create` 回调中）：
 
 ```ts
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { registerLayerCtxPlugin } from '@mlightcad/cad-layerctx-plugin/register'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
+import { registerLayerCtxPlugin } from '@hy/cad-layerctx-plugin/register'
 
 void registerLayerCtxPlugin(AcApDocManager.instance.pluginManager)
 ```

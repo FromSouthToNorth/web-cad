@@ -1,4 +1,4 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 import {
   AcDbBlockReference,
   AcDbDimension,
@@ -8,7 +8,7 @@ import {
   AcDbObjectId,
   AcDbText,
   acdbStripMTextControlCodes
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /**
  * One searchable text-bearing item found in model space.

@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-pdf-plugin",
+  "name": "@hy/cad-pdf-plugin",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/cad-pdf-plugin/src",
   "projectType": "library",

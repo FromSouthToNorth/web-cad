@@ -32,9 +32,9 @@
 </template>
 
 <script setup lang="ts">
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { colorName, entityName, useHover } from '@mlightcad/cad-viewer'
-import { AcCmColorMethod } from '@mlightcad/data-model'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
+import { colorName, entityName, useHover } from '@hy/cad-viewer'
+import { AcCmColorMethod } from '@hy/data-model'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 

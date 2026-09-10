@@ -1,8 +1,8 @@
-import { AcCmColor, AcGePoint3dLike } from '@mlightcad/data-model'
+import { AcCmColor, AcGePoint3dLike } from '@hy/data-model'
 import {
   AcTrHtmlBadge,
   AcTrHtmlTransientManager
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 
 import { AcApContext } from '../../app'
 import {

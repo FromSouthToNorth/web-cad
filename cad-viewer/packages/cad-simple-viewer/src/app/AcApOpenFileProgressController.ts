@@ -1,7 +1,7 @@
 import {
   accmYieldForPaint,
   AcDbProgressdEventArgs
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { eventBus } from '../editor'
 import { AcApI18n } from '../i18n'

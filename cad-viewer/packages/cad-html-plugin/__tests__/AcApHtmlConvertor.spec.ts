@@ -1,8 +1,8 @@
-jest.mock('@mlightcad/cad-simple-viewer', () => ({
+jest.mock('@hy/cad-simple-viewer', () => ({
   AcTrView2d: class AcTrView2d {}
 }))
 
-import { AcTrView2d } from '@mlightcad/cad-simple-viewer'
+import { AcTrView2d } from '@hy/cad-simple-viewer'
 
 import { AcApHtmlConvertor } from '../src/AcApHtmlConvertor'
 

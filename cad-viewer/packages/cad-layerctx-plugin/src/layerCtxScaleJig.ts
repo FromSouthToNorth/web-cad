@@ -3,13 +3,13 @@ import {
   AcEdSelectionPreviewTransform,
   AcEdSelectionStaticPreviewJig,
   AcEdSelectionTransformPreviewJig
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   AcDbEntity,
   AcGeMatrix3d,
   AcGePoint3d,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /**
  * Builds a world-space uniform scale matrix around the given base point:

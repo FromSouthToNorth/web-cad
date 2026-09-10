@@ -53,8 +53,8 @@ jest.mock('rbush', () => {
   }
 })
 
-import { AcCmColor, AcGeBox2d } from '@mlightcad/data-model'
-import type { AcTrEntity } from '@mlightcad/three-renderer'
+import { AcCmColor, AcGeBox2d } from '@hy/data-model'
+import type { AcTrEntity } from '@hy/three-renderer'
 import * as THREE from 'three'
 
 import {

@@ -1,4 +1,4 @@
-import { AcGeSpline3d } from '@mlightcad/geometry-engine'
+import { AcGeSpline3d } from '@hy/geometry-engine'
 
 import { AcDbSpline } from '../src/entity/AcDbSpline'
 

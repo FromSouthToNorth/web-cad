@@ -1,5 +1,5 @@
-import { AcApI18n } from '@mlightcad/cad-simple-viewer'
-import { AcDbEntity } from '@mlightcad/data-model'
+import { AcApI18n } from '@hy/cad-simple-viewer'
+import { AcDbEntity } from '@hy/data-model'
 import { createI18n } from 'vue-i18n'
 
 import csCommand from './cs/command'

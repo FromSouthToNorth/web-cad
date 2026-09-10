@@ -1,4 +1,4 @@
-import { AcCmColor, AcGePoint2dLike } from '@mlightcad/data-model'
+import { AcCmColor, AcGePoint2dLike } from '@hy/data-model'
 
 import { AcApContext } from '../../app'
 import {

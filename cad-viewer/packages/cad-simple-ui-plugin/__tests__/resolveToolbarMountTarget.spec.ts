@@ -1,7 +1,7 @@
 /** Unit tests for toolbar mount target resolution. */
 const mockCurView: { container?: HTMLElement | null } = {}
 
-jest.mock('@mlightcad/cad-simple-viewer', () => ({
+jest.mock('@hy/cad-simple-viewer', () => ({
   AcApDocManager: {
     instance: {
       get curView() {

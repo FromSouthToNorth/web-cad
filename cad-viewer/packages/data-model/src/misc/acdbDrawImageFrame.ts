@@ -1,10 +1,10 @@
-import { AcCmTransparency } from '@mlightcad/common'
+import { AcCmTransparency } from '@hy/common'
 import {
   AcGeArea2d,
   AcGePoint3dLike,
   AcGePolyline2d
-} from '@mlightcad/geometry-engine'
-import { AcGiEntity, AcGiRenderer } from '@mlightcad/graphic-interface'
+} from '@hy/geometry-engine'
+import { AcGiEntity, AcGiRenderer } from '@hy/graphic-interface'
 
 /**
  * Draws a rectangular image/OLE frame that remains interior-pickable when no

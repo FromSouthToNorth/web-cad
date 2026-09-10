@@ -1,4 +1,4 @@
-import { AcDbSystemVariables, AcDbSysVarManager } from '@mlightcad/data-model'
+import { AcDbSystemVariables, AcDbSysVarManager } from '@hy/data-model'
 
 import {
   ACGI_MODEL_SPACE_BACKGROUND,

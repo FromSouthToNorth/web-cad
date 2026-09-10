@@ -1,11 +1,11 @@
-import type { AcApContext } from '@mlightcad/cad-simple-viewer'
+import type { AcApContext } from '@hy/cad-simple-viewer'
 import {
   AcDbLine,
   AcDbPolyline,
   AcGePoint2d,
   AcGePoint3d,
   log
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as pdfjsLib from 'pdfjs-dist'
 import type { PDFOperatorList } from 'pdfjs-dist/types/src/display/api'
 

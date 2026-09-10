@@ -1,4 +1,4 @@
-import { AcGePoint3dLike } from '@mlightcad/geometry-engine'
+import { AcGePoint3dLike } from '@hy/geometry-engine'
 
 import { AcDbEntity } from './AcDbEntity'
 

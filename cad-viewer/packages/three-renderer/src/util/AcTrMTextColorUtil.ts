@@ -4,7 +4,7 @@ import {
   AcGiContext,
   acgiForegroundColorForBackground,
   AcGiSubEntityTraits
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { ColorSettings, MTextColor } from '@mlightcad/mtext-renderer'
 import * as THREE from 'three'
 

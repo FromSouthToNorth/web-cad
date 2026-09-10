@@ -1,0 +1,76 @@
+{
+  "domain": "lifecycle",
+  "summary": "lifecycle 领域复核 5 条，全部 confirmed（未发现事实性不成立或已被他处处理的条目），但 3 条严重度下调。逐条核对结果：(1) AcApDocManager.destroy() 确实不销毁视图——rAF 自续循环 stopAnimationLoop 全仓 0 调用、document.body 上的 Stats 只切 display、AcTrView2d/AcEdBaseView 无 dispose/destroy、13 处 addEventListener 零 remove，且 destroy 注释自述 'Destroy the view'，属契约违反，P1 成立；(2) 布局视图/视口视图确无回收路径（AcTrLayoutViewManager 只有 add、removeViewport 0 调用、布局视图复用/累积），但被持留对象仅为相机+OrbitControls+监听（不含 scene/几何），故 P1→P2；(3) openDocument/openUrl/newDocument 确无 in-flight 守卫，AcDbDatabase.clear() 不重置 _eventBatchDepth 与 _pendingEntityAppended，双开可导致事件批处理串台——机制成立，但遮罩 pointer-events:auto 挡住鼠标重入、需用户在加载中再次键入 OPEN 或宿主二次调用，故 P1→P2；(4) AcApContext 在进程级单例 AcDbSysVarManager 上的 9 个监听零退订，闭包长期持有旧 view/doc/database（整库），且死监听会重复触发 args.database.regen()，对照 AcApLayerStore/AcEdGripManager 均有配对 remove，P1 成立（原文 'regen 到旧场景' 表述不准确）；(5) _pendingGlyphKeys 对唯一 key 只增不删、无上限，与模板缓存 512 条/16MiB 上限不对称，跨文档单调增长，P2 成立。修复主线一致：为 AcTrView2d/布局视图补齐 dispose 并由 destroy()/文档切换调用，为 AcApContext 保存监听句柄，打开文档加 generation 守卫，_pendingGlyphKeys 加上限。",
+  "findings": [
+    {
+      "title": "AcApDocManager.destroy() 不销毁视图：rAF 循环永不停、document.body 上的 Stats DOM 与已实现的 teardown 入口全部零调用",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/app/AcApDocManager.ts",
+      "line": "625-632",
+      "severity": "P1",
+      "category": "memory",
+      "evidence": "AcTrView2d.ts:2365 this._rafId = requestAnimationFrame(this.animate)（自续，永不停）；:2295 stopAnimationLoop() { cancelAnimationFrame(this._rafId) } 全仓 0 调用点；:2344 document.body.appendChild(stats.dom)",
+      "impact": "AcApDocManager.destroy() 只卸载插件与 doc（:626-631），AcTrView2d 连 dispose 方法都不存在（grep '  dispose'/'  destroy' 于 AcTrView2d.ts、AcEdBaseView.ts = 0）：构造函数 :704 启动的 rAF 自续循环让回调每帧仍执行并永久持有整个 view（scene、批次 GPU 资源、renderer）；document.body 上的 Stats 节点（:2344）只切 display 从不 remove；AcEdHoverController.dispose()（:174，注释明写 should be called when the owning view is destroyed）与 AcApProgress.destroy()（:232）同样 0 调用点。每次宿主卸载/重挂载（useAntdCadShell.ts:305、HMR、路由切换）泄漏一份完整视图对象图 + 定时器 + DOM。",
+      "fix": "AcTrView2d 新增 dispose()：stopAnimationLoop()、移除 document keydown / canvas / layoutManager.layoutSwitched / AcDbSysVarManager / AcApSettingManager 监听、stats.dom.remove()、_renderer.dispose()、_hoverController.dispose()；AcApDocManager.destroy() 调用它并加 _openFileProgress.destroy()。",
+      "confidence": "high",
+      "verdict": "confirmed",
+      "correctedSeverity": "P1",
+      "note": "核实：AcTrView2d.ts:2364-2365 animate 每帧自续 rAF，:2295 stopAnimationLoop 全仓 0 调用；:2342-2354 Stats appendChild(document.body) 且只切 display；AcEdBaseView.ts:225 起与 AcTrView2d.ts 无 dispose/destroy，13 处 addEventListener 零 remove；AcApDocManager.ts:622-624 注释自述 'Destroy the view'，:625-632 仅插件/doc；AcApProgress.ts:232、AcEdHoverController.ts:174 亦 0 调用；useAntdCadShell.ts:302-306 卸载后 app.ts:30 重建，旧 view 必泄漏。P1 成立。"
+    },
+    {
+      "title": "布局视图永不回收：每个 AcTrLayoutView/AcTrViewportView 都向共享 canvas 挂一个 OrbitControls（+document keydown capture），无 disconnect 路径",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/view/AcTrView2d.ts",
+      "line": "2413-2429",
+      "severity": "P1",
+      "category": "memory",
+      "evidence": "AcTrBaseView.ts:288 const cameraControls = new OrbitControls(this._camera.internalCamera, this._renderer.domElement)；AcTrLayoutViewManager.ts:30 private _layoutViews: Map<string, AcTrLayoutView>（仅 :108 add，0 处 delete/clear）",
+      "impact": "createLayoutViewIfNeeded（:2413-2429）new AcTrLayoutView → AcTrBaseView 构造器 :48/:287-306 即 new OrbitControls(camera, 共享 canvas)，three 0.172 OrbitControls 构造即 connect() 把 pointerdown/pointercancel/contextmenu/wheel 挂到 canvas、keydown capture 挂到 document，只有 dispose()/disconnect() 能摘除，而 AcTrBaseView/AcTrLayoutView/AcTrLayoutViewManager 三个文件 grep dispose/destroy 全为 0。触发链：每次打开文档 AcApDocManager.onBeforeOpenDocument（:1638-1661）调 view.clear()，而 clear()（:2219-2235）不重置 _layoutViewManager（:691 只在构造器创建一次），随后新文档的 addLayout（:2094-2098）再建视图：handle 不同则新实例永久留在 Map 中，handle 相同则 :2414 getAt 命中上一份文档的 view，旧相机与旧 _viewportViews 被复用。同一缺陷在视口编辑时更频繁：batchConvert :2964-2971 每次重转换都 new AcTrViewportView + addViewport 覆盖，旧实例控制器监听永留；AcTrLayoutView.removeViewport(:165) 全仓 0 调用，被删除的 VPORT 永久参与 paper-space 渲染。反复打开大图纸后 canvas 上累积 N 个控制器与 N 个 document keydown 捕获监听。",
+      "fix": "AcTrBaseView 增加 dispose()（_cameraControls.dispose()）；AcTrLayoutViewManager 增加 clear()/delete(btrId) 并遍历视图 dispose；AcTrView2d.clear()/bindDrawDatabase 时按新文档 btrId 重建 _layoutViewManager；VPORT 实体擦除/更新时调用 removeViewport 并 dispose 旧 AcTrViewportView。",
+      "confidence": "high",
+      "verdict": "confirmed",
+      "correctedSeverity": "P2",
+      "note": "核实：AcTrBaseView.ts:287-306 构造器即 new OrbitControls(camera, 共享 canvas)；OrbitControls.js:196-203 connect 挂 4 个 canvas 监听 + document keydown capture，仅 :211-222 摘除。AcTrLayoutViewManager.ts:30/108 仅 add 无 delete/clear；AcTrView2d.ts:691 只构造一次，clear():2219-2235 不重置，addLayout:2094-2098 再建；:2964-2971 每次 VPORT 转换 new AcTrViewportView 覆盖；AcTrLayoutView.ts:165 removeViewport 0 调用。持留者仅相机/控制器/监听，故下调 P2。"
+    },
+    {
+      "title": "打开文档无 in-flight 守卫：第二次打开在第一次解析中途 clear() 数据库，并把两次解析共用一个 event batch 深度",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/app/AcApDocManager.ts",
+      "line": "923-944",
+      "severity": "P1",
+      "category": "concurrency",
+      "evidence": "async openDocument(fileName, content, options) { options = this.setOptions(options); this.onBeforeOpenDocument(options); try { await this._openFileProgress.beginOpen(...); const isSuccess = await this.context.doc.openDocument(...) }（无 in-flight 守卫）；AcDbDatabase.ts:2182 this.clear()",
+      "impact": "解析路径有多个 await 让出点（AcDbNativeDxfConverter.ts:91 accmYieldForPaint、:95 tokenizeInWorker 对 95MB 可达秒级、:164 yieldGate.maybeYield），而命令行 OPEN（AcApOpenCmd.ts:18 → AcApOpenFileDialog.ts:129）与菜单在加载浮层遮不住命令行的前提下可再次触发（openUrl :890、newDocument :1080 同样无守卫）。第二次 db.read() 首行 clear()（AcDbDatabase.ts:2182 → :3315 blockTable.removeAll）把第一次已提交的实体与块表清空，同时第一次的 AcDbDxfDocumentReader 仍持有已移除的 BTR 继续 append；两次 beginEventBatch 复用 _eventBatchDepth（:735-737），第一次 endEventBatchChunked 因 depth≠0 直接 return（:764-774），实体事件推迟到第二次结束时一次性派发进视图 → 场景混入两份图纸、场景/空间索引与数据库不一致、进度条跳回。",
+      "fix": "AcApDocManager 增加 _openGeneration/in-flight 标志，重入时中止或串行化；AcDbDatabase.read 检测 isReading 时拒绝并给出错误；解析各 await 之后校验 generation，过期结果整体丢弃。",
+      "confidence": "medium",
+      "verdict": "confirmed",
+      "correctedSeverity": "P2",
+      "note": "核实：openDocument:923-944、openUrl:890、newDocument:1075-1099 均无守卫（全仓无 isOpening/isReading）。AcDbDatabase.ts:2182 read 首行 clear()，clear():3311-3337 清表但不重置 _eventBatchDepth:417/_pendingEntityAppended；AcDbNativeDxfConverter.ts:100 beginEventBatch 跨 :91/:95/:164 多个 await，:764-774 内层提前 return 不 flush，先完成者的实体事件被推迟统一派发，描述属实。下调 P2：遮罩 AcApProgress.ts:352-359 为 pointer-events:auto 挡鼠标，需用户键入第二次 OPEN 或宿主二次调用 API。"
+    },
+    {
+      "title": "进程级单例 AcDbSysVarManager 上的监听无退订句柄，且 AcApDocument.destroy() 不清库，旧数据库（38 万实体）被闭包长期持有并响应 SETVAR",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/app/AcApContext.ts",
+      "line": "116-138",
+      "severity": "P1",
+      "category": "memory",
+      "evidence": "AcDbSysVarManager.instance().events.sysVarChanged.addEventListener(args => { ... if (view.hasSceneContent) { view.clear(); args.database.regen() } })（AcApContext 全文 0 处 removeEventListener）",
+      "impact": "AcApContext 构造器注册 8 个监听（:66/:77/:95/:106/:111/:116/:140/:147），其中 :116 挂在进程级单例 AcDbSysVarManager.instance()（AcDbSysVarManager.ts:119-122）上，而 AcCmEventManager 只有 push 无自动回收（common/src/AcCmEventManager.ts:51-53），AcTrView2d.ts:390 有同类注册。AcApDocManager.destroy()（:625-632）只卸载插件与 doc，AcApDocument.destroy()（AcApDocument.ts:287-295）不清数据库 → 旧 doc/database（整份 38 万实体）与旧 view 被永久持有；之后任何一次 SETVAR/LWDISPLAY 变更都会驱动已死 context 的 listener，对旧 view 执行 clear()+database.regen()，即 O(N) 重派发 38 万实体到已废弃场景（主线程抖动）。",
+      "fix": "AcApContext/AcTrView2d 保存每个监听句柄并提供 dispose()，由 AcApDocManager.destroy() 调用；AcApDocument.destroy() 增加 database 释放（clear()）。",
+      "confidence": "high",
+      "verdict": "confirmed",
+      "correctedSeverity": "P1",
+      "note": "核实：AcApContext.ts :66/:77/:95/:106/:111/:116/:140/:147/:152 共 9 处 addEventListener、0 处 remove；:116 挂 AcDbSysVarManager.instance()（:117-123 静态单例，全仓无 reset），闭包捕获 view/doc/database。AcApDocManager.ts:627 仅 doc.destroy()，AcApDocument.ts:287-295 不清库。对照 AcApLayerStore.ts:64/72、AcEdGripManager.ts:214/232 均有配对 remove，属遗漏。修正原文：regen 作用于 args.database（当前库），影响是每次 LWDISPLAY 重复一次 O(N) 派发，非旧场景。P1 维持。"
+    },
+    {
+      "title": "AcTrMTextRenderer._pendingGlyphKeys 无上限且文档切换不清理，与字形模板缓存的 LRU 上限不对称",
+      "file": "cad-viewer/packages/three-renderer/src/renderer/AcTrMTextRenderer.ts",
+      "line": "220-227",
+      "severity": "P2",
+      "category": "memory",
+      "evidence": "const occurrences = (this._pendingGlyphKeys.get(key) ?? 0) + 1 ... this._pendingGlyphKeys.set(key, 1)；仅 invalidateGlyphCache():471 this._pendingGlyphKeys.clear()；对照 AcTrMTextGlyphCache.ts:23 const DEFAULT_MAX_ENTRIES = 512",
+      "impact": "文本渲染热路径（打开文档时按实体数发生，38 万实体/中文图纸常达数万至数十万条唯一文本）都会写入该 Map：只出现一次的 key 永久保留（occurrences===1 分支只 set 不 delete），key 由 buildKey（AcTrMTextGlyphCache.ts:81-87）拼成正文 + JSON.stringify(MTextData)+style+color，单条数百字节；只有字体/缓存开关变更才 clear，openDocument（AcApDocManager.ts:1638-1661）不清理 → 跨文档单调增长，内存≈唯一文本数×key 长度，而真正的模板缓存已有 512 条/16MiB 上限。",
+      "fix": "给 _pendingGlyphKeys 加同量级条目/字节上限并在超限时逐出或整体 clear；打开文档时与模板缓存一同失效。",
+      "confidence": "high",
+      "verdict": "confirmed",
+      "correctedSeverity": "P2",
+      "note": "核实：AcTrMTextRenderer.ts:76 为该 Map 声明；:220-227 与 recordGlyphRender:456-463 对首次 key 只 set(key,1) 不删、无上限，仅重复出现(:222/:461)或 invalidateGlyphCache:469-475 才清，后者仅由 :128/:154/:312/:413 触发。AcTrMTextGlyphCache.ts:23/24 为 512 条/16MiB 且 :116 起有 LRU，非对称成立。destroy():629 resetInstance 会清，但 onBeforeOpenDocument:1638-1661 与文档切换不清，跨文档增长成立。P2 维持。"
+    }
+  ]
+}

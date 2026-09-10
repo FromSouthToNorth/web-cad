@@ -1,4 +1,4 @@
-import { AcGiLineTypePatternElement } from '@mlightcad/data-model'
+import { AcGiLineTypePatternElement } from '@hy/data-model'
 import * as THREE from 'three'
 
 export class AcTrLinePatternShaders {

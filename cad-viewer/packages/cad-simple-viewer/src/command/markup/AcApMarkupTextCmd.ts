@@ -1,4 +1,4 @@
-import { AcTrHtmlBadge } from '@mlightcad/three-renderer'
+import { AcTrHtmlBadge } from '@hy/three-renderer'
 
 import { AcApContext } from '../../app'
 import {

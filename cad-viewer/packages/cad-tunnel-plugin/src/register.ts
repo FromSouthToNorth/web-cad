@@ -1,4 +1,4 @@
-import type { AcApPluginManager } from '@mlightcad/cad-simple-viewer'
+import type { AcApPluginManager } from '@hy/cad-simple-viewer'
 
 import type { TunnelDrawOptions } from './config'
 
@@ -19,7 +19,7 @@ export type { TunnelDrawOptions }
 /**
  * Loads the tunnel drawing plugin on the given plugin manager.
  *
- * Import from `@mlightcad/cad-tunnel-plugin/register` so the main plugin
+ * Import from `@hy/cad-tunnel-plugin/register` so the main plugin
  * bundle is not pulled into the application entry chunk.
  *
  * Like the invert-selection plugin this loads eagerly rather than on a
@@ -39,6 +39,6 @@ export async function registerTunnelPlugin(
   if (pluginManager.isPluginLoaded(TUNNEL_PLUGIN_NAME)) {
     return
   }
-  const { createTunnelPlugin } = await import('@mlightcad/cad-tunnel-plugin')
+  const { createTunnelPlugin } = await import('@hy/cad-tunnel-plugin')
   await pluginManager.loadPlugin(await createTunnelPlugin(options))
 }

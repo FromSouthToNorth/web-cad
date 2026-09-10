@@ -53,8 +53,8 @@ pnpm test                                             # Jest 全量单元测试
 pnpm test -- packages/cad-simple-viewer               # 只跑某个包的单元测试（按路径过滤）
 pnpm test -- packages/data-model                      # 同上，data-model 包
 pnpm test:e2e                                         # 全功能查看器 Playwright E2E
-pnpm --filter @mlightcad/cad-viewer-example test:e2e:headed   # 有头 E2E
-pnpm --filter @mlightcad/cad-viewer-example test:e2e:ui       # Playwright UI 模式
+pnpm --filter @hy/cad-viewer-example test:e2e:headed   # 有头 E2E
+pnpm --filter @hy/cad-viewer-example test:e2e:ui       # Playwright UI 模式
 ```
 
 单元测试位于各包 `packages/<pkg>/__tests__/`（文件名 `*.spec.ts`），E2E 位于 `packages/cad-viewer-example/e2e/`。
@@ -84,7 +84,7 @@ pnpm format                   # prettier 格式化 packages/**/*.{ts,js,vue,json
 - 关键包：
   - `common`：基础工具、颜色管理、日志。
   - `geometry-engine` / `graphic-interface`：几何计算与图形接口抽象。
-  - `data-model`：DWG/DXF 解析核心，仿 ObjectARX API；含 DXF tokenizer Web Worker。
+  - `data-model`：DWG/DXF 解析核心，仿 ObjectARX API；含 DXF tokenizer Web Worker。DXF 文本编码仅支持 UTF-8：pair reader 直接扫描 UTF-8 字节，组码/数值不经全量解码，字符串按需惰性解码。
   - `three-renderer`：Three.js 渲染。
   - `cad-simple-viewer`：轻量查看器核心。
   - `cad-viewer`：Vue 全功能查看器。
@@ -92,7 +92,7 @@ pnpm format                   # prettier 格式化 packages/**/*.{ts,js,vue,json
   - `cad-simple-viewer-cli`：无头 CLI 工具。
   - `cad-tunnel-plugin`：绘制巷道（GeoJSON → 巷道/立井/煤仓），测试数据在根目录 `jsonData/tunnel.json`。
 - `cad-tools/`：Python DXF 预处理脚本（`process_dxf.py` + `tools/` 下的分析/校验脚本），逻辑见 `docs/06-工具脚本/process_dxf处理逻辑分析.md`。
-- worker 资产：`@mlightcad/data-model` 构建产出 `lib/index.js` 与 `dist/dxf-parser-worker.js`；应用侧通过 `cad-viewer/tools/copy-workers.mjs` 复制 worker，文件名常量集中在 `tools/worker-assets.mjs` 与 `packages/cad-simple-viewer/src/app/AcApWorkerAssets.ts`，重命名时需同步。
+- worker 资产：`@hy/data-model` 构建产出 `lib/index.js` 与 `dist/dxf-parser-worker.js`；应用侧通过 `cad-viewer/tools/copy-workers.mjs` 复制 worker，文件名常量集中在 `tools/worker-assets.mjs` 与 `packages/cad-simple-viewer/src/app/AcApWorkerAssets.ts`，重命名时需同步。
 
 ## 构建产物
 

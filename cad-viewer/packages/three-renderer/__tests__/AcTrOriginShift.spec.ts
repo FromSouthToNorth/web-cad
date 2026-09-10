@@ -1,4 +1,4 @@
-import { AcGeArea2d, AcGePoint2d } from '@mlightcad/data-model'
+import { AcGeArea2d, AcGePoint2d } from '@hy/data-model'
 import * as THREE from 'three'
 
 import { expectWcsBboxCloseTo } from './helpers/expectWcsBbox'

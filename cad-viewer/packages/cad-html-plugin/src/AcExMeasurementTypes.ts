@@ -1,7 +1,7 @@
 /**
  * Measurement sidecar types for the offline HTML viewer.
  *
- * Schema matches `@mlightcad/cad-simple-viewer` measurement sidecar JSON so
+ * Schema matches `@hy/cad-simple-viewer` measurement sidecar JSON so
  * measurements can be exchanged between the full CAD app and exported HTML.
  *
  * @module AcExMeasurementTypes

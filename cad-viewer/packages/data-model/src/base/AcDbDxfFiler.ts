@@ -2,7 +2,7 @@ import {
   AcCmColor,
   AcCmTransparency,
   AcCmTransparencyMethod
-} from '@mlightcad/common'
+} from '@hy/common'
 import {
   AcGePoint2d,
   AcGePoint2dLike,
@@ -10,7 +10,7 @@ import {
   AcGePoint3dLike,
   AcGeVector3d,
   AcGeVector3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 
 import type { AcDbDatabase } from '../database/AcDbDatabase'
 import { AcDbDwgVersion } from '../database/AcDbDwgVersion'

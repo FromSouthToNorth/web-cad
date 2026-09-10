@@ -1,4 +1,4 @@
-import { AcDbDatabase } from '@mlightcad/data-model'
+import { AcDbDatabase } from '@hy/data-model'
 
 import { acapRunDatabaseEdit } from '../util/AcApDatabaseEdit'
 

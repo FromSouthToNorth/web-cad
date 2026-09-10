@@ -1,4 +1,4 @@
-import { AcCmErrors } from '@mlightcad/common'
+import { AcCmErrors } from '@hy/common'
 
 import { AcGeEuler } from './AcGeEuler'
 import { AcGeMatrix2d } from './AcGeMatrix2d'

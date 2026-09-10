@@ -2,7 +2,7 @@ import {
   AcGeMathUtil,
   AcGePoint2d,
   AcGePoint3d
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 
 import { AcDbDatabase } from '../database/AcDbDatabase'
 import { AcDbAngleUnits } from './AcDbAngleUnits'

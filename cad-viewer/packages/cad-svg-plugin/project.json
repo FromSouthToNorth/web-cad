@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-svg-plugin",
+  "name": "@hy/cad-svg-plugin",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/cad-svg-plugin/src",
   "projectType": "library",

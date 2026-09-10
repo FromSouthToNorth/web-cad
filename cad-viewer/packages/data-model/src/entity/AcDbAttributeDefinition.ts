@@ -1,4 +1,4 @@
-import { AcGiEntity, AcGiRenderer } from '@mlightcad/graphic-interface'
+import { AcGiEntity, AcGiRenderer } from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { AcDbMText } from './AcDbMText'

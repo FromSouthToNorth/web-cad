@@ -1,4 +1,4 @@
-import { AcDbEntity } from '@mlightcad/data-model'
+import { AcDbEntity } from '@hy/data-model'
 
 import { AcEdBaseView } from '../view/AcEdBaseView'
 

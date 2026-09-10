@@ -1,4 +1,4 @@
-import { AcCmColor } from '@mlightcad/common'
+import { AcCmColor } from '@hy/common'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { AcDbObject } from '../base/AcDbObject'

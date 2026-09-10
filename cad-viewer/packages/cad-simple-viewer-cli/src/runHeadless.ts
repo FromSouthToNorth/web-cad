@@ -83,7 +83,7 @@ declare global {
 }
 
 /**
- * Resolves the `@mlightcad/cad-simple-viewer-cli` package root
+ * Resolves the `@hy/cad-simple-viewer-cli` package root
  * (parent of the compiled `dist/` directory).
  *
  * @returns Absolute package root path
@@ -326,7 +326,7 @@ export async function runHeadless(
   const runnerDir = runnerDistDir()
   if (!existsSync(path.join(runnerDir, 'index.html'))) {
     throw new Error(
-      'CLI runner is not built. Run "pnpm --filter @mlightcad/cad-simple-viewer-cli build".'
+      'CLI runner is not built. Run "pnpm --filter @hy/cad-simple-viewer-cli build".'
     )
   }
 

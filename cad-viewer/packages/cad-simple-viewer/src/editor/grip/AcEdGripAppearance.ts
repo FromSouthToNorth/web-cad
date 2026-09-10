@@ -4,7 +4,7 @@ import {
   AcDbDatabase,
   AcDbSystemVariables,
   AcDbSysVarManager
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /** Visual appearance of grip handles derived from grip system variables. */
 export interface AcEdGripAppearance {

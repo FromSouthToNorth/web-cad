@@ -2,7 +2,7 @@ import {
   AcCmColor,
   AcGePoint3d,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcApContext } from '../../app'
 import {

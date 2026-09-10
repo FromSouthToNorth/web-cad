@@ -3,9 +3,9 @@ import {
   AcCmColorMethod,
   AcCmEventManager,
   AcCmTransparency
-} from '@mlightcad/common'
-import { AcGePointLike } from '@mlightcad/geometry-engine'
-import { AcGiLineWeight } from '@mlightcad/graphic-interface'
+} from '@hy/common'
+import { AcGePointLike } from '@hy/geometry-engine'
+import { AcGiLineWeight } from '@hy/graphic-interface'
 
 import { AcDbAngleUnits } from '../misc/AcDbAngleUnits'
 import {

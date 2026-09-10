@@ -15,12 +15,12 @@ jest.mock('../src/entity', () => ({
   AcDbEntity: class MockEntity {}
 }))
 
-import { AcCmColor } from '@mlightcad/common'
+import { AcCmColor } from '@hy/common'
 import {
   AcGeMatrix3d,
   AcGePoint3d,
   AcGeVector3d
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 
 import { AcDbRenderingCache } from '../src/misc/AcDbRenderingCache'
 

@@ -103,7 +103,7 @@ import {
   AcGeLoop2d,
   DEFAULT_HATCH_PATTERN_IMPERIAL,
   HATCH_PATTERN_SOLID
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import {
   AcApHatchCmd,

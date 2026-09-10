@@ -4,8 +4,8 @@ import {
   type AcGePoint3dLike,
   type AcGeVector3dLike,
   type AcGiLineWeight
-} from '@mlightcad/data-model'
-import { AcTrHtmlGroup } from '@mlightcad/three-renderer'
+} from '@hy/data-model'
+import { AcTrHtmlGroup } from '@hy/three-renderer'
 
 import type { AcTrView2d } from '../../../view'
 import {

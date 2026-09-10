@@ -1,7 +1,7 @@
 import {
   type AcDbDatabase,
   type AcGiBaseLineStyle
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /**
  * Normalized line type metadata consumed by ribbon property controls and

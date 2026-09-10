@@ -1,5 +1,5 @@
-import { AcCmColor, type AcDbDatabase } from '@mlightcad/data-model'
-import type { AcTrHtmlGroup } from '@mlightcad/three-renderer'
+import { AcCmColor, type AcDbDatabase } from '@hy/data-model'
+import type { AcTrHtmlGroup } from '@hy/three-renderer'
 
 import {
   getMarkupHistory,

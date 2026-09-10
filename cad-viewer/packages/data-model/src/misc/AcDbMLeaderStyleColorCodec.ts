@@ -1,4 +1,4 @@
-import { AcCmColor, AcCmColorMethod } from '@mlightcad/common'
+import { AcCmColor, AcCmColorMethod } from '@hy/common'
 
 /**
  * DXF raw-color type flag: inherit color from layer.

@@ -1,10 +1,10 @@
-import { AcCmColor, AcCmColorMethod } from '@mlightcad/common'
-import { AcGePoint3d, AcGeVector3d } from '@mlightcad/geometry-engine'
+import { AcCmColor, AcCmColorMethod } from '@hy/common'
+import { AcGePoint3d, AcGeVector3d } from '@hy/geometry-engine'
 import {
   AcGiLineWeight,
   AcGiSubEntityTraits,
   DEFAULT_ACGI_CONTEXT
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 
 import { acdbHostApplicationServices, AcDbDxfFiler } from '../src/base'
 import {

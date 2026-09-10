@@ -1,5 +1,5 @@
-import { AcCmColor } from '@mlightcad/data-model'
-import type { AcTrEntity } from '@mlightcad/three-renderer'
+import { AcCmColor } from '@hy/data-model'
+import type { AcTrEntity } from '@hy/three-renderer'
 import * as THREE from 'three'
 
 const mockComputeBoundingBox = jest.fn(
@@ -18,7 +18,7 @@ const mockRemoveEntity = jest.fn()
 const mockHasEntity = jest.fn()
 let lastCapturedExclude: ReadonlySet<string> | undefined
 
-jest.mock('@mlightcad/three-renderer', () => {
+jest.mock('@hy/three-renderer', () => {
   const THREE = require('three')
   return {
     AcTrBatchedGroup: jest.fn().mockImplementation(() => {

@@ -1,10 +1,10 @@
-import { defaults } from '@mlightcad/common'
-import { AcGeBox2d, AcGePoint2d } from '@mlightcad/geometry-engine'
+import { defaults } from '@hy/common'
+import { AcGeBox2d, AcGePoint2d } from '@hy/geometry-engine'
 import {
   AcGiDefaultLightingType,
   AcGiOrthographicType,
   AcGiRenderMode
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { ACTIVE_VPORT_NAME } from '../misc/AcDbConstants'

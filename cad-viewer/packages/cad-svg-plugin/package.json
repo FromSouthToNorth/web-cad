@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-svg-plugin",
+  "name": "@hy/cad-svg-plugin",
   "version": "1.6.1",
   "license": "MIT",
   "type": "module",
@@ -43,14 +43,14 @@
     "lint:fix": "eslint --fix --quiet src/"
   },
   "devDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*",
     "@mlightcad/mtext-parser": "^1.4.1",
     "@mlightcad/mtext-renderer": "^0.12.4"
   },
   "peerDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*",
     "@mlightcad/mtext-parser": "^1.4.1",
     "@mlightcad/mtext-renderer": "^0.12.4"
   }

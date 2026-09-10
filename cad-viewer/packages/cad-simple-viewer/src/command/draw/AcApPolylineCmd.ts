@@ -5,7 +5,7 @@ import {
   AcGePoint3d,
   AcGeTol,
   TAU
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcApContext, AcApDocManager } from '../../app'
 import {

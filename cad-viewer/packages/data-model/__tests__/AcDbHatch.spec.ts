@@ -1,4 +1,4 @@
-import { AcCmColor } from '@mlightcad/common'
+import { AcCmColor } from '@hy/common'
 import {
   AcGeCircArc2d,
   AcGeEllipseArc2d,
@@ -7,7 +7,7 @@ import {
   AcGeMatrix3d,
   AcGePolyline2d,
   AcGeSpline3d
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 
 import { acdbHostApplicationServices, AcDbDxfFiler } from '../src/base'
 import {

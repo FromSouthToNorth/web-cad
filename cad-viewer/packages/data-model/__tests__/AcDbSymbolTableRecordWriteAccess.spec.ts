@@ -1,4 +1,4 @@
-import { AcCmColor } from '@mlightcad/common'
+import { AcCmColor } from '@hy/common'
 
 import { AcDbOpenMode } from '../src/base'
 import {

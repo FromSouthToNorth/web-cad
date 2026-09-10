@@ -10,13 +10,13 @@ import {
   AcDbTextHorizontalMode,
   AcDbTextVerticalMode,
   HATCH_PATTERN_SOLID
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   AcGeLine2d,
   AcGeLoop2d,
   AcGePoint2d,
   AcGePoint3d
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 
 import {
   deriveAutoLabelHeight,
@@ -170,7 +170,7 @@ interface ConvertContext {
   elevationMode: 'ignore' | 'relative'
   color: string | undefined
   minZ: number
-  db?: import('@mlightcad/data-model').AcDbDatabase
+  db?: import('@hy/data-model').AcDbDatabase
   entities: AcDbEntity[]
   counts: TunnelDrawCounts
   usedLayers: Set<string>

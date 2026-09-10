@@ -1,8 +1,8 @@
 import {
   AcApDocManager,
   AcEdSelectionEventArgs
-} from '@mlightcad/cad-simple-viewer'
-import { AcDbObjectId } from '@mlightcad/data-model'
+} from '@hy/cad-simple-viewer'
+import { AcDbObjectId } from '@hy/data-model'
 import { onMounted, onUnmounted, ref } from 'vue'
 
 export function useSelectionSet() {

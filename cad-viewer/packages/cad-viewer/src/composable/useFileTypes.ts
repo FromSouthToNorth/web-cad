@@ -1,4 +1,4 @@
-import { AcDbDatabaseConverterManager } from '@mlightcad/data-model'
+import { AcDbDatabaseConverterManager } from '@hy/data-model'
 import { ref } from 'vue'
 
 export function useFileTypes() {

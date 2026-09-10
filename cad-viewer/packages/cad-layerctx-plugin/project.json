@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-layerctx-plugin",
+  "name": "@hy/cad-layerctx-plugin",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/cad-layerctx-plugin/src",
   "projectType": "library",

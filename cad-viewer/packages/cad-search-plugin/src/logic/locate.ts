@@ -1,5 +1,5 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { AcDbObjectId, AcGeBox2d } from '@mlightcad/data-model'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
+import { AcDbObjectId, AcGeBox2d } from '@hy/data-model'
 
 /**
  * Selects (and thereby highlights) an entity and zooms the view to it.

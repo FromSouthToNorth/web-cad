@@ -1,5 +1,5 @@
-import { AcCmEventManager } from '@mlightcad/data-model'
-import { AcDbObjectId } from '@mlightcad/data-model'
+import { AcCmEventManager } from '@hy/data-model'
+import { AcDbObjectId } from '@hy/data-model'
 
 /**
  * Event arguments for selection-related events.

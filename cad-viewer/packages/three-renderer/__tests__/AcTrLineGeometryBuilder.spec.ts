@@ -5,7 +5,7 @@ import {
   AcGeCircArc3d,
   AcGePoint3d,
   AcGeVector3d
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { RTE_REBASE_THRESHOLD } from '../src/draw/AcTrBatchDrawPolicy'
 import {

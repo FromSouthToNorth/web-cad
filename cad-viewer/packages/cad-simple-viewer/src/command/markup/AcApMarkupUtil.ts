@@ -5,7 +5,7 @@ import {
   AcDbSystemVariables,
   AcDbSysVarManager,
   AcGiLineWeight
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import type { AcApMarkupStyle } from './AcApMarkupTypes'
 

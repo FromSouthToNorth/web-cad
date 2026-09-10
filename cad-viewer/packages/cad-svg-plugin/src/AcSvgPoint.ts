@@ -2,7 +2,7 @@ import {
   AcGePoint3d,
   AcGiPointStyle,
   AcGiSubEntityTraits
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcSvgEntity } from './AcSvgEntity'
 import { AcSvgStyleContext, AcSvgStyleUtil } from './AcSvgStyleUtil'

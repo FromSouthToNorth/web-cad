@@ -1,4 +1,4 @@
-import { AcGeBox2d, type AcGePoint3dLike } from '@mlightcad/data-model'
+import { AcGeBox2d, type AcGePoint3dLike } from '@hy/data-model'
 
 import type { AcEdBaseView } from '../../editor'
 import { acapNotifyUndoStackChanged } from '../../util/AcApDatabaseEdit'

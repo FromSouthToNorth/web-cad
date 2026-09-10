@@ -1,4 +1,4 @@
-import { AcCmColor } from '@mlightcad/data-model'
+import { AcCmColor } from '@hy/data-model'
 
 /** Converts an AcCmColor to a CSS color string, with rgb() fallback. */
 export function acTrHtmlCssColor(c: AcCmColor): string {

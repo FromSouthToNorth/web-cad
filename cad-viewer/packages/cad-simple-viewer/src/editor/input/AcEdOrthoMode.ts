@@ -4,7 +4,7 @@ import {
   AcDbSystemVariables,
   AcDbSysVarManager,
   AcGePoint2dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /**
  * Returns whether orthogonal cursor locking is enabled for the given database.

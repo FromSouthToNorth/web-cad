@@ -8,7 +8,7 @@ import {
   AcTrHtmlDot,
   type AcTrHtmlElement,
   type AcTrHtmlGroup
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 
 import type { AcTrView2d } from '../../../view'
 import {

@@ -4,7 +4,7 @@ import {
   AcDbObjectId,
   AcGeMatrix3d,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { createRotationMatrix } from '../util/AcApGeTransform'
 import { acapRunServiceEdit, ENTITY_EDIT_LABEL } from './AcApServiceEdit'

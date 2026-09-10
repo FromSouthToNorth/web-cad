@@ -1,4 +1,4 @@
-import { AcApI18n } from '@mlightcad/cad-simple-viewer'
+import { AcApI18n } from '@hy/cad-simple-viewer'
 
 import en from './en'
 import zh from './zh'

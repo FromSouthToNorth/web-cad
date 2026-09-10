@@ -1,11 +1,11 @@
 /**
- * Public API types for `@mlightcad/cad-search-plugin/register`.
+ * Public API types for `@hy/cad-search-plugin/register`.
  * Copied to `lib/` by `pnpm build:types`; keep in sync with `src/register.ts`.
  */
 import type {
   AcApLocale,
   AcApPluginManager
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 /** Registered name of the content search plugin in the plugin manager. */
 export declare const SEARCH_PLUGIN_NAME: 'SearchPlugin'
@@ -16,7 +16,7 @@ export declare const SEARCH_PLUGIN_TRIGGERS: readonly ['search', 'find']
 /**
  * Registers the content search plugin for lazy loading.
  *
- * Import from `@mlightcad/cad-search-plugin/register` so the main bundle
+ * Import from `@hy/cad-search-plugin/register` so the main bundle
  * is not pulled into the application entry chunk.
  */
 export declare function registerLazySearchPlugin(

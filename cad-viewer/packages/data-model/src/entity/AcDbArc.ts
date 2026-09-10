@@ -10,8 +10,8 @@ import {
   acgeTransformOcsPointToWcsInto,
   acgeTransformWcsPointToOcs,
   AcGeVector3d,
-  AcGeVector3dLike} from '@mlightcad/geometry-engine'
-import { AcGiRenderer } from '@mlightcad/graphic-interface'
+  AcGeVector3dLike} from '@hy/geometry-engine'
+import { AcGiRenderer } from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { AcDbOsnapMode } from '../misc/AcDbOsnapMode'

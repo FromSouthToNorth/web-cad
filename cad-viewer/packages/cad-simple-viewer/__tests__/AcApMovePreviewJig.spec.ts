@@ -1,5 +1,5 @@
-import type { AcDbEntity } from '@mlightcad/data-model'
-import { AcGePoint3d } from '@mlightcad/data-model'
+import type { AcDbEntity } from '@hy/data-model'
+import { AcGePoint3d } from '@hy/data-model'
 
 import { AcApMovePreviewJig } from '../src/command/modify/AcApMovePreviewJig'
 import { AcEdBaseView } from '../src/editor/view/AcEdBaseView'

@@ -2,7 +2,7 @@
  * Markup shape geometry builders (revision cloud and rectangle) for HTML canvas.
  */
 
-import type { AcGePoint2dLike } from '@mlightcad/data-model'
+import type { AcGePoint2dLike } from '@hy/data-model'
 
 import type { AcEdBaseView } from '../../editor'
 

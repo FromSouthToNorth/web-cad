@@ -1,4 +1,4 @@
-import { AcDbDatabase, AcDbRoadway, AcDbText } from '@mlightcad/data-model'
+import { AcDbDatabase, AcDbRoadway, AcDbText } from '@hy/data-model'
 
 import {
   deriveAutoLabelHeight,

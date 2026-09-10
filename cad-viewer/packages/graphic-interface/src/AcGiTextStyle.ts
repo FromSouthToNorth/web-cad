@@ -1,4 +1,4 @@
-import { AcGePoint3dLike, AcGeVector3dLike } from '@mlightcad/geometry-engine'
+import { AcGePoint3dLike, AcGeVector3dLike } from '@hy/geometry-engine'
 
 export enum AcGiMTextFlowDirection {
   LEFT_TO_RIGHT = 1,

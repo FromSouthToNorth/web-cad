@@ -31,8 +31,8 @@
 
 <script setup lang="ts">
 import { BlockOutlined } from '@ant-design/icons-vue'
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { useInsertableBlocks } from '@mlightcad/cad-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
+import { useInsertableBlocks } from '@hy/cad-viewer'
 import { onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 

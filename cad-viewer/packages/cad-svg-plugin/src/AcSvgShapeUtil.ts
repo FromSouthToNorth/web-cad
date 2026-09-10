@@ -4,7 +4,7 @@ import {
   AcGiShapeData,
   AcGiSubEntityTraits,
   AcGiTextStyle
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   BaseTextShape,
   FontManager,

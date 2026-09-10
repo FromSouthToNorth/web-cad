@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-invertsel-plugin",
+  "name": "@hy/cad-invertsel-plugin",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
@@ -44,11 +44,11 @@
     "lint:fix": "eslint --fix --quiet src/"
   },
   "devDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "^1.13.0"
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*"
   },
   "peerDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "^1.13.0"
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*"
   }
 }

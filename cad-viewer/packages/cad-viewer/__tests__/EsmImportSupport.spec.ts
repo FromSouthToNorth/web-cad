@@ -32,7 +32,7 @@ describe('cad-viewer ESM import support', () => {
         })
       )
 
-      const scopeDir = path.join(tempDir, 'node_modules', '@mlightcad')
+      const scopeDir = path.join(tempDir, 'node_modules', '@hy')
       fs.mkdirSync(scopeDir, { recursive: true })
 
       const linkPath = path.join(scopeDir, 'cad-viewer')
@@ -44,7 +44,7 @@ describe('cad-viewer ESM import support', () => {
         [
           '--input-type=module',
           '-e',
-          "console.log(import.meta.resolve('@mlightcad/cad-viewer'))"
+          "console.log(import.meta.resolve('@hy/cad-viewer'))"
         ],
         {
           cwd: tempDir,

@@ -4,7 +4,7 @@ export type { AcDbFormatterOptions } from './AcDbFormatter'
 export { AcDbLinearUnits } from './AcDbLinearUnits'
 export { AcDbRenderingCache } from './AcDbRenderingCache'
 export type { AcDbRenderingCacheProfileStats } from './AcDbRenderingCache'
-export { AcDbCodePage, acdbDwgCodePageToEncoding } from './AcDbCodePage'
+export { AcDbCodePage } from './AcDbCodePage'
 export {
   ACAD_APPID,
   ACDB_GRIPCOLOR_DEFAULT,

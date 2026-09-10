@@ -1,4 +1,4 @@
-import { AcGePoint3d } from '@mlightcad/geometry-engine'
+import { AcGePoint3d } from '@hy/geometry-engine'
 import { acdbHostApplicationServices } from '../src/base'
 import { AcDbBlockTableRecord, AcDbDatabase } from '../src/database'
 import { AcDbLine, AcDbRotatedDimension } from '../src/entity'

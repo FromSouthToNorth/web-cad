@@ -1,7 +1,7 @@
 import {
   AcDbDatabase,
   acdbHostApplicationServices
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /**
  * Runs work against a secondary (non-document) database while temporarily

@@ -1,4 +1,4 @@
-import type { AcDbEntity } from '@mlightcad/data-model'
+import type { AcDbEntity } from '@hy/data-model'
 
 import { DEFAULT_SHAFT_OUTER, DEFAULT_SHAFT_RADIUS } from './entity/ShaftRoadway'
 
@@ -142,7 +142,7 @@ export interface GeoJsonToEntitiesOptions extends TunnelDrawOptions {
    * Optional database; when present it is assigned to hatch entities before
    * their boundary loops are added (hatch defaults consult the database).
    */
-  db?: import('@mlightcad/data-model').AcDbDatabase
+  db?: import('@hy/data-model').AcDbDatabase
 }
 
 /** A fully resolved option set with all defaults applied. */

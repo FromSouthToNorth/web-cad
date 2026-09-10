@@ -1,4 +1,4 @@
-import { AcGeMatrix3d } from '@mlightcad/data-model'
+import { AcGeMatrix3d } from '@hy/data-model'
 import * as THREE from 'three'
 
 import { expectWcsBboxCloseTo } from './helpers/expectWcsBbox'

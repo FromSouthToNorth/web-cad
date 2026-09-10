@@ -1,4 +1,4 @@
-import { AcDbObjectId, AcGeBox2d, AcGeBox3d, AcGePoint3dLike, log } from '@mlightcad/data-model'
+import { AcDbObjectId, AcGeBox2d, AcGeBox3d, AcGePoint3dLike, log } from '@hy/data-model'
 import {
   AcTrDirectEntityMeta,
   AcTrEntity,
@@ -7,7 +7,7 @@ import {
   AcTrPreviewOverlayManager,
   AcTrTransientManager,
   AcTrVertexMarkerOverlay
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 import * as THREE from 'three'
 
 import { AcEdLayerInfo } from '../editor'

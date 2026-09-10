@@ -17,7 +17,7 @@ import {
   AcGeLine2d,
   AcGeLoop2d,
   HATCH_PATTERN_SOLID
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcApContext, AcApDocManager } from '../../app'
 import {

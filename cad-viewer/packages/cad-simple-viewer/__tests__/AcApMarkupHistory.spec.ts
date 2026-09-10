@@ -1,4 +1,4 @@
-import type { AcDbDatabase } from '@mlightcad/data-model'
+import type { AcDbDatabase } from '@hy/data-model'
 
 import {
   bindOverlayHistory,

@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-invertsel-plugin",
+  "name": "@hy/cad-invertsel-plugin",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/cad-invertsel-plugin/src",
   "projectType": "library",

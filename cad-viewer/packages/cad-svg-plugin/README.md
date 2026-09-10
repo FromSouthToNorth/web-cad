@@ -1,9 +1,9 @@
-# @mlightcad/cad-svg-plugin
+# @hy/cad-svg-plugin
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://img.shields.io/npm/v/@mlightcad/cad-svg-plugin.svg)](https://www.npmjs.com/package/@mlightcad/cad-svg-plugin)
+[![npm version](https://img.shields.io/npm/v/@hy/cad-svg-plugin.svg)](https://www.npmjs.com/package/@hy/cad-svg-plugin)
 
-SVG **export** plugin and rendering engine for [`@mlightcad/cad-simple-viewer`](../cad-simple-viewer). Registers one system command:
+SVG **export** plugin and rendering engine for [`@hy/cad-simple-viewer`](../cad-simple-viewer). Registers one system command:
 
 | Command | Description |
 |---------|-------------|
@@ -15,19 +15,19 @@ The plugin is designed for **lazy loading** so the SVG renderer bundle is only d
 
 - **Vector SVG export** — renders model-space entities to SVG via `AcSvgRenderer`
 - **Plugin API** — implements `AcApPlugin`; register once with `registerLazySvgPlugin`
-- **Reusable renderer** — `AcSvgRenderer` is also used by `@mlightcad/cad-pdf-plugin` for PDF export
+- **Reusable renderer** — `AcSvgRenderer` is also used by `@hy/cad-pdf-plugin` for PDF export
 - **Framework-agnostic** — no Vue/React dependency; works anywhere `cad-simple-viewer` runs
 
 ## Installation
 
 ```bash
-pnpm add @mlightcad/cad-svg-plugin
+pnpm add @hy/cad-svg-plugin
 ```
 
 Peer dependencies:
 
-- `@mlightcad/cad-simple-viewer`
-- `@mlightcad/data-model`
+- `@hy/cad-simple-viewer`
+- `@hy/data-model`
 - `@mlightcad/mtext-parser`
 
 ## Build
@@ -35,7 +35,7 @@ Peer dependencies:
 Produces `dist/index.js` (main library) and `dist/register.js` (lazy-registration entry).
 
 ```bash
-pnpm --filter @mlightcad/cad-svg-plugin build
+pnpm --filter @hy/cad-svg-plugin build
 ```
 
 ## Usage
@@ -45,8 +45,8 @@ pnpm --filter @mlightcad/cad-svg-plugin build
 Register the plugin with the document manager's plugin manager. Import from the `/register` subpath so only the registration stub enters your initial bundle; the main plugin chunk loads on first use of `csvg`:
 
 ```typescript
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { registerLazySvgPlugin } from '@mlightcad/cad-svg-plugin/register'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
+import { registerLazySvgPlugin } from '@hy/cad-svg-plugin/register'
 
 registerLazySvgPlugin(AcApDocManager.instance.pluginManager)
 ```
@@ -60,7 +60,7 @@ import {
   createSvgPlugin,
   SVG_PLUGIN_NAME,
   SVG_PLUGIN_TRIGGERS
-} from '@mlightcad/cad-svg-plugin'
+} from '@hy/cad-svg-plugin'
 
 AcApDocManager.instance.pluginManager.registerLazyPlugin({
   name: SVG_PLUGIN_NAME,
@@ -72,7 +72,7 @@ AcApDocManager.instance.pluginManager.registerLazyPlugin({
 ### Eager loading
 
 ```typescript
-import { AcApSvgPlugin } from '@mlightcad/cad-svg-plugin'
+import { AcApSvgPlugin } from '@hy/cad-svg-plugin'
 
 await AcApDocManager.instance.pluginManager.loadPlugin(new AcApSvgPlugin())
 ```
@@ -80,7 +80,7 @@ await AcApDocManager.instance.pluginManager.loadPlugin(new AcApSvgPlugin())
 ### Using the renderer directly
 
 ```typescript
-import { AcSvgRenderer } from '@mlightcad/cad-svg-plugin'
+import { AcSvgRenderer } from '@hy/cad-svg-plugin'
 
 AcSvgRenderer.prepareExport()
 const renderer = new AcSvgRenderer()
@@ -94,7 +94,7 @@ const svg = await renderer.exportAsync()
 |--------|-------------|
 | `createSvgPlugin` | Async factory used by lazy loader |
 | `SVG_PLUGIN_NAME`, `SVG_PLUGIN_TRIGGERS` | Plugin metadata constants |
-| `@mlightcad/cad-svg-plugin/register` | `registerLazySvgPlugin` and registration constants |
+| `@hy/cad-svg-plugin/register` | `registerLazySvgPlugin` and registration constants |
 | `AcApSvgPlugin` | `AcApPlugin` implementation |
 | `AcApConvertToSvgCmd` | `csvg` command class |
 | `AcApSvgConvertor` | SVG export workflow |

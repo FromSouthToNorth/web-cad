@@ -3,7 +3,7 @@ import {
   AcCmColorMethod,
   AcDbDatabase,
   AcDbLayerTableRecord
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 
 import { AcTrStyleManager } from '../../three-renderer/src/style/AcTrStyleManager'

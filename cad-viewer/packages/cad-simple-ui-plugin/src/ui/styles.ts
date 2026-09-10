@@ -1,4 +1,4 @@
-import { ML_UI_MOBILE_MAX_WIDTH } from '@mlightcad/cad-simple-viewer'
+import { ML_UI_MOBILE_MAX_WIDTH } from '@hy/cad-simple-viewer'
 
 const STYLE_ID = 'ml-ex-ui-styles'
 

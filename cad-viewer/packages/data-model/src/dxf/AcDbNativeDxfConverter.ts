@@ -2,7 +2,7 @@ import {
   ACCM_DEFAULT_UI_YIELD_BUDGET_MS,
   AcCmUiYieldGate,
   accmYieldForPaint
-} from '@mlightcad/common'
+} from '@hy/common'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import {
@@ -182,9 +182,13 @@ export class AcDbNativeDxfConverter extends AcDbDatabaseConverter<null> {
   /**
    * Tokenizes DXF bytes in the parser worker and returns the drained pair
    * stream. Returns `null` when worker parsing is disabled or unavailable
-   * (Node, `Worker` missing, task failure) so the caller can fall back to
-   * main-thread tokenization — the input buffer is copied before crossing
-   * to the worker, so the fallback path still owns readable bytes.
+   * (Node or `Worker` missing) so the caller can fall back to main-thread
+   * tokenization.
+   *
+   * The ArrayBuffer is transferred to the worker (zero-copy). If the worker
+   * cannot even receive it (construction/postMessage failure), the buffer is
+   * still readable and the caller falls back; once transferred, a failed task
+   * is reported as an error because the source bytes are gone.
    */
   private async tokenizeInWorker(
     data: ArrayBuffer,
@@ -208,9 +212,9 @@ export class AcDbNativeDxfConverter extends AcDbDatabaseConverter<null> {
 
     let lastPct = PARSE_START_PCT
     const result = await api.execute<ArrayBuffer, AcDbDxfPairWireData>(
-      // The worker detaches whatever it receives; send a copy so a failed
-      // worker attempt cannot neuter the main-thread fallback's input.
-      data.slice(0),
+      // AcDbWorkerManager transfers ArrayBuffer inputs; the worker owns the
+      // bytes after this call.
+      data,
       undefined,
       ratio => {
         const pct = Math.min(
@@ -227,8 +231,15 @@ export class AcDbNativeDxfConverter extends AcDbDatabaseConverter<null> {
     api.destroy()
 
     if (!result.success || !result.data) {
+      const reason = result.error ?? 'unknown error'
+      if (data.byteLength === 0) {
+        throw new Error(
+          `DXF parser worker failed (${reason}); ` +
+            'the transferred input buffer cannot be parsed on the main thread.'
+        )
+      }
       console.warn(
-        `DXF parser worker failed (${result.error ?? 'unknown error'}); ` +
+        `DXF parser worker failed (${reason}); ` +
           'falling back to main-thread parsing.'
       )
       return null

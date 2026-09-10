@@ -1,11 +1,11 @@
-import { AcApDocManager, type AcApFontInfo,AcApFontUtil } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager, type AcApFontInfo,AcApFontUtil } from '@hy/cad-simple-viewer'
 import {
   type AcDbDatabase,
   AcDbSystemVariables,
   AcDbSysVarManager,
   AcDbTextStyleTableRecord,
   DEFAULT_TEXT_STYLE
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { computed, reactive, ref, watch } from 'vue'
 
 /**

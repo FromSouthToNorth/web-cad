@@ -2,7 +2,7 @@ import {
   AcGeArea2d,
   AcGePoint3dLike,
   AcGiSubEntityTraits
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js'

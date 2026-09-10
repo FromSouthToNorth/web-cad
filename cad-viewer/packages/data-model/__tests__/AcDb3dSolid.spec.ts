@@ -1,4 +1,4 @@
-import { AcGeMatrix3d } from '@mlightcad/geometry-engine'
+import { AcGeMatrix3d } from '@hy/geometry-engine'
 
 import { AcDb3dSolid } from '../src/entity'
 

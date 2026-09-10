@@ -17,7 +17,7 @@ class MockAcTrFontLoader {
   load = mockLoad
 }
 
-jest.mock('@mlightcad/three-renderer', () => ({
+jest.mock('@hy/three-renderer', () => ({
   AcTrFontLoader: MockAcTrFontLoader
 }))
 

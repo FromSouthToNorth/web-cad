@@ -60,7 +60,7 @@ const mockDocManager = {
   }
 }
 
-jest.mock('@mlightcad/cad-simple-viewer', () => ({
+jest.mock('@hy/cad-simple-viewer', () => ({
   AcApDocManager: {
     instance: mockDocManager
   }

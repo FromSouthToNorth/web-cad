@@ -1,4 +1,4 @@
-import { AcDbSysVarManager } from '@mlightcad/data-model'
+import { AcDbSysVarManager } from '@hy/data-model'
 
 import { AcEdSelectionVertexMarkers } from '../src/editor/marker/AcEdSelectionVertexMarkers'
 import { AcEdOpenMode } from '../src/editor/view/AcEdOpenMode'

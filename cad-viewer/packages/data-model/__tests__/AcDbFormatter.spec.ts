@@ -1,4 +1,4 @@
-import { AcGePoint2d, AcGePoint3d } from '@mlightcad/geometry-engine'
+import { AcGePoint2d, AcGePoint3d } from '@hy/geometry-engine'
 
 import { AcDbDatabase } from '../src/database/AcDbDatabase'
 import { AcDbAngleUnits } from '../src/misc/AcDbAngleUnits'

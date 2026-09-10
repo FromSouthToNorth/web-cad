@@ -115,14 +115,14 @@
 </template>
 
 <script setup lang="ts">
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 import {
   AcDbAngleUnits,
   AcDbLinearUnits,
   AcDbSystemVariables,
   AcDbSysVarManager,
   AcDbUnitsValue
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   Checkbox as ACheckbox,
   Form as AForm,

@@ -1,5 +1,5 @@
-import { AcGeMatrix3d, AcGePoint3d, AcGeVector3d } from '@mlightcad/geometry-engine'
-import { AcGiMTextAttachmentPoint } from '@mlightcad/graphic-interface'
+import { AcGeMatrix3d, AcGePoint3d, AcGeVector3d } from '@hy/geometry-engine'
+import { AcGiMTextAttachmentPoint } from '@hy/graphic-interface'
 
 import { acdbHostApplicationServices, AcDbDxfFiler } from '../src/base'
 import { AcDbDatabase } from '../src/database'

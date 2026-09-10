@@ -1,4 +1,4 @@
-import { AcApDocManager, eventBus, getSessionUndo } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager, eventBus, getSessionUndo } from '@hy/cad-simple-viewer'
 import { type DeepReadonly, readonly, type Ref, ref } from 'vue'
 
 /**

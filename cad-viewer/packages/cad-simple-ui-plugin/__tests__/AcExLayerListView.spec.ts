@@ -52,7 +52,7 @@ const editor = {
   events: { documentActivated }
 }
 
-jest.mock('@mlightcad/cad-simple-viewer', () => ({
+jest.mock('@hy/cad-simple-viewer', () => ({
   AcApDocManager: {
     instance: {
       curView: undefined
@@ -72,7 +72,7 @@ jest.mock('@mlightcad/cad-simple-viewer', () => ({
   AcApLayerStore: class {}
 }))
 
-jest.mock('@mlightcad/data-model', () => ({
+jest.mock('@hy/data-model', () => ({
   AcCmColor: {
     fromString: jest.fn(() => null)
   }

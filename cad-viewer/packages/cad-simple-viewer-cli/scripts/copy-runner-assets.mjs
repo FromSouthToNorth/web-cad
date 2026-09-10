@@ -53,7 +53,7 @@ copy(
   join(workersDir, DXF_PARSER_WORKER_FILE)
 )
 copy(
-  join(pkgRoot('@mlightcad/cad-html-plugin'), 'dist', 'viewer-runtime.iife.js'),
+  join(pkgRoot('@hy/cad-html-plugin'), 'dist', 'viewer-runtime.iife.js'),
   join(outDir, 'viewer-runtime.iife.js')
 )
 

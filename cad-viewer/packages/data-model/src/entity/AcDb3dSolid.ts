@@ -2,8 +2,8 @@ import {
   AcGeBox3d,
   AcGeMatrix3d,
   AcGePoint3d
-} from '@mlightcad/geometry-engine'
-import { AcGiRenderer } from '@mlightcad/graphic-interface'
+} from '@hy/geometry-engine'
+import { AcGiRenderer } from '@hy/graphic-interface'
 
 import {
   acdbAcisWireframeSegmentsFromSab,

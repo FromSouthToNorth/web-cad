@@ -17,7 +17,7 @@ A typical command consists of:
 ### Example Structure
 
 ```typescript
-import { AcDbEntity, AcGePoint3dLike } from '@mlightcad/data-model'
+import { AcDbEntity, AcGePoint3dLike } from '@hy/data-model'
 
 import { AcApContext, AcApDocManager } from '../app'
 import {

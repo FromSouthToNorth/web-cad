@@ -1,4 +1,4 @@
-import { AcDbDxfCode, AcDbEntity, AcDbTypedValue } from '@mlightcad/data-model'
+import { AcDbDxfCode, AcDbEntity, AcDbTypedValue } from '@hy/data-model'
 
 type AcEdComparisonOperator =
   | 'equals'

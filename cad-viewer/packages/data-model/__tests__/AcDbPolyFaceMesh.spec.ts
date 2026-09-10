@@ -1,4 +1,4 @@
-import { AcGeMatrix3d, AcGePoint3d } from '@mlightcad/geometry-engine'
+import { AcGeMatrix3d, AcGePoint3d } from '@hy/geometry-engine'
 
 import { AcDbDxfFiler } from '../src/base'
 import { AcDbPolyFaceMesh } from '../src/entity'

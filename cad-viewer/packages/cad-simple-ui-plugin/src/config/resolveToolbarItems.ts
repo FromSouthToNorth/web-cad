@@ -1,4 +1,4 @@
-import { AcEdOpenMode } from '@mlightcad/cad-simple-viewer'
+import { AcEdOpenMode } from '@hy/cad-simple-viewer'
 
 import { createDefaultToolbarItems } from './defaultToolbarItems'
 import {

@@ -1,4 +1,4 @@
-import { log } from '@mlightcad/data-model'
+import { log } from '@hy/data-model'
 
 import { AcApContext } from '../app/AcApContext'
 import { AcEdCommand } from '../editor/command/AcEdCommand'
@@ -15,7 +15,7 @@ import { AcApPlugin } from './AcApPlugin'
  *
  * @example
  * ```typescript
- * import { AcApDocManager } from '@mlightcad/cad-simple-viewer';
+ * import { AcApDocManager } from '@hy/cad-simple-viewer';
  * import { ExamplePlugin } from './AcApPluginExample';
  *
  * // Load the plugin

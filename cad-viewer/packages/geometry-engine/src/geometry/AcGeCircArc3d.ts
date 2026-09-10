@@ -1,4 +1,4 @@
-import { AcCmErrors } from '@mlightcad/common'
+import { AcCmErrors } from '@hy/common'
 
 import {
   AcGeBox3d,

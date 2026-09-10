@@ -6,7 +6,7 @@ import {
   AcGiMTextFlowDirection,
   AcGiSubEntityTraits,
   AcGiTextStyle
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   ChangedProperties,
   MTextColor,

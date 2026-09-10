@@ -1,15 +1,15 @@
 import {
   type AcApHtmlPluginOptions,
   registerLazyHtmlPlugin
-} from '@mlightcad/cad-html-plugin/register'
-import { registerLazyPdfPlugin } from '@mlightcad/cad-pdf-plugin/register'
+} from '@hy/cad-html-plugin/register'
+import { registerLazyPdfPlugin } from '@hy/cad-pdf-plugin/register'
 import {
   AcApDocManager,
   type AcApPluginManager,
   AcEdCommandStack,
   AcEdMTextEditor
-} from '@mlightcad/cad-simple-viewer'
-import { registerLazySvgPlugin } from '@mlightcad/cad-svg-plugin/register'
+} from '@hy/cad-simple-viewer'
+import { registerLazySvgPlugin } from '@hy/cad-svg-plugin/register'
 import { markRaw } from 'vue'
 
 import {
@@ -169,8 +169,8 @@ let isSearchIntegrationStarted = false
 
 const registerAgentIntegration = async (pluginManager: AcApPluginManager) => {
   try {
-    await import('@mlightcad/cad-agent-plugin/style.css')
-    const agentRegister = await import('@mlightcad/cad-agent-plugin/register')
+    await import('@hy/cad-agent-plugin/style.css')
+    const agentRegister = await import('@hy/cad-agent-plugin/register')
 
     agentRegister.setAgentPaletteOpener(() => {
       if (
@@ -192,14 +192,14 @@ const registerAgentIntegration = async (pluginManager: AcApPluginManager) => {
     agentRegister.registerLazyAgentPlugin(pluginManager)
     store.features.agentPlugin = true
   } catch {
-    // Optional peer `@mlightcad/cad-agent-plugin` is not installed.
+    // Optional peer `@hy/cad-agent-plugin` is not installed.
   }
 }
 
 const registerSearchIntegration = async (pluginManager: AcApPluginManager) => {
   try {
-    await import('@mlightcad/cad-search-plugin/style.css')
-    const searchRegister = await import('@mlightcad/cad-search-plugin/register')
+    await import('@hy/cad-search-plugin/style.css')
+    const searchRegister = await import('@hy/cad-search-plugin/register')
 
     searchRegister.setSearchPaletteOpener(() => {
       if (
@@ -221,7 +221,7 @@ const registerSearchIntegration = async (pluginManager: AcApPluginManager) => {
     searchRegister.registerLazySearchPlugin(pluginManager)
     store.features.searchPlugin = true
   } catch {
-    // Optional peer `@mlightcad/cad-search-plugin` is not installed.
+    // Optional peer `@hy/cad-search-plugin` is not installed.
   }
 }
 
@@ -238,7 +238,7 @@ export interface RegisterLazyPluginsOptions {
  *
  * Currently registers the PDF plugin (`cpdf`, `ipdf`), the HTML export
  * plugin (`-chtml`), the SVG export plugin (`csvg`), and optionally the CAD
- * Agent plugin (`agent`) when `@mlightcad/cad-agent-plugin` is installed.
+ * Agent plugin (`agent`) when `@hy/cad-agent-plugin` is installed.
  * Safe to call multiple times; registration runs once per application lifetime.
  *
  * @param options - Optional HTML plugin settings such as `viewerRuntimeUrl`

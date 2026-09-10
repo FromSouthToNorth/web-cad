@@ -119,7 +119,7 @@ pnpm preview:simple
 
 ## Systém pluginů
 
-CAD-Viewer je postaven kolem modulárního **systému pluginů** v [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer). Pluginy implementují rozhraní `AcApPlugin` a napojují se na životní cyklus prohlížeče přes `onLoad` / `onUnload` — typicky pro registraci příkazů, přidání UI nebo propojení exportních/importních pipeline.
+CAD-Viewer je postaven kolem modulárního **systému pluginů** v [`@hy/cad-simple-viewer`](packages/cad-simple-viewer). Pluginy implementují rozhraní `AcApPlugin` a napojují se na životní cyklus prohlížeče přes `onLoad` / `onUnload` — typicky pro registraci příkazů, přidání UI nebo propojení exportních/importních pipeline.
 
 Pluginy načítejte přes `AcApDocManager.instance.pluginManager` (`loadPlugin`, `registerLazyPlugin` nebo `plugins.fromConfig` při vytváření správce dokumentů). Exportně orientované pluginy podporují **lazy loading**: zaregistrujte malý stub předem a stáhněte těžký balíček až když uživatel spustí související příkaz (například `-chtml`, nebo při potvrzení exportu z dialogu `chtml` v `cad-viewer`).
 
@@ -129,13 +129,13 @@ Monorepo dodává několik oficiálních pluginů. Každý se zaměřuje na jedn
 
 | Package | Role | Příkazy / schopnosti |
 |---------|------|-------------------------|
-| [`@mlightcad/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | **Panel nástrojů, správce vrstev a paleta revizí** pro `cad-simple-viewer` (čisté DOM, bez Vue/React) | `layer`, `markuppanel`, výchozí panel nástrojů (zobrazení, měření, export, revize, motiv, jazyk) |
-| [`@mlightcad/cad-agent-plugin`](packages/cad-agent-plugin) | **CAD agent v přirozeném jazyce** (AI chat panel + volání nástrojů pro výkres) | `agent` |
-| [`@mlightcad/cad-html-plugin`](packages/cad-html-plugin) | Export výkresů do **samostatného offline HTML** | `chtml` (dialog v `cad-viewer`), `-chtml` (příkazová řádka) |
-| [`@mlightcad/cad-pdf-plugin`](packages/cad-pdf-plugin) | **Export a import PDF** (vektorová pipeline) | `cpdf`, `ipdf` |
-| [`@mlightcad/cad-svg-plugin`](packages/cad-svg-plugin) | **Export SVG** a sdílený vektorový renderer (používá se také u exportu PDF) | `csvg` |
+| [`@hy/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | **Panel nástrojů, správce vrstev a paleta revizí** pro `cad-simple-viewer` (čisté DOM, bez Vue/React) | `layer`, `markuppanel`, výchozí panel nástrojů (zobrazení, měření, export, revize, motiv, jazyk) |
+| [`@hy/cad-agent-plugin`](packages/cad-agent-plugin) | **CAD agent v přirozeném jazyce** (AI chat panel + volání nástrojů pro výkres) | `agent` |
+| [`@hy/cad-html-plugin`](packages/cad-html-plugin) | Export výkresů do **samostatného offline HTML** | `chtml` (dialog v `cad-viewer`), `-chtml` (příkazová řádka) |
+| [`@hy/cad-pdf-plugin`](packages/cad-pdf-plugin) | **Export a import PDF** (vektorová pipeline) | `cpdf`, `ipdf` |
+| [`@hy/cad-svg-plugin`](packages/cad-svg-plugin) | **Export SVG** a sdílený vektorový renderer (používá se také u exportu PDF) | `csvg` |
 
-### `@mlightcad/cad-simple-ui-plugin` — UI vrstva pro jednoduchý prohlížeč
+### `@hy/cad-simple-ui-plugin` — UI vrstva pro jednoduchý prohlížeč
 
 [`cad-simple-viewer`](packages/cad-simple-viewer) záměrně **nedodává aplikační UI** — pouze plátno a CAD jádro. Pokud vkládáte jednoduchý prohlížeč do vlastní webové aplikace a chcete hotovou UI vrstvu bez plné Vue [`cad-viewer`](packages/cad-viewer) shell aplikace, **`cad-simple-ui-plugin` je určená UI vrstva**.
 
@@ -150,7 +150,7 @@ Všechny widgety jsou nezávislé na frameworku (čisté DOM). Plná Vue aplikac
 
 → **Rychlý start, přizpůsobení panelu nástrojů a možnosti:** [packages/cad-simple-ui-plugin/README.md](packages/cad-simple-ui-plugin/README.md)
 
-### `@mlightcad/cad-agent-plugin` — AI asistent pro výkresy
+### `@hy/cad-agent-plugin` — AI asistent pro výkresy
 
 [`cad-agent-plugin`](packages/cad-agent-plugin) přidává **CAD agenta v přirozeném jazyce** do aplikací založených na `cad-simple-viewer`. Uživatelé popíší, co chtějí, běžnou řečí; agent volá CAD nástroje pro prohlížení výkresu a vytváření nebo úpravu geometrie.
 
@@ -436,6 +436,6 @@ Příspěvky jsou vítány! Otevírejte issue nebo pull requesty pro opravy chyb
 
 Monorepo cad-viewer je primárně licencováno pod [MIT](LICENSE).
 
-Načítání DXF používá vestavěný MIT parser v `@mlightcad/data-model`. **Výchozí cesta pro načítání DWG** v `@mlightcad/cad-simple-viewer` závisí na balíčcích GPL-3.0 (`libredwg-web` / `@mlightcad/libredwg-converter`). Pokud dodáváte produkt s uzavřeným zdrojovým kódem a nemůžete zákazníkům distribuovat GPL kód, použijte místo toho [**vlastní parser DWG**](./PROPRIETARY-PARSER.md) — nahradí tento konvertor a zbytek stacku zůstane pouze pod MIT.
+Načítání DXF používá vestavěný MIT parser v `@hy/data-model`. **Výchozí cesta pro načítání DWG** v `@hy/cad-simple-viewer` závisí na balíčcích GPL-3.0 (`libredwg-web` / `@mlightcad/libredwg-converter`). Pokud dodáváte produkt s uzavřeným zdrojovým kódem a nemůžete zákazníkům distribuovat GPL kód, použijte místo toho [**vlastní parser DWG**](./PROPRIETARY-PARSER.md) — nahradí tento konvertor a zbytek stacku zůstane pouze pod MIT.
 
 → **Komerční parser:** [PROPRIETARY-PARSER.md](./PROPRIETARY-PARSER.md) (rozsah, licencování, ceny, integrace, soulad s GPL, podpora)

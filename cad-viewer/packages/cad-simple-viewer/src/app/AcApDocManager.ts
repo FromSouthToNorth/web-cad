@@ -8,9 +8,9 @@ import {
   AcDbSysVarManager,
   AcGeBox2d,
   log
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { FontManager } from '@mlightcad/mtext-renderer'
-import { AcTrMTextRenderer } from '@mlightcad/three-renderer'
+import { AcTrMTextRenderer } from '@hy/three-renderer'
 
 import {
   AcApAboutCmd,
@@ -1956,7 +1956,7 @@ export class AcApDocManager {
    *
    * Points the MText renderer at its Web Worker script for text layout and
    * shaping. DXF parsing is handled by the built-in converter in
-   * `@mlightcad/data-model`. DWG converters are **not** registered here —
+   * `@hy/data-model`. DWG converters are **not** registered here —
    * hosts that need DWG must depend on and register a converter themselves
    * (e.g. `@mlightcad/libredwg-converter`).
    */

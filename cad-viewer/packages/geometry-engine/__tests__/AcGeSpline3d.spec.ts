@@ -4,7 +4,7 @@ import {
   acgeComputeParameterValues,
   acgeEvaluateNurbsPoint
 } from '../src/util/AcGeNurbsUtil'
-import { AcCmErrors } from '@mlightcad/common'
+import { AcCmErrors } from '@hy/common'
 
 describe('AcGeSpline3d', () => {
   describe('Constructor', () => {

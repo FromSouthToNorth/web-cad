@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 import { DownOutlined } from '@ant-design/icons-vue'
-import { AcGiLineWeight } from '@mlightcad/data-model'
+import { AcGiLineWeight } from '@hy/data-model'
 import { computed } from 'vue'
 
 /**

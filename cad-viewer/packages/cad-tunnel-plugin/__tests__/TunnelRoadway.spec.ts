@@ -3,7 +3,7 @@ import {
   AcDbDxfFiler,
   acdbDxfInEntity,
   acdbHostApplicationServices
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { TunnelRoadway } from '../src/entity/TunnelRoadway'
 

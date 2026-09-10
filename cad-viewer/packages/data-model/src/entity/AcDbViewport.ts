@@ -5,12 +5,12 @@ import {
   AcGePoint3d,
   AcGeVector3d,
   AcGeVector3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 import {
   AcGiEntity,
   AcGiRenderer,
   AcGiViewport
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { AcDbEntity } from './AcDbEntity'

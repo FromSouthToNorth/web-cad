@@ -4,7 +4,7 @@ import {
   AcGeEllipseArc3d,
   AcGePoint3d,
   AcGePoint3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 
 import { AcGiContext } from './AcGiContext'
 import { AcGiEntity } from './AcGiEntity'

@@ -1,4 +1,4 @@
-import { AcCmColor, AcCmColorMethod } from '@mlightcad/common'
+import { AcCmColor, AcCmColorMethod } from '@hy/common'
 import {
   AcGeLine3d,
   AcGeMatrix3d,
@@ -7,7 +7,7 @@ import {
   AcGePointLike,
   AcGeVector3d,
   AcGeVector3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 
 import { AcDbDxfFiler } from '../../base'
 import { AcDbBlockTableRecord } from '../../database'

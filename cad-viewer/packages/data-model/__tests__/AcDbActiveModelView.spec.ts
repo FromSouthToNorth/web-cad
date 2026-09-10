@@ -1,4 +1,4 @@
-import { AcGeBox2d, AcGePoint2d, AcGePoint3d } from '@mlightcad/geometry-engine'
+import { AcGeBox2d, AcGePoint2d, AcGePoint3d } from '@hy/geometry-engine'
 
 import { AcDbDatabase } from '../src/database/AcDbDatabase'
 import { AcDbViewportTableRecord } from '../src/database/AcDbViewportTableRecord'

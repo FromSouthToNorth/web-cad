@@ -35,7 +35,7 @@ async function main() {
     AcDbDimension,
     AcDbLeader,
     AcDbMLeader
-  } = require('@mlightcad/data-model')
+  } = require('@hy/data-model')
 
   const data = fs.readFileSync(file)
   const db = new AcDbDatabase()

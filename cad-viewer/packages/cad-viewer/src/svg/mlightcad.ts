@@ -1,4 +1,4 @@
-import { MLIGHTCAD_ICON_SVG } from '@mlightcad/cad-simple-viewer'
+import { MLIGHTCAD_ICON_SVG } from '@hy/cad-simple-viewer'
 import { defineComponent, h } from 'vue'
 
 /**

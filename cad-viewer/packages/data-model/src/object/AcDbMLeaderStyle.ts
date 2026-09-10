@@ -1,5 +1,5 @@
-import { AcCmColor, AcCmColorMethod } from '@mlightcad/common'
-import { AcGeVector3d, AcGeVector3dLike } from '@mlightcad/geometry-engine'
+import { AcCmColor, AcCmColorMethod } from '@hy/common'
+import { AcGeVector3d, AcGeVector3dLike } from '@hy/geometry-engine'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { AcDbObject } from '../base/AcDbObject'

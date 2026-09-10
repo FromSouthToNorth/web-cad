@@ -1,12 +1,12 @@
 import {
   AcApDocManager,
   AcDbDocumentEventArgs
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   AcDbLayerTableRecord,
   AcLyLayerFilter,
   AcLyLayerGroup
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { onScopeDispose, reactive, ref } from 'vue'
 
 /** Built-in filter tree node that shows every layer. */

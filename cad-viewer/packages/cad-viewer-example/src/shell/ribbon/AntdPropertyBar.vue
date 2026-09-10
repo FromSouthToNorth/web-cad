@@ -79,14 +79,14 @@
 import {
   AcApDocManager,
   acapRunDatabaseEdit
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   AcCmColor,
   type AcDbDatabase,
   type AcDbEntity,
   type AcDbObjectId,
   AcGiLineWeight
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 

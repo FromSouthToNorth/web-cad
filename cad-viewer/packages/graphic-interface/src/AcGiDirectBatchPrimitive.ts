@@ -3,7 +3,7 @@
  * draw call and append into a batch without an intermediate scene-graph entity.
  *
  * Entities advertise support via the
- * {@link import('@mlightcad/data-model').AcDbEntity.directBatchPrimitive} accessor.
+ * {@link import('@hy/data-model').AcDbEntity.directBatchPrimitive} accessor.
  *
  * @internal
  */

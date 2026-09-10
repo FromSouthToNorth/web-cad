@@ -1,4 +1,4 @@
-import { AcEdCommand } from '@mlightcad/cad-simple-viewer'
+import { AcEdCommand } from '@hy/cad-simple-viewer'
 
 import { store } from '../store'
 

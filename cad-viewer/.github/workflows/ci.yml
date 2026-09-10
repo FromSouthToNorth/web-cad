@@ -33,7 +33,7 @@ jobs:
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
-          scope: '@mlightcad'
+          scope: '@hy'
 
       - name: Upgrade npm for Trusted Publishing
         run: npm install -g npm@latest
@@ -59,10 +59,10 @@ jobs:
       # Use system Google Chrome (preinstalled on ubuntu-latest) via channel "chrome".
       # Avoids playwright install chromium, which often hangs at zip extraction on CI.
       - name: Install Playwright system dependencies
-        run: pnpm --filter @mlightcad/cad-viewer-example exec playwright install-deps chromium
+        run: pnpm --filter @hy/cad-viewer-example exec playwright install-deps chromium
 
       - name: Run E2E tests
-        run: pnpm --filter @mlightcad/cad-viewer-example test:e2e
+        run: pnpm --filter @hy/cad-viewer-example test:e2e
         env:
           PLAYWRIGHT_BROWSER_CHANNEL: chrome
 
@@ -126,7 +126,7 @@ jobs:
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
-          scope: '@mlightcad'
+          scope: '@hy'
 
       - name: Upgrade npm for Trusted Publishing
         run: npm install -g npm@latest

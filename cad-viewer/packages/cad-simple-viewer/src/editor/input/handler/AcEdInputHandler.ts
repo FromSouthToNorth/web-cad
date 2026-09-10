@@ -1,4 +1,4 @@
-import { AcGePoint2dLike } from '@mlightcad/data-model'
+import { AcGePoint2dLike } from '@hy/data-model'
 
 /**
  * Optional context for AutoCAD-style command-line point entry.

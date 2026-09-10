@@ -3,7 +3,7 @@ import {
   type AcApDocument,
   type AcEdEvents,
   eventBus
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 /** Poll interval while waiting for the current document to appear. */
 const POLL_INTERVAL_MS = 200

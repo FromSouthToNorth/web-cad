@@ -1,8 +1,8 @@
-import { AcCmColor } from '@mlightcad/common'
+import { AcCmColor } from '@hy/common'
 
 import { acdbHostApplicationServices } from '../src/base'
 import { AcDbDatabase, AcDbLinetypeTableRecord } from '../src/database'
-import { AcGeVector3d } from '@mlightcad/geometry-engine'
+import { AcGeVector3d } from '@hy/geometry-engine'
 
 import { AcDbMLine, AcDbMLineJustification } from '../src/entity'
 import { AcDbOsnapMode } from '../src/misc'

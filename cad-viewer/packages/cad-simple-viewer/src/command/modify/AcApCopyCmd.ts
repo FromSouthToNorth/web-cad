@@ -3,7 +3,7 @@ import {
   AcGeMatrix3d,
   AcGePoint3d,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcApContext, AcApDocManager } from '../../app'
 import {

@@ -8,7 +8,7 @@ import {
   AcDbLayerTableRecordAttrs,
   AcDbObjectId,
   AcGiSubEntityTraits
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import type { AcApLayerPreviousSnapshot } from '../app/AcApLayerSessionState'
 import {

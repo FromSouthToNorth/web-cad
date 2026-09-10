@@ -1,4 +1,4 @@
-import { log } from '@mlightcad/data-model'
+import { log } from '@hy/data-model'
 /**
  * A utility class that waits until a specified condition is met
  * or a timeout occurs, and then executes a single action.

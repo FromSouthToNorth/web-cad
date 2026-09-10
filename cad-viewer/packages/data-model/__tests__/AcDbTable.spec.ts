@@ -1,11 +1,11 @@
-import { AcGeBox3d, AcGePoint3d } from '@mlightcad/geometry-engine'
+import { AcGeBox3d, AcGePoint3d } from '@hy/geometry-engine'
 import {
   AcGiEntity,
   AcGiContext,
   AcGiMTextAttachmentPoint,
   AcGiRenderer,
   DEFAULT_ACGI_CONTEXT
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 
 import { acdbHostApplicationServices, AcDbDxfFiler } from '../src/base'
 import { AcDbBlockTableRecord, AcDbDatabase } from '../src/database'

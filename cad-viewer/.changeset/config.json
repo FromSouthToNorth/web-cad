@@ -4,17 +4,17 @@
   "commit": false,
   "fixed": [
     [
-      "@mlightcad/cad-agent-plugin",
-      "@mlightcad/cad-html-plugin",
-      "@mlightcad/cad-pdf-plugin",
-      "@mlightcad/cad-simple-ui-plugin",
-      "@mlightcad/cad-simple-viewer",
-      "@mlightcad/cad-simple-viewer-cli",
-      "@mlightcad/cad-svg-plugin",
-      "@mlightcad/cad-viewer",
-      "@mlightcad/cad-viewer-example",
-      "@mlightcad/cad-viewer-examples",
-      "@mlightcad/three-renderer"
+      "@hy/cad-agent-plugin",
+      "@hy/cad-html-plugin",
+      "@hy/cad-pdf-plugin",
+      "@hy/cad-simple-ui-plugin",
+      "@hy/cad-simple-viewer",
+      "@hy/cad-simple-viewer-cli",
+      "@hy/cad-svg-plugin",
+      "@hy/cad-viewer",
+      "@hy/cad-viewer-example",
+      "@hy/cad-viewer-examples",
+      "@hy/three-renderer"
     ]
   ],
   "linked": [],

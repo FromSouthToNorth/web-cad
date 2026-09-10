@@ -6,7 +6,7 @@ import {
   createLibRollupOutput
 } from '../vite-config/pluginRollupOutput'
 
-const packageName = '@mlightcad/cad-tunnel-plugin'
+const packageName = '@hy/cad-tunnel-plugin'
 const pluginId = 'cad-tunnel-plugin'
 
 export default defineConfig({

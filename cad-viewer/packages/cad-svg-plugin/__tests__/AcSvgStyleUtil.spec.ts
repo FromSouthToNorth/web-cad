@@ -3,7 +3,7 @@ import {
   AcCmTransparency,
   AcGiLineWeight,
   AcGiSubEntityTraits
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { AcSvgStyleContext, AcSvgStyleUtil } from '../src/AcSvgStyleUtil'
 
 function createTraits(

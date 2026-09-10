@@ -1,4 +1,4 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 
 /**
  * Resolves the DOM element that receives the dock panel and flex shrink layout.

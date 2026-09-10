@@ -1,4 +1,4 @@
-import { AcCmTaskError } from '@mlightcad/common'
+import { AcCmTaskError } from '@hy/common'
 
 import type { AcDbWorkerErrorCode } from '../converter/worker/AcDbBaseWorker'
 import { AcDbWorkerResult } from '../converter/worker/AcDbWorkerManager'

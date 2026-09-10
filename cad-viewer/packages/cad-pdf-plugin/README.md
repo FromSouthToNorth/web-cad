@@ -1,9 +1,9 @@
-# @mlightcad/cad-pdf-plugin
+# @hy/cad-pdf-plugin
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://img.shields.io/npm/v/@mlightcad/cad-pdf-plugin.svg)](https://www.npmjs.com/package/@mlightcad/cad-pdf-plugin)
+[![npm version](https://img.shields.io/npm/v/@hy/cad-pdf-plugin.svg)](https://www.npmjs.com/package/@hy/cad-pdf-plugin)
 
-PDF **export** and **import** plugin for [`@mlightcad/cad-simple-viewer`](../cad-simple-viewer). Registers two system commands:
+PDF **export** and **import** plugin for [`@hy/cad-simple-viewer`](../cad-simple-viewer). Registers two system commands:
 
 | Command | Description |
 |---------|-------------|
@@ -14,7 +14,7 @@ The plugin is designed for **lazy loading** so PDF libraries (`jspdf`, `pdfjs-di
 
 ## Key features
 
-- **Vector PDF export** — renders model-space entities via `@mlightcad/cad-svg-plugin`, then converts SVG to PDF with `svg2pdf.js`
+- **Vector PDF export** — renders model-space entities via `@hy/cad-svg-plugin`, then converts SVG to PDF with `svg2pdf.js`
 - **PDF import** — parses vector paths from the first page of a PDF (lines, polylines, Bézier curves) and appends CAD entities
 - **Plugin API** — implements `AcApPlugin`; register once with `registerLazyPdfPlugin`
 - **Framework-agnostic** — no Vue/React dependency; works anywhere `cad-simple-viewer` runs
@@ -22,14 +22,14 @@ The plugin is designed for **lazy loading** so PDF libraries (`jspdf`, `pdfjs-di
 ## Installation
 
 ```bash
-pnpm add @mlightcad/cad-pdf-plugin
+pnpm add @hy/cad-pdf-plugin
 ```
 
 Peer dependencies:
 
-- `@mlightcad/cad-simple-viewer`
-- `@mlightcad/data-model`
-- `@mlightcad/cad-svg-plugin`
+- `@hy/cad-simple-viewer`
+- `@hy/data-model`
+- `@hy/cad-svg-plugin`
 
 Runtime dependencies (bundled with this package):
 
@@ -42,7 +42,7 @@ Runtime dependencies (bundled with this package):
 Produces `dist/index.js` (main library) and `dist/register.js` (lazy-registration entry).
 
 ```bash
-pnpm --filter @mlightcad/cad-pdf-plugin build
+pnpm --filter @hy/cad-pdf-plugin build
 ```
 
 ## Usage
@@ -52,8 +52,8 @@ pnpm --filter @mlightcad/cad-pdf-plugin build
 Register the plugin with the document manager's plugin manager. Import from the `/register` subpath so only the registration stub enters your initial bundle; the main plugin chunk loads on first use of `cpdf` or `ipdf`:
 
 ```typescript
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { registerLazyPdfPlugin } from '@mlightcad/cad-pdf-plugin/register'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
+import { registerLazyPdfPlugin } from '@hy/cad-pdf-plugin/register'
 
 registerLazyPdfPlugin(AcApDocManager.instance.pluginManager)
 ```
@@ -67,7 +67,7 @@ import {
   createPdfPlugin,
   PDF_PLUGIN_NAME,
   PDF_PLUGIN_TRIGGERS
-} from '@mlightcad/cad-pdf-plugin'
+} from '@hy/cad-pdf-plugin'
 
 AcApDocManager.instance.pluginManager.registerLazyPlugin({
   name: PDF_PLUGIN_NAME,
@@ -93,7 +93,7 @@ await AcApDocManager.instance.editor.executeCommand('ipdf')
 If you prefer loading PDF support up front:
 
 ```typescript
-import { AcApPdfPlugin } from '@mlightcad/cad-pdf-plugin'
+import { AcApPdfPlugin } from '@hy/cad-pdf-plugin'
 
 await AcApDocManager.instance.pluginManager.loadPlugin(new AcApPdfPlugin())
 ```
@@ -103,8 +103,8 @@ await AcApDocManager.instance.pluginManager.loadPlugin(new AcApPdfPlugin())
 You can bypass the command layer and call the convertors directly:
 
 ```typescript
-import { AcApContext } from '@mlightcad/cad-simple-viewer'
-import { AcApPdfConvertor, AcApPdfImportConvertor } from '@mlightcad/cad-pdf-plugin'
+import { AcApContext } from '@hy/cad-simple-viewer'
+import { AcApPdfConvertor, AcApPdfImportConvertor } from '@hy/cad-pdf-plugin'
 
 // Export
 const context: AcApContext = /* active context */
@@ -137,7 +137,7 @@ Import is **vector-only**; raster/scanned PDF pages produce no entities. Only th
 |--------|------|
 | `createPdfPlugin` | Async factory used by lazy loader |
 | `PDF_PLUGIN_NAME`, `PDF_PLUGIN_TRIGGERS` | Plugin id and command triggers |
-| `@mlightcad/cad-pdf-plugin/register` | `registerLazyPdfPlugin` and registration constants |
+| `@hy/cad-pdf-plugin/register` | `registerLazyPdfPlugin` and registration constants |
 | `AcApPdfPlugin` | `AcApPlugin` implementation |
 | `AcApConvertToPdfCmd` | `cpdf` command class |
 | `AcApImportPdfCmd` | `ipdf` command class |

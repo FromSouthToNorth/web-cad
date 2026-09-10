@@ -1,7 +1,7 @@
 import 'ant-design-vue/dist/reset.css'
 
-import { DXF_PARSER_WORKER_FILE } from '@mlightcad/cad-simple-viewer'
-import { i18n } from '@mlightcad/cad-viewer'
+import { DXF_PARSER_WORKER_FILE } from '@hy/cad-simple-viewer'
+import { i18n } from '@hy/cad-viewer'
 import Antd from 'ant-design-vue'
 import { createApp } from 'vue'
 

@@ -55,12 +55,12 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       rollupOptions: {
         // PDF/HTML/SVG/Agent plugins are peers; loaded at runtime via dynamic import
         external: [
-          '@mlightcad/cad-pdf-plugin',
-          '@mlightcad/cad-html-plugin',
-          '@mlightcad/cad-svg-plugin',
-          '@mlightcad/cad-agent-plugin',
-          '@mlightcad/cad-agent-plugin/register',
-          '@mlightcad/cad-agent-plugin/style.css'
+          '@hy/cad-pdf-plugin',
+          '@hy/cad-html-plugin',
+          '@hy/cad-svg-plugin',
+          '@hy/cad-agent-plugin',
+          '@hy/cad-agent-plugin/register',
+          '@hy/cad-agent-plugin/style.css'
         ],
         output: {
           chunkFileNames: `${packageId}-[name]-[hash].js`,

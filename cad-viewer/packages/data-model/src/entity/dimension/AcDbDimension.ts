@@ -8,13 +8,13 @@ import {
   AcGePoint3dLike,
   AcGeVector3d,
   AcGeVector3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 import {
   AcGiArrowStyle,
   AcGiArrowType,
   AcGiMTextAttachmentPoint,
   AcGiRenderer
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 
 import { AcDbObjectId } from '../../base'
 import { AcDbDxfFiler } from '../../base'

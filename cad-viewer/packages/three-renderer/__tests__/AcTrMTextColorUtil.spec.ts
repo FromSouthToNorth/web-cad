@@ -2,7 +2,7 @@ import {
   AcCmColor,
   ACGI_LIGHT_THEME_FOREGROUND,
   ACGI_PAPER_SPACE_BACKGROUND
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 
 import { setMaterialMetadata, getMaterialMetadata } from '../src/style/AcTrMaterialMetadata'

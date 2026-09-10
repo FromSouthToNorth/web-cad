@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-simple-viewer-cli",
+  "name": "@hy/cad-simple-viewer-cli",
   "version": "1.6.1",
   "description": "AcCoreConsole-style headless CLI: run .scr command scripts against DXF drawings",
   "license": "MIT",
@@ -50,11 +50,11 @@
     "lint:fix": "eslint --fix --quiet src/"
   },
   "dependencies": {
-    "@mlightcad/cad-html-plugin": "workspace:*",
-    "@mlightcad/cad-pdf-plugin": "workspace:*",
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/cad-svg-plugin": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
+    "@hy/cad-html-plugin": "workspace:*",
+    "@hy/cad-pdf-plugin": "workspace:*",
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/cad-svg-plugin": "workspace:*",
+    "@hy/data-model": "workspace:*",
     "@mlightcad/mtext-renderer": "^0.12.4",
     "commander": "^12.1.0",
     "playwright": "^1.49.1"

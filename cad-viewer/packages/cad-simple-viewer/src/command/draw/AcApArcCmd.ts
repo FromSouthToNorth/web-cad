@@ -6,7 +6,7 @@ import {
   AcGeVector3dLike,
   FLOAT_TOL,
   TAU
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcApContext, AcApDocManager } from '../../app'
 import {

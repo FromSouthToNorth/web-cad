@@ -1,4 +1,4 @@
-import { AcGeMatrix3d, AcGePoint3d } from '@mlightcad/data-model'
+import { AcGeMatrix3d, AcGePoint3d } from '@hy/data-model'
 
 import {
   AcEdBatchedPreview,

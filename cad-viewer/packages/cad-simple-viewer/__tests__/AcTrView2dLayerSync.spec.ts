@@ -1,11 +1,11 @@
-import { AcCmColor } from '@mlightcad/data-model'
+import { AcCmColor } from '@hy/data-model'
 import {
   AcTrEntity,
   AcTrRenderContext,
   AcTrRenderer,
   getSceneDrawableUserData,
   setMaterialMetadata
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 import * as THREE from 'three'
 
 import { AcTrLayerAppearanceController } from '../src/view/AcTrLayerAppearanceController'

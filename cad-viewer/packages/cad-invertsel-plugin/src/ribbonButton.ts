@@ -1,4 +1,4 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 
 import { invertSelT, startInvertSelLocaleSync } from './i18n'
 

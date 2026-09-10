@@ -10,7 +10,7 @@ import {
   AcGeMatrix3d,
   AcGePoint2d,
   AcGePoint2dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { debounce } from 'lodash-es'
 
 import type { AcTrSpatialSearchOptions } from '../../spatialIndex/AcTrSpatialIndex'

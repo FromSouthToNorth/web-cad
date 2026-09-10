@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 import {
   type Component,
   computed,

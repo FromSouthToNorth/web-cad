@@ -1,4 +1,4 @@
-import { AcApDocManager, AcEdMTextEditor } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager, AcEdMTextEditor } from '@hy/cad-simple-viewer'
 
 import { layerCtxT } from './i18n'
 import {

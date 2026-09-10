@@ -1,4 +1,4 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 
 /**
  * Snapshot of the active drawing passed to the LLM via `get_drawing_context`.

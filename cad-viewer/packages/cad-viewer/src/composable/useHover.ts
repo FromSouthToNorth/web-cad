@@ -1,5 +1,5 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import type { AcDbEntity, AcDbObjectId } from '@mlightcad/data-model'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
+import type { AcDbEntity, AcDbObjectId } from '@hy/data-model'
 import { onMounted, onUnmounted, type Ref, ref, shallowRef } from 'vue'
 
 /**

@@ -120,14 +120,14 @@
 
 专有解析器以**可注册的 converter** 形式提供，与开源解析器接入同一套流程。
 
-- 输出符合 MIT 授权的 **`@mlightcad/data-model`**：`AcDbDatabase`、`AcDb*` 实体、图层表、块等结构。
+- 输出符合 MIT 授权的 **`@hy/data-model`**：`AcDbDatabase`、`AcDb*` 实体、图层表、块等结构。
 - 通过 **`AcDbDatabaseConverterManager`** 注册，与当前的 `AcDbLibreDwgConverter` 机制相同。
 - 解析完成后，现有 **MIT 渲染、图层、选择与交互管线**（`cad-simple-viewer`、`cad-viewer`、各插件等）**无需改动**。
 
 典型集成方式（示意）：
 
 ```typescript
-import { AcDbDatabaseConverterManager, AcDbFileType } from '@mlightcad/data-model'
+import { AcDbDatabaseConverterManager, AcDbFileType } from '@hy/data-model'
 import { AcDbDwgConverter } from '@mlight-cad/dwg-converter'
 
 const converter = new AcDbDwgConverter({ /* options */ })
@@ -148,7 +148,7 @@ cad-viewer 默认 DWG 加载路径使用 GPL-3.0 包：
 |----|--------|------|
 | `libredwg-web` / `@mlightcad/libredwg-converter` | GPL-3.0 | DWG 解析 |
 
-DXF 加载使用 `@mlightcad/data-model` 中内置的 MIT 解析器，无需专有解析器。
+DXF 加载使用 `@hy/data-model` 中内置的 MIT 解析器，无需专有解析器。
 
 若您**用专有解析器替换 LibreDWG converter**，并从构建中**移除 GPL 依赖**，应用可仅依赖 **MIT 授权**的 cad-viewer 技术栈（`data-model`、`cad-simple-viewer`、渲染器、插件等）。
 
@@ -215,11 +215,11 @@ cad-viewer 目前为**个人开源项目**（非公司运营），作者**全职
 
 ### 如何使用专有 DWG 解析器？
 
-专有解析器**不提供独立的“直接解析 DWG”API**。其接入方式与开源的 [`libredwg-converter`](https://github.com/mlightcad/realdwg-web/tree/main/packages/libredwg-converter) 相同：实现 **`AcDbDatabaseConverter`** 接口，并通过 **`AcDbDatabaseConverterManager`** 注册。解析完成后，您通过 MIT 授权的 **`@mlightcad/data-model`**（`AcDbDatabase`、各类实体、符号表等）访问 DWG 内容——与上文 [与现有数据模型的集成](#与现有数据模型的集成) 描述的路径一致。
+专有解析器**不提供独立的“直接解析 DWG”API**。其接入方式与开源的 [`libredwg-converter`](https://github.com/mlightcad/realdwg-web/tree/main/packages/libredwg-converter) 相同：实现 **`AcDbDatabaseConverter`** 接口，并通过 **`AcDbDatabaseConverterManager`** 注册。解析完成后，您通过 MIT 授权的 **`@hy/data-model`**（`AcDbDatabase`、各类实体、符号表等）访问 DWG 内容——与上文 [与现有数据模型的集成](#与现有数据模型的集成) 描述的路径一致。
 
 ---
 
 ## 相关文档
 
 - [cad-viewer README](./README.zh-CN.md) — 项目概览、开源技术栈及默认解析器的已知限制
-- [API 文档](https://mlightcad.github.io/cad-viewer/docs/) — `@mlightcad/data-model` 与查看器 API
+- [API 文档](https://mlightcad.github.io/cad-viewer/docs/) — `@hy/data-model` 与查看器 API

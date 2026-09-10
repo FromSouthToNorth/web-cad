@@ -1,7 +1,7 @@
 /**
  * In-place contenteditable text editing for markup capsules in the offline HTML viewer.
  *
- * Mirrors `@mlightcad/cad-simple-viewer` {@link editMarkupHtmlText} semantics:
+ * Mirrors `@hy/cad-simple-viewer` {@link editMarkupHtmlText} semantics:
  * Enter / blur commits; Escape cancels; Shift+Enter inserts a newline when multiline.
  *
  * @module AcExMarkupTextEdit

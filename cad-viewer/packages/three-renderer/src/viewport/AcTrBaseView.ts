@@ -4,7 +4,7 @@ import {
   AcGePoint2d,
   AcGePoint2dLike,
   AcGeVector2d
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 

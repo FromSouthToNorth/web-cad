@@ -1,8 +1,8 @@
 import type {
   AcDbDatabase,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
-import { AcTrHtmlGroup } from '@mlightcad/three-renderer'
+} from '@hy/data-model'
+import { AcTrHtmlGroup } from '@hy/three-renderer'
 
 import type { AcApMeasurementStyle } from '../../../util'
 import type { AcTrView2d } from '../../../view'

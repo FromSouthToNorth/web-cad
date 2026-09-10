@@ -2,7 +2,7 @@ import {
   AcDbEntity,
   AcDbObjectId,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { acapRunDatabaseEdit } from '../../util/AcApDatabaseEdit'
 import { AcEdOsnapResolver } from '../input/AcEdOsnapResolver'

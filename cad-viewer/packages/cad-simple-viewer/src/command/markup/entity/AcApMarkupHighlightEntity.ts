@@ -1,4 +1,4 @@
-import { AcTrHtmlCanvasOverlay, AcTrHtmlDot } from '@mlightcad/three-renderer'
+import { AcTrHtmlCanvasOverlay, AcTrHtmlDot } from '@hy/three-renderer'
 
 import type { AcTrView2d } from '../../../view'
 import {

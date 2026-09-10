@@ -1,4 +1,4 @@
-import { AcGeMathUtil } from '@mlightcad/geometry-engine'
+import { AcGeMathUtil } from '@hy/geometry-engine'
 
 import type { AcDbGradientName } from '../../entity/AcDbHatch'
 import { HATCH_PATTERN_SOLID } from '../AcDbConstants'

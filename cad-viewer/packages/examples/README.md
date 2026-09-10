@@ -4,7 +4,7 @@ This package serves as a central hub for CAD viewer examples, providing easy acc
 
 ## Overview
 
-This package consolidates the built `@mlightcad/cad-viewer-example` app and other demonstration assets into a single, easily accessible location. It's designed for showcasing the capabilities of the CAD viewer libraries and providing reference implementations.
+This package consolidates the built `@hy/cad-viewer-example` app and other demonstration assets into a single, easily accessible location. It's designed for showcasing the capabilities of the CAD viewer libraries and providing reference implementations.
 
 ## Available Examples
 
@@ -26,7 +26,7 @@ A full-featured CAD viewer application built with Vue.js and Element Plus.
 
 ### 2. Zero-build CDN Bootstrap (`/cdn-bootstrap/cad-viewer.html`)
 
-A single HTML file that loads `@mlightcad/cad-viewer` from jsDelivr — no Node, Vite, or local `node_modules`. The landing page is a plain file picker; Vue is only used to mount the viewer.
+A single HTML file that loads `@hy/cad-viewer` from jsDelivr — no Node, Vite, or local `node_modules`. The landing page is a plain file picker; Vue is only used to mount the viewer.
 
 **Features:**
 - Import map + in-browser rewrite of the published `cad-viewer.js` bundle
@@ -93,7 +93,7 @@ The examples will be available at:
 
 ### Self-Contained HTML Demo
 
-The offline HTML example is built from the sample [`canteen.dwg`](https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/data/canteen.dwg) using [`@mlightcad/cad-simple-viewer-cli`](../cad-simple-viewer-cli). GitHub Actions on the `main` branch runs this step automatically before deploying to GitHub Pages.
+The offline HTML example is built from the sample [`canteen.dwg`](https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/data/canteen.dwg) using [`@hy/cad-simple-viewer-cli`](../cad-simple-viewer-cli). GitHub Actions on the `main` branch runs this step automatically before deploying to GitHub Pages.
 
 To generate the file locally (requires a built workspace and Playwright Chromium or system Chrome via `PLAYWRIGHT_BROWSER_CHANNEL=chrome`):
 

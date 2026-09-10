@@ -94,11 +94,11 @@ import {
   FullscreenExitOutlined,
   FullscreenOutlined
 } from '@ant-design/icons-vue'
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 import {
   acdbHostApplicationServices,
   AcDbSysVarManager
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   DYNAMIC_MODE_SYSVAR_NAME,
   LINEWIDTH_DISPLAY_SYSVAR_NAME,
@@ -107,7 +107,7 @@ import {
   useCurrentPos,
   useLayouts,
   useSystemVars
-} from '@mlightcad/cad-viewer'
+} from '@hy/cad-viewer'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

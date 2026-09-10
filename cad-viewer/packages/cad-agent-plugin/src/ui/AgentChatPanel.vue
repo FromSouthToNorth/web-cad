@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import '../ui/agent-panel.css'
 
-import { AcApI18n } from '@mlightcad/cad-simple-viewer'
+import { AcApI18n } from '@hy/cad-simple-viewer'
 import type { UIMessage } from 'ai'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 

@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-simple-ui-plugin",
+  "name": "@hy/cad-simple-ui-plugin",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/cad-simple-ui-plugin/src",
   "projectType": "library",

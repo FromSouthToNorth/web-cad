@@ -3,7 +3,7 @@
  * Domain entities expose grip semantics; this module only wires pointer events.
  */
 
-import type { AcTrHtmlElement, AcTrHtmlGroup } from '@mlightcad/three-renderer'
+import type { AcTrHtmlElement, AcTrHtmlGroup } from '@hy/three-renderer'
 
 import type { AcTrView2d } from '../../view'
 

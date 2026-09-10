@@ -4,7 +4,7 @@ import {
   type AcDbMemoryEstimate,
   type AcDbMemoryEstimateBucket,
   type AcDbObjectId
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   FontManager,
   type FontMemoryStats,
@@ -13,7 +13,7 @@ import {
 import {
   AcTrMTextRenderer,
   type AcTrStyleManagerStats
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 
 import type { AcTrSpatialIndexStats } from '../spatialIndex'
 import type { AcTrSceneStats } from '../view/AcTrScene'

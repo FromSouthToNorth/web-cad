@@ -13,16 +13,16 @@ cad-viewer 侧按依赖自底向上分三层：
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ UI 层：@mlightcad/cad-viewer                                  │
+│ UI 层：@hy/cad-viewer                                  │
 │ Vue 3 组件 / 对话框 / composable / i18n / 样式 / 命令与对话框注册 │
 ├─────────────────────────────────────────────────────────────┤
-│ 引擎层：@mlightcad/cad-simple-viewer                           │
+│ 引擎层：@hy/cad-simple-viewer                           │
 │ 文档管理 / 命令栈 / 编辑器输入 / 图层与实体服务 / 场景组织 / 空间索引 │
 ├─────────────────────────────────────────────────────────────┤
-│ 渲染层：@mlightcad/three-renderer                              │
+│ 渲染层：@hy/three-renderer                              │
 │ 实体对象包装 / 合批 / 高亮与可见性 / 材质与样式 / 相机 / HTML overlay │
 ├─────────────────────────────────────────────────────────────┤
-│ 数据层：@mlightcad/data-model（AcDbDatabase 等，见姊妹文档）     │
+│ 数据层：@hy/data-model（AcDbDatabase 等，见姊妹文档）     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -30,7 +30,7 @@ cad-viewer 侧按依赖自底向上分三层：
 - `AcAp*`：应用/文档层（Application）
 - `AcEd*`：编辑器层（Editor，输入、命令、视图基类）
 - `AcTr*`：渲染层（Three Renderer）
-- `AcGi*`：图形接口抽象（来自 `@mlightcad/graphic-interface`）
+- `AcGi*`：图形接口抽象（来自 `@hy/graphic-interface`）
 
 ---
 

@@ -1,5 +1,5 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { AcEdOpenMode } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
+import { AcEdOpenMode } from '@hy/cad-simple-viewer'
 import { reactive } from 'vue'
 
 export interface CommandInfo {

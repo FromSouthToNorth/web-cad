@@ -1,4 +1,4 @@
-import type { AcApPluginManager } from '@mlightcad/cad-simple-viewer'
+import type { AcApPluginManager } from '@hy/cad-simple-viewer'
 
 /** Plugin name used by {@link AcApLayerCtxPlugin}. */
 export const LAYERCTX_PLUGIN_NAME = 'LayerCtxPlugin'
@@ -6,7 +6,7 @@ export const LAYERCTX_PLUGIN_NAME = 'LayerCtxPlugin'
 /**
  * Loads the object context-menu plugin on the given plugin manager.
  *
- * Import from `@mlightcad/cad-layerctx-plugin/register` so the main plugin
+ * Import from `@hy/cad-layerctx-plugin/register` so the main plugin
  * bundle is not pulled into the application entry chunk.
  *
  * Unlike the export plugins (pdf/html/svg) this plugin loads eagerly rather
@@ -24,6 +24,6 @@ export async function registerLayerCtxPlugin(
     return
   }
   const { createLayerCtxPlugin } =
-    await import('@mlightcad/cad-layerctx-plugin')
+    await import('@hy/cad-layerctx-plugin')
   await pluginManager.loadPlugin(await createLayerCtxPlugin())
 }

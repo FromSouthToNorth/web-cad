@@ -4,14 +4,14 @@ import {
   AcEdCommand,
   AcEdOpenMode,
   AcEdPromptStatus,
-  AcEdPromptStringOptions} from '@mlightcad/cad-simple-viewer'
+  AcEdPromptStringOptions} from '@hy/cad-simple-viewer'
 import {
   AcCmColor,
   AcCmColorMethod,
   AcDbDatabase,
   AcDbLayerTableRecord,
   log
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { getTunnelPluginOptions,TunnelDrawOptions } from '../config'
 import { geojsonToEntities } from '../geojson/geojsonToEntities'

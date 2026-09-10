@@ -2,7 +2,7 @@ import {
   AcGeMatrix3d,
   AcGePoint3d,
   AcGePoint3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 
 import { AcDbDxfFiler } from '../../base'
 import { AcDbEntityProperties } from '../AcDbEntityProperties'

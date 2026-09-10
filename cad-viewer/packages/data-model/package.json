@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/data-model",
+  "name": "@hy/data-model",
   "version": "1.13.0",
   "license": "MIT",
   "type": "module",
@@ -46,9 +46,9 @@
     "build:worker": "vite build --config vite.config.worker.ts"
   },
   "dependencies": {
-    "@mlightcad/common": "workspace:*",
-    "@mlightcad/geometry-engine": "workspace:*",
-    "@mlightcad/graphic-interface": "workspace:*",
+    "@hy/common": "workspace:*",
+    "@hy/geometry-engine": "workspace:*",
+    "@hy/graphic-interface": "workspace:*",
     "uid": "^2.0.2"
   }
 }

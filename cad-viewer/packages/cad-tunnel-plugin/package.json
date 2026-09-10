@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-tunnel-plugin",
+  "name": "@hy/cad-tunnel-plugin",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
@@ -44,15 +44,15 @@
     "lint:fix": "eslint --fix --quiet src/"
   },
   "devDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
-    "@mlightcad/geometry-engine": "workspace:*",
-    "@mlightcad/graphic-interface": "workspace:*"
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*",
+    "@hy/geometry-engine": "workspace:*",
+    "@hy/graphic-interface": "workspace:*"
   },
   "peerDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
-    "@mlightcad/geometry-engine": "workspace:*",
-    "@mlightcad/graphic-interface": "workspace:*"
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*",
+    "@hy/geometry-engine": "workspace:*",
+    "@hy/graphic-interface": "workspace:*"
   }
 }

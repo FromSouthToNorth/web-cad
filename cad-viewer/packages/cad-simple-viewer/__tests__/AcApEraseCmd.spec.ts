@@ -1,4 +1,4 @@
-import { AcDbDatabase, AcDbLine } from '@mlightcad/data-model'
+import { AcDbDatabase, AcDbLine } from '@hy/data-model'
 
 // The erase command pulls the app / editor / service barrels, which
 // transitively load DOM-heavy input UI that cannot run in the Node Jest

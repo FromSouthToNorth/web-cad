@@ -1,5 +1,5 @@
-import { AcCmColor } from '@mlightcad/common'
-import { DEFAULT_ACGI_CONTEXT, AcGiContext } from '@mlightcad/graphic-interface'
+import { AcCmColor } from '@hy/common'
+import { DEFAULT_ACGI_CONTEXT, AcGiContext } from '@hy/graphic-interface'
 import {
   AcGeBox3d,
   AcGeMatrix3d,
@@ -7,7 +7,7 @@ import {
   AcGePoint3d,
   AcGePolyline2d,
   AcGeVector3d
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 
 import { acdbHostApplicationServices } from '../src/base/AcDbHostApplicationServices'
 import { AcDbDatabase } from '../src/database/AcDbDatabase'

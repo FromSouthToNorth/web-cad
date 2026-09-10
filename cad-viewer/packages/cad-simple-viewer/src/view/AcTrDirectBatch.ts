@@ -1,4 +1,4 @@
-import { AcDbEntity, AcDbRay, AcDbXline } from '@mlightcad/data-model'
+import { AcDbEntity, AcDbRay, AcDbXline } from '@hy/data-model'
 import {
   type AcTrDirectEntityMeta,
   type AcTrEntity,
@@ -8,7 +8,7 @@ import {
   buildLineSegmentsGeometryMulti,
   buildPointGeometry,
   isDirectBatchRejectedMaterial,
-  resolveAnchorFromBox} from '@mlightcad/three-renderer'
+  resolveAnchorFromBox} from '@hy/three-renderer'
 
 /**
  * Whether the entity advertises a single batchable draw primitive.

@@ -1,4 +1,4 @@
-import { AcGeBox2d } from '@mlightcad/data-model'
+import { AcGeBox2d } from '@hy/data-model'
 
 import { getMarkupStore } from '../src/command/markup/AcApMarkupStore'
 import type { AcApMarkupRecord } from '../src/command/markup/AcApMarkupTypes'

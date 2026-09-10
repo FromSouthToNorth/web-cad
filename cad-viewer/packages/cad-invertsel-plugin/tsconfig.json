@@ -6,7 +6,7 @@
     "outDir": "./lib",
     "baseUrl": "./src",
     "paths": {
-      "@mlightcad/cad-invertsel-plugin": [
+      "@hy/cad-invertsel-plugin": [
         "./index.ts"
       ]
     }

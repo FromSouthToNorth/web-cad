@@ -6,7 +6,7 @@ import {
   AcDbObjectId,
   AcGePoint3d,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import type { AcTrLayout } from '../view/AcTrLayout'
 import { AcApDocManager } from './AcApDocManager'

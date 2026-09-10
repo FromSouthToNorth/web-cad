@@ -1,4 +1,4 @@
-import { AcGePoint3dLike } from '@mlightcad/data-model'
+import { AcGePoint3dLike } from '@hy/data-model'
 
 import { AcEdPromptPointOptions } from '../prompt/AcEdPromptPointOptions'
 import { AcEdInputHandler, AcEdPointInputContext } from './AcEdInputHandler'

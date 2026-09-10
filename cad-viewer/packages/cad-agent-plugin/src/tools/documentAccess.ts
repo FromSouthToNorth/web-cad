@@ -1,4 +1,4 @@
-import { AcApDocManager, AcEdOpenMode } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager, AcEdOpenMode } from '@hy/cad-simple-viewer'
 
 import type { ToolResult } from './CadActionExecutor'
 

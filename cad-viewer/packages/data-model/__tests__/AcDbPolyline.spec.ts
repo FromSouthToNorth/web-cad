@@ -3,7 +3,7 @@ import {
   AcGePoint2d,
   AcGePoint3d,
   AcGeVector3d
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 
 import { AcDbDxfFiler, acdbHostApplicationServices } from '../src/base'
 import { TEMP_OBJECT_ID_PREFIX } from '../src/base/AcDbObject'

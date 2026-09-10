@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-search-plugin",
+  "name": "@hy/cad-search-plugin",
   "version": "1.6.1",
   "license": "MIT",
   "type": "module",
@@ -48,15 +48,15 @@
     "lint:fix": "eslint --fix --quiet src/"
   },
   "devDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*",
     "@vitejs/plugin-vue": "^6.0.8",
     "vue": "^3.4.21",
     "vue-tsc": "^2.1.6"
   },
   "peerDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*",
     "vue": "^3.4.21"
   }
 }

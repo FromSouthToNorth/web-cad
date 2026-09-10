@@ -120,14 +120,14 @@ For commercial production use after the trial, please refer to the [Licensing Te
 
 The proprietary parser is delivered as a **registerable converter** that plugs into the same pipeline as the open-source stack.
 
-- Output conforms to the MIT-licensed **`@mlightcad/data-model`**: `AcDbDatabase`, `AcDb*` entities, layer tables, blocks, and related structures.
+- Output conforms to the MIT-licensed **`@hy/data-model`**: `AcDbDatabase`, `AcDb*` entities, layer tables, blocks, and related structures.
 - You register it via **`AcDbDatabaseConverterManager`**, the same mechanism used by `AcDbLibreDwgConverter` today.
 - After parsing, your existing **MIT rendering, layer, selection, and interaction pipeline** (`cad-simple-viewer`, `cad-viewer`, plugins, etc.) works unchanged.
 
 Typical integration (conceptual):
 
 ```typescript
-import { AcDbDatabaseConverterManager, AcDbFileType } from '@mlightcad/data-model'
+import { AcDbDatabaseConverterManager, AcDbFileType } from '@hy/data-model'
 import { AcDbDwgConverter } from '@mlight-cad/dwg-converter'
 
 const converter = new AcDbDwgConverter({ /* options */ })
@@ -148,7 +148,7 @@ The default cad-viewer DWG loading path uses GPL-3.0 packages:
 |---------|---------|------|
 | `libredwg-web` / `@mlightcad/libredwg-converter` | GPL-3.0 | DWG parsing |
 
-DXF loading uses the built-in MIT parser in `@mlightcad/data-model` and does not require the proprietary parser.
+DXF loading uses the built-in MIT parser in `@hy/data-model` and does not require the proprietary parser.
 
 If you **replace the LibreDWG converter** with the proprietary parser and **remove those GPL dependencies** from your build, your application can rely on the **MIT-licensed** cad-viewer stack only (`data-model`, `cad-simple-viewer`, renderers, plugins, etc.).
 
@@ -215,11 +215,11 @@ For longer evaluation or production pilots, apply for a formal [trial license](#
 
 ### How do we use the proprietary DWG parser?
 
-The proprietary parser does **not** expose a standalone “parse DWG” API. Like the open-source [`libredwg-converter`](https://github.com/mlightcad/realdwg-web/tree/main/packages/libredwg-converter), it implements the **`AcDbDatabaseConverter`** interface and registers with **`AcDbDatabaseConverterManager`**. After conversion, you work with the resulting drawing through the MIT-licensed **`@mlightcad/data-model`** (`AcDbDatabase`, entities, symbol tables, and so on)—the same integration path described in [Integration with the Existing Data Model](#integration-with-the-existing-data-model).
+The proprietary parser does **not** expose a standalone “parse DWG” API. Like the open-source [`libredwg-converter`](https://github.com/mlightcad/realdwg-web/tree/main/packages/libredwg-converter), it implements the **`AcDbDatabaseConverter`** interface and registers with **`AcDbDatabaseConverterManager`**. After conversion, you work with the resulting drawing through the MIT-licensed **`@hy/data-model`** (`AcDbDatabase`, entities, symbol tables, and so on)—the same integration path described in [Integration with the Existing Data Model](#integration-with-the-existing-data-model).
 
 ---
 
 ## Related Documentation
 
 - [cad-viewer README](./README.md) — project overview, open-source stack, and known limitations of the default parsers
-- [API Docs](https://mlightcad.github.io/cad-viewer/docs/) — `@mlightcad/data-model` and viewer APIs
+- [API Docs](https://mlightcad.github.io/cad-viewer/docs/) — `@hy/data-model` and viewer APIs

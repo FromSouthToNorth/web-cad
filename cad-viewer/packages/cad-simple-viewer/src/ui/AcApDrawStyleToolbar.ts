@@ -2,7 +2,7 @@ import {
   AcCmColor,
   acdbHostApplicationServices,
   AcGiLineWeight
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import {
   AcApSettingManager,

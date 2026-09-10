@@ -1,4 +1,4 @@
-# @mlightcad/three-renderer
+# @hy/three-renderer
 
 ## 1.6.1
 

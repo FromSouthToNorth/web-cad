@@ -1,5 +1,5 @@
 /**
- * Hand-maintained public API types for `@mlightcad/cad-agent-plugin`.
+ * Hand-maintained public API types for `@hy/cad-agent-plugin`.
  *
  * Emitted to `lib/` by `pnpm build:types` (see `scripts/copy-typings.mjs`).
  * Keep in sync with `src/index.ts` exports.

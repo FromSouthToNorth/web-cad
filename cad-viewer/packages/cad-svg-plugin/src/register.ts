@@ -1,4 +1,4 @@
-import type { AcApPluginManager } from '@mlightcad/cad-simple-viewer'
+import type { AcApPluginManager } from '@hy/cad-simple-viewer'
 
 /** Lazy plugin name for SVG export. */
 export const SVG_PLUGIN_NAME = 'SvgPlugin'
@@ -13,7 +13,7 @@ export const SVG_PLUGIN_TRIGGERS = ['csvg'] as const
 /**
  * Registers the SVG export plugin for lazy loading.
  *
- * Import from `@mlightcad/cad-svg-plugin/register` so the main plugin bundle
+ * Import from `@hy/cad-svg-plugin/register` so the main plugin bundle
  * is not pulled into the application entry chunk.
  *
  * @param pluginManager - Plugin manager that receives the lazy registration
@@ -23,7 +23,7 @@ export function registerLazySvgPlugin(pluginManager: AcApPluginManager): void {
     name: SVG_PLUGIN_NAME,
     triggers: [...SVG_PLUGIN_TRIGGERS],
     loader: async () => {
-      const { createSvgPlugin } = await import('@mlightcad/cad-svg-plugin')
+      const { createSvgPlugin } = await import('@hy/cad-svg-plugin')
       return createSvgPlugin()
     }
   })

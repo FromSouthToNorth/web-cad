@@ -1,4 +1,4 @@
-import { AcCmEventManager, AcGePoint2d } from '@mlightcad/data-model'
+import { AcCmEventManager, AcGePoint2d } from '@hy/data-model'
 
 import type { AcEdViewHoverEventArgs } from '../src/editor/view/AcEdBaseView'
 import {

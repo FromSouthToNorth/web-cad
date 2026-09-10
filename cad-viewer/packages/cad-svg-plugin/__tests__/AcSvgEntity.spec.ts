@@ -1,4 +1,4 @@
-import { AcGeMatrix3d } from '@mlightcad/data-model'
+import { AcGeMatrix3d } from '@hy/data-model'
 
 import { AcSvgGroup } from '../src/AcSvgGroup'
 import { AcSvgLine } from '../src/AcSvgLine'

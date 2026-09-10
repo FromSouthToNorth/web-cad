@@ -7,8 +7,8 @@
 </template>
 
 <script lang="ts" setup>
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { AcDbSysVarManager } from '@mlightcad/data-model'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
+import { AcDbSysVarManager } from '@hy/data-model'
 import { computed, ref, watch } from 'vue'
 
 import { markComponentConfigRaw } from '../../composable/markComponentConfigRaw'

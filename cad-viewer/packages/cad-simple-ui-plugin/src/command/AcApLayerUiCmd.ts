@@ -2,7 +2,7 @@ import {
   AcApContext,
   AcEdCommand,
   eventBus
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 import type { AcExDockPanel } from '../ui/AcExDockPanel'
 

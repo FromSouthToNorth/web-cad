@@ -1,4 +1,4 @@
-import { AcGePoint2d, AcGePoint2dLike } from '@mlightcad/data-model'
+import { AcGePoint2d, AcGePoint2dLike } from '@hy/data-model'
 import * as THREE from 'three'
 
 export class AcTrCamera {

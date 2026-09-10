@@ -1,5 +1,5 @@
-import { defaults } from '@mlightcad/common'
-import { AcGePoint3d } from '@mlightcad/geometry-engine'
+import { defaults } from '@hy/common'
+import { AcGePoint3d } from '@hy/geometry-engine'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import {

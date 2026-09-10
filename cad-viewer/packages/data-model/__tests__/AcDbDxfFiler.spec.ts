@@ -1,4 +1,4 @@
-import { AcCmColor, AcCmTransparency } from '@mlightcad/common'
+import { AcCmColor, AcCmTransparency } from '@hy/common'
 
 import { AcDbDwgVersion } from '../src/database/AcDbDwgVersion'
 import {

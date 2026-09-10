@@ -1,4 +1,4 @@
-import { AcGeMatrix3d, AcGePoint3dLike } from '@mlightcad/data-model'
+import { AcGeMatrix3d, AcGePoint3dLike } from '@hy/data-model'
 
 /**
  * Builds a world-space rotation matrix around a given base point.

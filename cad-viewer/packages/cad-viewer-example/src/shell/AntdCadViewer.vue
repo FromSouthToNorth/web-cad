@@ -138,13 +138,13 @@
 import './shell.css'
 
 import { CloseOutlined } from '@ant-design/icons-vue'
-import { AcApOpenViewMode, AcEdOpenMode } from '@mlightcad/cad-simple-viewer'
+import { AcApOpenViewMode, AcEdOpenMode } from '@hy/cad-simple-viewer'
 import {
   MlDialogManager,
   MlFontFileReader,
   store,
   useDocument
-} from '@mlightcad/cad-viewer'
+} from '@hy/cad-viewer'
 import {
   computed,
   defineAsyncComponent,
@@ -164,13 +164,13 @@ import AntdStatusBar from './status/AntdStatusBar.vue'
 import { useAntdCadShell } from './useAntdCadShell'
 
 const AgentChatPanel = defineAsyncComponent(() =>
-  import('@mlightcad/cad-agent-plugin').then(module => module.AgentChatPanel)
+  import('@hy/cad-agent-plugin').then(module => module.AgentChatPanel)
 )
 
 const SearchPanel = defineAsyncComponent(() =>
   Promise.all([
-    import('@mlightcad/cad-search-plugin/style.css'),
-    import('@mlightcad/cad-search-plugin')
+    import('@hy/cad-search-plugin/style.css'),
+    import('@hy/cad-search-plugin')
   ]).then(([, module]) => module.SearchPanel)
 )
 

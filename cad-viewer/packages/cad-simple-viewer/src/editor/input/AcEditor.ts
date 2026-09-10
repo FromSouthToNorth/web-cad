@@ -1,4 +1,4 @@
-import { AcCmEventManager, AcDbObjectId } from '@mlightcad/data-model'
+import { AcCmEventManager, AcDbObjectId } from '@hy/data-model'
 
 import { AcApDocManager } from '../../app'
 import { AcEdCommand } from '../command'

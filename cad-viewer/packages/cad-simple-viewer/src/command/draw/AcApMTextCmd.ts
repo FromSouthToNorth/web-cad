@@ -1,4 +1,4 @@
-import { AcDbMText } from '@mlightcad/data-model'
+import { AcDbMText } from '@hy/data-model'
 
 import { AcApContext, AcApDocManager } from '../../app'
 import {

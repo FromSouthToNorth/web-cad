@@ -1,4 +1,4 @@
-import { AcGeArea2d, AcGiSubEntityTraits } from '@mlightcad/data-model'
+import { AcGeArea2d, AcGiSubEntityTraits } from '@hy/data-model'
 
 import { AcSvgEntity } from './AcSvgEntity'
 import { AcSvgStyleContext, AcSvgStyleUtil } from './AcSvgStyleUtil'

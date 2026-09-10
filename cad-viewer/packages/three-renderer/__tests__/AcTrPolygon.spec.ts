@@ -1,4 +1,4 @@
-import { AcGeArea2d, AcGePoint2d } from '@mlightcad/data-model'
+import { AcGeArea2d, AcGePoint2d } from '@hy/data-model'
 
 import { expectWcsBboxCloseTo } from './helpers/expectWcsBbox'
 import { AcTrPolygon } from '../src/object/AcTrPolygon'

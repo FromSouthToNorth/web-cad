@@ -100,17 +100,17 @@ Prefer writing the changeset file directly (agents often lack an interactive TTY
 
 ```md
 ---
-"@mlightcad/cad-agent-plugin": patch
-"@mlightcad/cad-html-plugin": patch
-"@mlightcad/cad-pdf-plugin": patch
-"@mlightcad/cad-simple-ui-plugin": patch
-"@mlightcad/cad-simple-viewer": patch
-"@mlightcad/cad-simple-viewer-cli": patch
-"@mlightcad/cad-svg-plugin": patch
-"@mlightcad/cad-viewer": patch
-"@mlightcad/cad-viewer-example": patch
-"@mlightcad/cad-viewer-examples": patch
-"@mlightcad/three-renderer": patch
+"@hy/cad-agent-plugin": patch
+"@hy/cad-html-plugin": patch
+"@hy/cad-pdf-plugin": patch
+"@hy/cad-simple-ui-plugin": patch
+"@hy/cad-simple-viewer": patch
+"@hy/cad-simple-viewer-cli": patch
+"@hy/cad-svg-plugin": patch
+"@hy/cad-viewer": patch
+"@hy/cad-viewer-example": patch
+"@hy/cad-viewer-examples": patch
+"@hy/three-renderer": patch
 ---
 
 feat: your 30–100 word release summary here

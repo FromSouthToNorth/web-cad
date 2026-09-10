@@ -1,4 +1,4 @@
-import { AcDbPoint, AcGePoint3d } from '@mlightcad/data-model'
+import { AcDbPoint, AcGePoint3d } from '@hy/data-model'
 
 import { AcApContext, AcApDocManager } from '../../app'
 import {

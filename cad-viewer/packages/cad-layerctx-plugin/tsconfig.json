@@ -6,7 +6,7 @@
     "outDir": "./lib",
     "baseUrl": "./src",
     "paths": {
-      "@mlightcad/cad-layerctx-plugin": [
+      "@hy/cad-layerctx-plugin": [
         "./index.ts"
       ]
     }

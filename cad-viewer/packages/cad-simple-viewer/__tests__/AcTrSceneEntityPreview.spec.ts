@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 
-jest.mock('@mlightcad/three-renderer', () => ({
+jest.mock('@hy/three-renderer', () => ({
   AcTrEntityPreview: {
     box3ToBounds2d: jest.fn()
   },

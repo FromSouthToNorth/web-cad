@@ -1,4 +1,4 @@
-import { AcGePoint2dLike } from '@mlightcad/data-model'
+import { AcGePoint2dLike } from '@hy/data-model'
 
 /**
  * Describes the raw text values from the X and Y fields in {@link AcEdFloatingInput}.

@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-simple-viewer-cli",
+  "name": "@hy/cad-simple-viewer-cli",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/cad-simple-viewer-cli/src",
   "projectType": "application",
@@ -17,9 +17,9 @@
         "^build",
         {
           "projects": [
-            "@mlightcad/cad-html-plugin",
-            "@mlightcad/cad-pdf-plugin",
-            "@mlightcad/cad-svg-plugin"
+            "@hy/cad-html-plugin",
+            "@hy/cad-pdf-plugin",
+            "@hy/cad-svg-plugin"
           ],
           "target": "build"
         }

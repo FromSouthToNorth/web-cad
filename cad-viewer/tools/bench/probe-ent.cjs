@@ -1,6 +1,6 @@
 'use strict'
 const { readFile } = require('node:fs/promises')
-const { AcDbDatabase, AcDbDatabaseConverterManager, AcDbFileType, acdbHostApplicationServices, AcDbNativeDxfConverter } = require('@mlightcad/data-model')
+const { AcDbDatabase, AcDbDatabaseConverterManager, AcDbFileType, acdbHostApplicationServices, AcDbNativeDxfConverter } = require('@hy/data-model')
 async function main() {
   const database = new AcDbDatabase()
   acdbHostApplicationServices().workingDatabase = database

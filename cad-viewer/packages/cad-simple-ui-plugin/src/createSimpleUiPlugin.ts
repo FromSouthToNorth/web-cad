@@ -7,7 +7,7 @@ import {
   acapSetDrawStyleHostHasRibbon,
   AcEdCommandStack,
   type AcEdUiTheme
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 import packageJson from '../package.json'
 import {

@@ -1,4 +1,4 @@
-import { log } from '@mlightcad/data-model'
+import { log } from '@hy/data-model'
 
 import { AcApContext } from '../app/AcApContext'
 import { AcEdCommandStack } from '../editor/command/AcEdCommandStack'

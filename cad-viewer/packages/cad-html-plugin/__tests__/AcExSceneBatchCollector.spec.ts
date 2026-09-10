@@ -1,4 +1,4 @@
-jest.mock('@mlightcad/three-renderer', () => {
+jest.mock('@hy/three-renderer', () => {
   const { AcTrBatchedLine } = jest.requireActual(
     '../../three-renderer/src/batch/AcTrBatchedLine'
   )

@@ -3,7 +3,7 @@ import {
   type AcTrPatternLine,
   createGradientHatchShaderMaterialFromUniforms,
   createHatchPatternShaderMaterial
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 import * as THREE from 'three'
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 

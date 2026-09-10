@@ -2,7 +2,7 @@ import type {
   AcApLocale,
   AcEdOpenMode,
   AcEdUiTheme
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 /** Toolbar edge placement relative to the viewer host element. */
 export type AcExToolbarPlacement = 'top' | 'bottom' | 'left' | 'right'

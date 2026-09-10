@@ -1,4 +1,4 @@
-import type { AcGePoint3dLike } from '@mlightcad/geometry-engine'
+import type { AcGePoint3dLike } from '@hy/geometry-engine'
 
 import type { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { acdbDxfKeywordUpper } from '../base/AcDbDxfKeyword'

@@ -1,4 +1,4 @@
-import { AcCmColor } from '@mlightcad/data-model'
+import { AcCmColor } from '@hy/data-model'
 import * as THREE from 'three'
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js'
 

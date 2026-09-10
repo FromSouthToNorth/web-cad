@@ -1,5 +1,5 @@
-import type { AcCmColor, AcDbDatabase, AcDbEntity, AcDbObjectId } from '@mlightcad/data-model'
-import type { AcTrHtmlGroup } from '@mlightcad/three-renderer'
+import type { AcCmColor, AcDbDatabase, AcDbEntity, AcDbObjectId } from '@hy/data-model'
+import type { AcTrHtmlGroup } from '@hy/three-renderer'
 
 import {
   type AcApMeasurementValue,

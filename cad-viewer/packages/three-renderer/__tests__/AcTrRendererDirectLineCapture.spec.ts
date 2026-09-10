@@ -3,7 +3,7 @@ import {
   AcGeEllipseArc3d,
   AcGePoint3d,
   AcGeVector3d
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 
 import { AcTrRenderer } from '../src/renderer/AcTrRenderer'

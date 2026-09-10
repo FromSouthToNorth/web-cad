@@ -53,8 +53,8 @@ jest.mock('rbush', () => {
   }
 })
 
-import { AcCmColor, AcGeBox2d } from '@mlightcad/data-model'
-import type { AcTrEntity } from '@mlightcad/three-renderer'
+import { AcCmColor, AcGeBox2d } from '@hy/data-model'
+import type { AcTrEntity } from '@hy/three-renderer'
 import * as THREE from 'three'
 
 const mockComputeBoundingBox = jest.fn(
@@ -77,7 +77,7 @@ const mockAppendLine2Geometry = jest.fn().mockReturnValue(true)
 const mockAppendPointGeometry = jest.fn().mockReturnValue(true)
 const mockAppendMeshGeometry = jest.fn().mockReturnValue(true)
 
-jest.mock('@mlightcad/three-renderer', () => {
+jest.mock('@hy/three-renderer', () => {
   const THREE = require('three')
   return {
     AcTrBatchedGroup: jest.fn().mockImplementation(() => {
@@ -301,7 +301,7 @@ describe('AcTrLayout bounding box', () => {
 describe('AcTrLayout spatial index', () => {
   function collectBoxSelectionIds(
     layout: AcTrLayout,
-    pickBox: import('@mlightcad/data-model').AcGeBox2d,
+    pickBox: import('@hy/data-model').AcGeBox2d,
     mode: 'window' | 'crossing'
   ) {
     const results = layout.search(pickBox, { selectionMode: mode })
@@ -343,7 +343,7 @@ describe('AcTrLayout spatial index', () => {
     const hits = layout.search({
       min: { x: -10, y: -72 },
       max: { x: 584, y: 410 }
-    } as unknown as import('@mlightcad/data-model').AcGeBox2d)
+    } as unknown as import('@hy/data-model').AcGeBox2d)
 
     expect(hits).toHaveLength(1)
     expect(hits[0].id).toBe('INSERT-1')
@@ -380,7 +380,7 @@ describe('AcTrLayout spatial index', () => {
     const pickBox = {
       min: { x: 0, y: 0 },
       max: { x: 100, y: 10 }
-    } as unknown as import('@mlightcad/data-model').AcGeBox2d
+    } as unknown as import('@hy/data-model').AcGeBox2d
 
     const hits = layout.search(pickBox)
     expect(hits).toHaveLength(1)
@@ -423,7 +423,7 @@ describe('AcTrLayout spatial index', () => {
     const pickBox = {
       min: { x: 400, y: 0 },
       max: { x: 500, y: 56 }
-    } as unknown as import('@mlightcad/data-model').AcGeBox2d
+    } as unknown as import('@hy/data-model').AcGeBox2d
 
     expect(collectBoxSelectionIds(layout, pickBox, 'crossing')).toEqual([
       'INSERT-cross'
@@ -458,7 +458,7 @@ describe('AcTrLayout spatial index', () => {
     const pickBox = {
       min: { x: 390, y: -5 },
       max: { x: 580, y: 60 }
-    } as unknown as import('@mlightcad/data-model').AcGeBox2d
+    } as unknown as import('@hy/data-model').AcGeBox2d
 
     expect(collectBoxSelectionIds(layout, pickBox, 'window')).toEqual([
       'INSERT-window'

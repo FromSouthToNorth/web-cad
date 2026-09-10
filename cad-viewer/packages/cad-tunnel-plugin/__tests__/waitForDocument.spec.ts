@@ -2,7 +2,7 @@ import { waitForCurrentDocument } from '../src/command/waitForDocument'
 
 const mockEventBusListeners = new Map<string, Set<(...args: unknown[]) => void>>()
 
-jest.mock('@mlightcad/cad-simple-viewer', () => ({
+jest.mock('@hy/cad-simple-viewer', () => ({
   AcApDocManager: {
     instance: {
       curDocument: null
@@ -21,7 +21,7 @@ jest.mock('@mlightcad/cad-simple-viewer', () => ({
   }
 }))
 
-const mocked = jest.requireMock('@mlightcad/cad-simple-viewer') as {
+const mocked = jest.requireMock('@hy/cad-simple-viewer') as {
   AcApDocManager: { instance: { curDocument: unknown } }
   eventBus: { on: jest.Mock; off: jest.Mock }
 }

@@ -10,8 +10,8 @@ jest.mock('../src/util/AcApDatabaseEdit', () => ({
   acapRunDatabaseEdit
 }))
 
-jest.mock('@mlightcad/data-model', () => {
-  const actual = jest.requireActual('@mlightcad/data-model')
+jest.mock('@hy/data-model', () => {
+  const actual = jest.requireActual('@hy/data-model')
   return {
     ...actual,
     AcDbSysVarManager: {

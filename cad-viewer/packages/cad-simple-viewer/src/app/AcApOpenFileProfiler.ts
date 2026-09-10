@@ -6,7 +6,7 @@ import {
   AcDbSystemVariables,
   AcDbSysVarManager,
   log
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import type { AcTrView2d } from '../view/AcTrView2d'
 import { getLastFontLoadStats } from './AcApFontLoader'

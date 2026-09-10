@@ -1,7 +1,7 @@
 /**
  * Pointer-drag grip host for offline HTML markup overlays.
  *
- * Mirrors `@mlightcad/cad-simple-viewer` {@link acapBindOverlayPointerDrag}:
+ * Mirrors `@hy/cad-simple-viewer` {@link acapBindOverlayPointerDrag}:
  * drag starts after a small move so double-click / contenteditable still work.
  *
  * @module AcExMarkupGripDrag

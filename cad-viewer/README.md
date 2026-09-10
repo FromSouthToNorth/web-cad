@@ -119,7 +119,7 @@ pnpm preview:simple
 
 ## Plugin System
 
-CAD-Viewer is built around a modular **plugin system** in [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer). Plugins implement the `AcApPlugin` interface and hook into viewer lifecycle via `onLoad` / `onUnload`—typically to register commands, add UI, or wire export/import pipelines.
+CAD-Viewer is built around a modular **plugin system** in [`@hy/cad-simple-viewer`](packages/cad-simple-viewer). Plugins implement the `AcApPlugin` interface and hook into viewer lifecycle via `onLoad` / `onUnload`—typically to register commands, add UI, or wire export/import pipelines.
 
 Load plugins through `AcApDocManager.instance.pluginManager` (`loadPlugin`, `registerLazyPlugin`, or `plugins.fromConfig` when creating the document manager). Export-oriented plugins support **lazy loading**: register a small stub up front and download the heavy bundle only when the user runs the related command (for example `-chtml`, or when confirming export from the `chtml` dialog in `cad-viewer`).
 
@@ -129,13 +129,13 @@ The monorepo ships several first-party plugins. Each focuses on one concern; com
 
 | Package | Role | Commands / capabilities |
 |---------|------|-------------------------|
-| [`@mlightcad/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | **Toolbar, layer manager & review palette UI** for `cad-simple-viewer` (plain DOM, no Vue/React) | `layer`, `markuppanel`, default toolbar (view, measure, export, review, theme, locale) |
-| [`@mlightcad/cad-agent-plugin`](packages/cad-agent-plugin) | **Natural-language CAD agent** (AI chat panel + drawing tool calls) | `agent` |
-| [`@mlightcad/cad-html-plugin`](packages/cad-html-plugin) | Export drawings to **self-contained offline HTML** | `chtml` (dialog in `cad-viewer`), `-chtml` (command-line) |
-| [`@mlightcad/cad-pdf-plugin`](packages/cad-pdf-plugin) | **PDF export and import** (vector pipeline) | `cpdf`, `ipdf` |
-| [`@mlightcad/cad-svg-plugin`](packages/cad-svg-plugin) | **SVG export** and shared vector renderer (also used by PDF export) | `csvg` |
+| [`@hy/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | **Toolbar, layer manager & review palette UI** for `cad-simple-viewer` (plain DOM, no Vue/React) | `layer`, `markuppanel`, default toolbar (view, measure, export, review, theme, locale) |
+| [`@hy/cad-agent-plugin`](packages/cad-agent-plugin) | **Natural-language CAD agent** (AI chat panel + drawing tool calls) | `agent` |
+| [`@hy/cad-html-plugin`](packages/cad-html-plugin) | Export drawings to **self-contained offline HTML** | `chtml` (dialog in `cad-viewer`), `-chtml` (command-line) |
+| [`@hy/cad-pdf-plugin`](packages/cad-pdf-plugin) | **PDF export and import** (vector pipeline) | `cpdf`, `ipdf` |
+| [`@hy/cad-svg-plugin`](packages/cad-svg-plugin) | **SVG export** and shared vector renderer (also used by PDF export) | `csvg` |
 
-### `@mlightcad/cad-simple-ui-plugin` — UI chrome for the simple viewer
+### `@hy/cad-simple-ui-plugin` — UI chrome for the simple viewer
 
 [`cad-simple-viewer`](packages/cad-simple-viewer) deliberately ships **no application UI**—only the canvas and CAD core. If you embed the simple viewer in your own web app and want ready-made chrome without adopting the full Vue-based [`cad-viewer`](packages/cad-viewer) shell, **`cad-simple-ui-plugin` is the intended UI layer**.
 
@@ -150,7 +150,7 @@ All widgets are framework-agnostic (plain DOM). The full Vue [`cad-viewer`](pack
 
 → **Quick start, toolbar customization, and options:** [packages/cad-simple-ui-plugin/README.md](packages/cad-simple-ui-plugin/README.md)
 
-### `@mlightcad/cad-agent-plugin` — AI drawing assistant
+### `@hy/cad-agent-plugin` — AI drawing assistant
 
 [`cad-agent-plugin`](packages/cad-agent-plugin) adds a **natural-language CAD agent** to `cad-simple-viewer`-based apps. Users describe what they want in plain language; the agent calls CAD tools to inspect the drawing and create or modify geometry.
 
@@ -203,7 +203,7 @@ These optimizations enable CAD-Viewer to smoothly render complex CAD drawings wi
 
 ## Known Issues
 
-The default open-source DWG path is based on [LibreDWG](https://github.com/LibreDWG/libredwg) via the optional `@mlightcad/libredwg-converter` package. It works well for many drawings, but its entity coverage is still limited, the WASM bundle is much larger, startup is slower, memory usage is high, and very large DWG files may hit out-of-memory errors. It also introduces GPL licensing considerations for commercial closed-source products. `@mlightcad/cad-simple-viewer` does **not** depend on or register that converter by default — host apps (see the example packages) opt in explicitly.
+The default open-source DWG path is based on [LibreDWG](https://github.com/LibreDWG/libredwg) via the optional `@mlightcad/libredwg-converter` package. It works well for many drawings, but its entity coverage is still limited, the WASM bundle is much larger, startup is slower, memory usage is high, and very large DWG files may hit out-of-memory errors. It also introduces GPL licensing considerations for commercial closed-source products. `@hy/cad-simple-viewer` does **not** depend on or register that converter by default — host apps (see the example packages) opt in explicitly.
 
 If you need better compatibility, lower memory usage, large-file support, or a cleaner commercial licensing story, see our [**proprietary DWG parser**](./PROPRIETARY-PARSER.md).
 
@@ -436,6 +436,6 @@ Contributions are welcome! Please open issues or pull requests for bug fixes, ne
 
 The cad-viewer monorepo is primarily [MIT](LICENSE) licensed.
 
-DXF loading uses the built-in MIT parser in `@mlightcad/data-model`. DWG loading is **opt-in**: `@mlightcad/cad-simple-viewer` does not depend on GPL LibreDWG packages. Hosts that want open-source DWG support add `@mlightcad/libredwg-converter` (GPL-3.0) themselves, deploy its worker + wasm, and register the converter. If you ship a closed-source product and cannot distribute GPL code to your customers, use the [**proprietary DWG parser**](./PROPRIETARY-PARSER.md) instead.
+DXF loading uses the built-in MIT parser in `@hy/data-model`. DWG loading is **opt-in**: `@hy/cad-simple-viewer` does not depend on GPL LibreDWG packages. Hosts that want open-source DWG support add `@mlightcad/libredwg-converter` (GPL-3.0) themselves, deploy its worker + wasm, and register the converter. If you ship a closed-source product and cannot distribute GPL code to your customers, use the [**proprietary DWG parser**](./PROPRIETARY-PARSER.md) instead.
 
 → **Commercial parser:** [PROPRIETARY-PARSER.md](./PROPRIETARY-PARSER.md) (scope, licensing, pricing, integration, GPL compliance, support)

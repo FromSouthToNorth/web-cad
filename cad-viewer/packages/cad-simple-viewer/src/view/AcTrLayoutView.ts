@@ -1,9 +1,9 @@
-import { AcGeBox2d } from '@mlightcad/data-model'
+import { AcGeBox2d } from '@hy/data-model'
 import {
   AcTrBaseView,
   AcTrRenderer,
   AcTrViewportView
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 import { AxesGizmo, ObjectPosition } from '@mlightcad/three-viewcube'
 import * as THREE from 'three'
 

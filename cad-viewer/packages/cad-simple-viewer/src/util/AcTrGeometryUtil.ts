@@ -1,4 +1,4 @@
-import { AcGeBox2d, AcGeBox3d, AcGePoint2dLike } from '@mlightcad/data-model'
+import { AcGeBox2d, AcGeBox3d, AcGePoint2dLike } from '@hy/data-model'
 import * as THREE from 'three'
 
 /**

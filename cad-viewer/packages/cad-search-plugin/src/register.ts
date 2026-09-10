@@ -1,4 +1,4 @@
-import type { AcApPluginManager } from '@mlightcad/cad-simple-viewer'
+import type { AcApPluginManager } from '@hy/cad-simple-viewer'
 
 import { SEARCH_PLUGIN_NAME } from './AcApSearchPlugin'
 import { registerSearchI18n } from './i18n'
@@ -9,7 +9,7 @@ export const SEARCH_PLUGIN_TRIGGERS = ['search', 'find'] as const
 /**
  * Registers the content search plugin for lazy loading.
  *
- * Import from `@mlightcad/cad-search-plugin/register` so the main bundle
+ * Import from `@hy/cad-search-plugin/register` so the main bundle
  * is not pulled into the application entry chunk.
  */
 export function registerLazySearchPlugin(
@@ -21,7 +21,7 @@ export function registerLazySearchPlugin(
     name: SEARCH_PLUGIN_NAME,
     triggers: [...SEARCH_PLUGIN_TRIGGERS],
     loader: async () => {
-      const { createSearchPlugin } = await import('@mlightcad/cad-search-plugin')
+      const { createSearchPlugin } = await import('@hy/cad-search-plugin')
       return createSearchPlugin()
     }
   })

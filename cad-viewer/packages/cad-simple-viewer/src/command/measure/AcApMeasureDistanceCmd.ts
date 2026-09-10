@@ -2,11 +2,11 @@ import {
   AcCmColor,
   AcDbDatabase,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   AcTrHtmlBadge,
   AcTrHtmlTransientManager
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 
 import { AcApContext } from '../../app'
 import {

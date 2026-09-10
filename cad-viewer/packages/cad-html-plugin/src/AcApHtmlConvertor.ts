@@ -4,8 +4,8 @@ import {
   AcTrView2d,
   getDrawingExportBaseName,
   resolveExportDownloadName
-} from '@mlightcad/cad-simple-viewer'
-import { accmYieldForPaint } from '@mlightcad/data-model'
+} from '@hy/cad-simple-viewer'
+import { accmYieldForPaint } from '@hy/data-model'
 
 import {
   type AcApHtmlExportOptions,
@@ -172,7 +172,7 @@ export class AcApHtmlConvertor {
     if (!response.ok) {
       throw new Error(
         `Failed to load HTML viewer runtime from "${runtimeUrl}" (${response.status}). ` +
-          'Install @mlightcad/cad-html-plugin, copy viewer-runtime.iife.js to your app assets, ' +
+          'Install @hy/cad-html-plugin, copy viewer-runtime.iife.js to your app assets, ' +
           'and set viewerRuntimeUrl on registerLazyHtmlPlugin / createHtmlPlugin / AcApHtmlConvertor.'
       )
     }

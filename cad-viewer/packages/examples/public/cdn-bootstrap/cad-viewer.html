@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="description" content="Minimal CDN bootstrap for @mlightcad/cad-viewer — no Node, no Vite.">
+<meta name="description" content="Minimal CDN bootstrap for @hy/cad-viewer — no Node, no Vite.">
 <title>CAD Viewer — CDN Bootstrap</title>
 
 <!--
-  Minimal zero-build host for @mlightcad/cad-viewer (jsDelivr only).
+  Minimal zero-build host for @hy/cad-viewer (jsDelivr only).
   Serve over HTTP(S). file:// cannot load CDN ES modules.
   Upload UI is plain HTML. Vue/Element Plus are peer deps of cad-viewer only.
 -->
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.12.0/dist/index.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mlightcad/cad-viewer@1.6.1/dist/cad-viewer.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mlightcad/cad-agent-plugin@1.6.1/dist/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@hy/cad-viewer@1.6.1/dist/cad-viewer.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@hy/cad-agent-plugin@1.6.1/dist/style.css">
 
 <style>
   * { box-sizing: border-box; }
@@ -92,19 +92,19 @@
     "@floating-ui/dom": "https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.6.13/+esm",
     "@popperjs/core": "https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/lib/index.js",
     "@types/lodash": "data:text/javascript,export%20default%20undefined;",
-    "@mlightcad/cad-simple-viewer": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-simple-viewer@1.6.1/+esm",
-    "@mlightcad/cad-viewer": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-viewer@1.6.1/dist/cad-viewer.js",
-    "@mlightcad/data-model": "https://cdn.jsdelivr.net/npm/@mlightcad/data-model@1.12.5/+esm",
-    "@mlightcad/three-renderer": "https://cdn.jsdelivr.net/npm/@mlightcad/three-renderer@1.6.1/+esm",
-    "@mlightcad/cad-agent-plugin": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-agent-plugin@1.6.1/+esm",
-    "@mlightcad/cad-agent-plugin/register": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-agent-plugin@1.6.1/register/+esm",
-    "@mlightcad/cad-agent-plugin/style.css": "data:text/javascript,export%20default%20undefined;",
-    "@mlightcad/cad-html-plugin": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-html-plugin@1.6.1/+esm",
-    "@mlightcad/cad-html-plugin/register": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-html-plugin@1.6.1/register/+esm",
-    "@mlightcad/cad-pdf-plugin": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-pdf-plugin@1.6.1/+esm",
-    "@mlightcad/cad-pdf-plugin/register": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-pdf-plugin@1.6.1/register/+esm",
-    "@mlightcad/cad-svg-plugin": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-svg-plugin@1.6.1/+esm",
-    "@mlightcad/cad-svg-plugin/register": "https://cdn.jsdelivr.net/npm/@mlightcad/cad-svg-plugin@1.6.1/register/+esm"
+    "@hy/cad-simple-viewer": "https://cdn.jsdelivr.net/npm/@hy/cad-simple-viewer@1.6.1/+esm",
+    "@hy/cad-viewer": "https://cdn.jsdelivr.net/npm/@hy/cad-viewer@1.6.1/dist/cad-viewer.js",
+    "@hy/data-model": "https://cdn.jsdelivr.net/npm/@hy/data-model@1.12.5/+esm",
+    "@hy/three-renderer": "https://cdn.jsdelivr.net/npm/@hy/three-renderer@1.6.1/+esm",
+    "@hy/cad-agent-plugin": "https://cdn.jsdelivr.net/npm/@hy/cad-agent-plugin@1.6.1/+esm",
+    "@hy/cad-agent-plugin/register": "https://cdn.jsdelivr.net/npm/@hy/cad-agent-plugin@1.6.1/register/+esm",
+    "@hy/cad-agent-plugin/style.css": "data:text/javascript,export%20default%20undefined;",
+    "@hy/cad-html-plugin": "https://cdn.jsdelivr.net/npm/@hy/cad-html-plugin@1.6.1/+esm",
+    "@hy/cad-html-plugin/register": "https://cdn.jsdelivr.net/npm/@hy/cad-html-plugin@1.6.1/register/+esm",
+    "@hy/cad-pdf-plugin": "https://cdn.jsdelivr.net/npm/@hy/cad-pdf-plugin@1.6.1/+esm",
+    "@hy/cad-pdf-plugin/register": "https://cdn.jsdelivr.net/npm/@hy/cad-pdf-plugin@1.6.1/register/+esm",
+    "@hy/cad-svg-plugin": "https://cdn.jsdelivr.net/npm/@hy/cad-svg-plugin@1.6.1/+esm",
+    "@hy/cad-svg-plugin/register": "https://cdn.jsdelivr.net/npm/@hy/cad-svg-plugin@1.6.1/register/+esm"
   }
 }
 </script>
@@ -129,7 +129,7 @@ const ML = '1.6.1'
 const LIBREDWG_PARSER_WORKER_FILE = 'libredwg-parser-worker.js'
 const npm = (pkg, path = '') => `https://cdn.jsdelivr.net/npm/${pkg}${path}`
 // 1.6.1 is the last release whose main entry bundles the Element Plus shell.
-const CAD_VIEWER_URL = npm(`@mlightcad/cad-viewer@${ML}`, '/dist/cad-viewer.js')
+const CAD_VIEWER_URL = npm(`@hy/cad-viewer@${ML}`, '/dist/cad-viewer.js')
 const BASE_URL = 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/'
 const DWG_WORKER = npm(
   '@mlightcad/libredwg-converter@3.13.0',
@@ -159,18 +159,18 @@ const EXACT = {
   '@ctrl/tinycolor': npm('@ctrl/tinycolor@4.1.0', '/dist/module/index.js'),
   '@floating-ui/dom': npm('@floating-ui/dom@1.6.13', '/+esm'),
   '@popperjs/core': npm('@popperjs/core@2.11.8', '/lib/index.js'),
-  '@mlightcad/cad-simple-viewer': npm(`@mlightcad/cad-simple-viewer@${ML}`, '/+esm'),
-  '@mlightcad/data-model': npm('@mlightcad/data-model@1.12.5', '/+esm'),
-  '@mlightcad/three-renderer': npm(`@mlightcad/three-renderer@${ML}`, '/+esm'),
-  '@mlightcad/cad-agent-plugin': npm(`@mlightcad/cad-agent-plugin@${ML}`, '/+esm'),
-  '@mlightcad/cad-agent-plugin/register': npm(`@mlightcad/cad-agent-plugin@${ML}`, '/register/+esm'),
-  '@mlightcad/cad-agent-plugin/style.css': CSS_SHIM,
-  '@mlightcad/cad-html-plugin': npm(`@mlightcad/cad-html-plugin@${ML}`, '/+esm'),
-  '@mlightcad/cad-html-plugin/register': npm(`@mlightcad/cad-html-plugin@${ML}`, '/register/+esm'),
-  '@mlightcad/cad-pdf-plugin': npm(`@mlightcad/cad-pdf-plugin@${ML}`, '/+esm'),
-  '@mlightcad/cad-pdf-plugin/register': npm(`@mlightcad/cad-pdf-plugin@${ML}`, '/register/+esm'),
-  '@mlightcad/cad-svg-plugin': npm(`@mlightcad/cad-svg-plugin@${ML}`, '/+esm'),
-  '@mlightcad/cad-svg-plugin/register': npm(`@mlightcad/cad-svg-plugin@${ML}`, '/register/+esm'),
+  '@hy/cad-simple-viewer': npm(`@hy/cad-simple-viewer@${ML}`, '/+esm'),
+  '@hy/data-model': npm('@hy/data-model@1.12.5', '/+esm'),
+  '@hy/three-renderer': npm(`@hy/three-renderer@${ML}`, '/+esm'),
+  '@hy/cad-agent-plugin': npm(`@hy/cad-agent-plugin@${ML}`, '/+esm'),
+  '@hy/cad-agent-plugin/register': npm(`@hy/cad-agent-plugin@${ML}`, '/register/+esm'),
+  '@hy/cad-agent-plugin/style.css': CSS_SHIM,
+  '@hy/cad-html-plugin': npm(`@hy/cad-html-plugin@${ML}`, '/+esm'),
+  '@hy/cad-html-plugin/register': npm(`@hy/cad-html-plugin@${ML}`, '/register/+esm'),
+  '@hy/cad-pdf-plugin': npm(`@hy/cad-pdf-plugin@${ML}`, '/+esm'),
+  '@hy/cad-pdf-plugin/register': npm(`@hy/cad-pdf-plugin@${ML}`, '/register/+esm'),
+  '@hy/cad-svg-plugin': npm(`@hy/cad-svg-plugin@${ML}`, '/+esm'),
+  '@hy/cad-svg-plugin/register': npm(`@hy/cad-svg-plugin@${ML}`, '/register/+esm'),
   './cad-viewer.css': CSS_SHIM
 }
 
@@ -291,7 +291,7 @@ const runtimeReady = (async () => {
   const [vue, elementPlus, simpleViewer, cadViewer] = await Promise.all([
     import('vue'),
     import('element-plus'),
-    import('@mlightcad/cad-simple-viewer'),
+    import('@hy/cad-simple-viewer'),
     loadInlineCadViewer()
   ])
   setStatus('CDN runtime ready. Choose a DWG/DXF file.')
@@ -316,7 +316,7 @@ async function openFile(file) {
   const { createApp, h } = vue
   const { AcApDocManager } = simpleViewer
   const { MlCadViewer, i18n } = cadViewer
-  const { AcDbDatabaseConverterManager, AcDbFileType } = await import(EXACT['@mlightcad/data-model'])
+  const { AcDbDatabaseConverterManager, AcDbFileType } = await import(EXACT['@hy/data-model'])
   const { AcDbLibreDwgConverter } = await import(
     npm('@mlightcad/libredwg-converter@3.13.0', '/+esm')
   )

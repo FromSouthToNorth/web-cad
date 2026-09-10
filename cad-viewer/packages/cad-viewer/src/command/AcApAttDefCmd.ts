@@ -2,7 +2,7 @@ import {
   AcApContext,
   AcEdCommand,
   AcEdOpenMode
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import { nextTick } from 'vue'
 
 import { useDialogManager } from '../composable'

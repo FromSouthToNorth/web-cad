@@ -38,5 +38,5 @@ export {
   toolbarPreset
 } from './config/toolbarItemUtils'
 export { AcExI18n, registerSimpleUiI18n } from './i18n'
-export type { AcApLayerInfo } from '@mlightcad/cad-simple-viewer'
-export { AcApLayerStore } from '@mlightcad/cad-simple-viewer'
+export type { AcApLayerInfo } from '@hy/cad-simple-viewer'
+export { AcApLayerStore } from '@hy/cad-simple-viewer'

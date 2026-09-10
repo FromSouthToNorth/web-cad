@@ -7,7 +7,7 @@ import {
   AcGePoint2d,
   AcGePoint2dLike,
   AcGeTol
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import type { AcEdBaseView } from '../../editor'
 

@@ -2,7 +2,7 @@ import {
   AcCmColor,
   AcCmColorMethod,
   AcGiLineWeight
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import {
   markupGeometryCenter,

@@ -13,7 +13,7 @@ import {
   AcGiShapeData,
   AcGiSubEntityTraits,
   AcGiTextStyle
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { FontManager } from '@mlightcad/mtext-renderer'
 import * as THREE from 'three'
 

@@ -6,7 +6,7 @@ import {
   createLibRollupOutput
 } from '../vite-config/pluginRollupOutput'
 
-const packageName = '@mlightcad/cad-html-plugin'
+const packageName = '@hy/cad-html-plugin'
 const pluginId = 'cad-html-plugin'
 
 export default defineConfig({

@@ -1,4 +1,4 @@
-import type { AcDbEntity } from '@mlightcad/data-model'
+import type { AcDbEntity } from '@hy/data-model'
 
 /**
  * Event payload emitted when one database entity is modified.

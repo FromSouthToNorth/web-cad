@@ -2,8 +2,8 @@ import {
   AcGeMatrix3d,
   AcGePoint3d,
   AcGeVector3d
-} from '@mlightcad/geometry-engine'
-import { AcGiRenderer } from '@mlightcad/graphic-interface'
+} from '@hy/geometry-engine'
+import { AcGiRenderer } from '@hy/graphic-interface'
 
 import { acdbHostApplicationServices, AcDbDxfFiler } from '../src/base'
 import { AcDbDatabase } from '../src/database'

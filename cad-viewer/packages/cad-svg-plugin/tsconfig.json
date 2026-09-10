@@ -6,7 +6,7 @@
     "outDir": "./lib",
     "baseUrl": "./src",
     "paths": {
-      "@mlightcad/cad-svg-plugin": [
+      "@hy/cad-svg-plugin": [
         "./index.ts"
       ]
     }

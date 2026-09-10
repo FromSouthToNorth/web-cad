@@ -6,7 +6,7 @@
     "outDir": "./lib",
     "baseUrl": "./src",
     "paths": {
-      "@mlightcad/cad-tunnel-plugin": [
+      "@hy/cad-tunnel-plugin": [
         "./index.ts"
       ]
     }

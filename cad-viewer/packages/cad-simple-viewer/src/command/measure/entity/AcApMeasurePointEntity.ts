@@ -1,5 +1,5 @@
-import type { AcDbDatabase, AcGePoint3dLike } from '@mlightcad/data-model'
-import { AcTrHtmlBadge, AcTrHtmlDot } from '@mlightcad/three-renderer'
+import type { AcDbDatabase, AcGePoint3dLike } from '@hy/data-model'
+import { AcTrHtmlBadge, AcTrHtmlDot } from '@hy/three-renderer'
 
 import {
   type AcApMeasurementStyle,

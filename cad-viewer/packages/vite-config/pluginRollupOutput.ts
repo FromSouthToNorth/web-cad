@@ -51,11 +51,16 @@ function isPluginRegisterModule(id: string, pluginId: string): boolean {
 
 function matchMonorepoPackage(id: string, packageId: string): boolean {
   const normalized = id.replace(/\\/g, '/')
+  // Workspace packages are published under `@hy`; the text/rendering peers
+  // still come from the upstream `@mlightcad` scope, so both must match.
+  const matchScope = (scope: string) =>
+    normalized.includes(`/node_modules/${scope}/${packageId}/`) ||
+    normalized.includes(`${scope}/${packageId}/`) ||
+    normalized.includes(`${scope}/${packageId}`)
   return (
     normalized.includes(`/packages/${packageId}/`) ||
-    normalized.includes(`/node_modules/@mlightcad/${packageId}/`) ||
-    normalized.includes(`@mlightcad/${packageId}/`) ||
-    normalized.includes(`@mlightcad/${packageId}`)
+    matchScope('@hy') ||
+    matchScope('@mlightcad')
   )
 }
 

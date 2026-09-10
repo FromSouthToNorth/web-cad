@@ -103,9 +103,19 @@ export class AcEdHoverController {
     private readonly host: AcEdHoverHost,
     private readonly hoverEvent: AcCmEventManager<AcEdViewHoverEventArgs>,
     private readonly unhoverEvent: AcCmEventManager<AcEdViewHoverEventArgs>,
-    private readonly hoverDelay = 500,
-    private readonly pauseDelay = 500
+    private readonly hoverDelay = 150,
+    private readonly pauseDelay = 400
   ) {}
+
+  /**
+   * Object id of the entity currently considered hovered, or `null`.
+   *
+   * The visual hover state (`onHover`) is applied as soon as hover detection
+   * completes; the informational `hover` event follows after the pause delay.
+   */
+  get currentHoveredId() {
+    return this.hoveredId
+  }
 
   /**
    * Handles mouse movement events.
@@ -126,6 +136,16 @@ export class AcEdHoverController {
     this.hoverTimer = setTimeout(() => {
       this.hoverAt(x, y)
     }, this.hoverDelay)
+  }
+
+  /**
+   * Handles the pointer leaving the view entirely.
+   *
+   * This is equivalent to {@link clear}, but keeps the call-site intent
+   * explicit for the canvas `mouseleave` listener.
+   */
+  handleMouseLeave() {
+    this.clear()
   }
 
   /**

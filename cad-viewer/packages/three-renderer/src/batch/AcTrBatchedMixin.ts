@@ -1136,10 +1136,20 @@ export function createAcTrBatchedMixin<
      */
     flushHighlightMask() {
       this._highlightState.setAddressableSlotCount(this._geometryInfo.length)
+      const previousTexture = this._highlightState.maskTexture
       if (this._highlightState.dirty) {
         this._highlightState.uploadMaskTexture()
       }
-      if (this._highlightState.hasAnyHighlight() && this.material) {
+      // After the last highlight is cleared the material must still be
+      // rebound when uploadMaskTexture reallocated the mask texture;
+      // otherwise it would keep sampling the stale highlighted texture.
+      // When the texture object is unchanged no rebind is needed: the
+      // pending clear is flushed by the onBeforeRender hook.
+      if (
+        this.material &&
+        (this._highlightState.hasAnyHighlight() ||
+          this._highlightState.maskTexture !== previousTexture)
+      ) {
         bindBatchHighlightUniforms(this.material, this._highlightState)
       }
       return this

@@ -3,14 +3,13 @@
     v-model:open="dropdownOpen"
     :trigger="['click']"
     placement="bottomLeft"
-    :disabled="props.disabled"
   >
     <button
       type="button"
       class="antd-ribbon-dropdown"
       :class="{ 'is-disabled': props.disabled }"
       :aria-label="props.label"
-      :disabled="props.disabled"
+      :aria-disabled="props.disabled"
     >
       <!-- Main click area: executes default command -->
       <div class="antd-ribbon-dropdown-main" @click.stop="handleMainClick">
@@ -103,17 +102,16 @@ const keytipPending = computed(() => {
 })
 
 function handleMainClick() {
-  if (props.disabled) return
+  // No disabled guard: while a document is opening the ribbon queues the
+  // command instead of rejecting the click.
   emit('execute', props.command)
 }
 
 function toggleMenu() {
-  if (props.disabled) return
   dropdownOpen.value = !dropdownOpen.value
 }
 
 function handleOptionClick(opt: { id: string; command: string }) {
-  if (props.disabled) return
   dropdownOpen.value = false
   emit('execute', opt.command)
 }

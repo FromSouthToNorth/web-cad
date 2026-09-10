@@ -272,6 +272,8 @@ export class AcTrView2d extends AcEdBaseView {
   private _selectionVertexMarkers: AcEdSelectionVertexMarkers
   /** Entity id of the most recent single-click pick (`null` = box select). */
   private _lastPickedEntityId: AcDbObjectId | null = null
+  /** Inline canvas cursor captured before hover feedback switched it to pointer. */
+  private _cursorBeforeHover: string | null = null
   /** Global keyboard shortcuts for the view (undo/redo, erase, etc.). */
   private _keyHandler: AcEdViewKeyHandler
 
@@ -326,8 +328,7 @@ export class AcTrView2d extends AcEdBaseView {
     // Detect mobile / low-power devices to downgrade rendering quality
     // and conserve battery. The heuristic (touch + narrow viewport) avoids
     // false-positives on touch-enabled laptops.
-    const isMobileDevice =
-      'ontouchstart' in window && window.innerWidth < 1024
+    const isMobileDevice = 'ontouchstart' in window && window.innerWidth < 1024
 
     const renderer = new THREE.WebGLRenderer({
       antialias: !isMobileDevice,
@@ -586,9 +587,7 @@ export class AcTrView2d extends AcEdBaseView {
           }
           const dx = e.touches[0].clientX - touchStartPos.x
           const dy = e.touches[0].clientY - touchStartPos.y
-          if (
-            Math.sqrt(dx * dx + dy * dy) > TOUCH_TAP_MAX_DISTANCE
-          ) {
+          if (Math.sqrt(dx * dx + dy * dy) > TOUCH_TAP_MAX_DISTANCE) {
             isTouchDragging = true
             clearLongPress()
           }
@@ -743,7 +742,16 @@ export class AcTrView2d extends AcEdBaseView {
    * @param value - The view mode to set
    */
   set mode(value: AcEdViewMode) {
+    const previousMode = this.mode
     this.activeLayoutView.mode = value
+    // Leaving selection mode must remove any hover highlight immediately;
+    // otherwise the dashed outline/markers stay visible while panning.
+    if (
+      previousMode === AcEdViewMode.SELECTION &&
+      value !== AcEdViewMode.SELECTION
+    ) {
+      this.clearHover()
+    }
   }
 
   /**
@@ -2296,6 +2304,7 @@ export class AcTrView2d extends AcEdBaseView {
    */
   onHover(id: AcDbObjectId) {
     this._isDirty = this._scene.hover([id])
+    this.applyHoverCursor(true)
   }
 
   /**
@@ -2303,6 +2312,27 @@ export class AcTrView2d extends AcEdBaseView {
    */
   onUnhover(id: AcDbObjectId) {
     this._isDirty = this._scene.unhover([id])
+    this.applyHoverCursor(false)
+  }
+
+  /**
+   * Switches the canvas cursor between the configured CAD cursor and a
+   * pointer while an entity is hovered. The previous inline cursor value
+   * is restored verbatim so custom crosshair data-URIs are preserved.
+   */
+  private applyHoverCursor(active: boolean) {
+    if (active) {
+      if (this._cursorBeforeHover == null) {
+        this._cursorBeforeHover = this.canvas.style.cursor
+      }
+      this.canvas.style.cursor = 'pointer'
+      return
+    }
+
+    if (this._cursorBeforeHover != null) {
+      this.canvas.style.cursor = this._cursorBeforeHover
+      this._cursorBeforeHover = null
+    }
   }
 
   protected createScene() {

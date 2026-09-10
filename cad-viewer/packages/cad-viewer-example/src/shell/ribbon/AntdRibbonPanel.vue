@@ -18,7 +18,10 @@
           @execute="handleExecute"
         />
 
-        <!-- Simple button; span host keeps the tooltip working while disabled -->
+        <!-- Simple button; span host keeps the tooltip working while disabled.
+             Rendered disabled through is-disabled/aria-disabled only: the
+             native attribute would swallow the click, and clicks arriving
+             while a document is opening are queued by the ribbon instead. -->
         <a-tooltip
           v-else
           placement="bottom"
@@ -42,9 +45,10 @@
               type="button"
               :class="[
                 'antd-ribbon-button',
-                `antd-ribbon-button--${item.size ?? 'large'}`
+                `antd-ribbon-button--${item.size ?? 'large'}`,
+                { 'is-disabled': props.disabled }
               ]"
-              :disabled="props.disabled"
+              :aria-disabled="props.disabled"
               :aria-keyshortcuts="item.keyTip ? `Alt+${item.keyTip}` : undefined"
               @click="handleExecute(item.command)"
             >
@@ -71,17 +75,20 @@
       </template>
     </div>
 
-    <!-- Panel title; small secondary tools collapse into its dropdown -->
+    <!-- Panel title; small secondary tools collapse into its dropdown.
+         The dropdown must stay openable while disabled: small commands
+         (e.g. Draw Tunnel) live behind it and their clicks are queued by
+         the ribbon when a document is still opening. -->
     <a-dropdown
       v-if="overflowItems.length"
       :trigger="['click']"
       placement="bottom"
-      :disabled="props.disabled"
     >
       <button
         type="button"
         class="antd-ribbon-panel-title antd-ribbon-panel-title--dropdown"
-        :disabled="props.disabled"
+        :class="{ 'is-disabled': props.disabled }"
+        :aria-disabled="props.disabled"
       >
         <span>{{ props.title }}</span>
         <span class="antd-ribbon-panel-title-arrow">
@@ -171,7 +178,8 @@ function keytipPending(item: RibbonItemDef): boolean {
 }
 
 function handleExecute(command: string) {
-  if (props.disabled) return
+  // No disabled guard on purpose: while a document is opening the ribbon
+  // queues the command instead of rejecting the click.
   emit('execute', command)
 }
 

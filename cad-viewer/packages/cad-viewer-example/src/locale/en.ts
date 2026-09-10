@@ -65,6 +65,8 @@ export default {
       tablist: 'Ribbon tabs',
       locale: 'Language',
       command: 'Command: {command}',
+      commandQueued:
+        'A drawing is opening; the command is queued and will run when it finishes.',
       collapse: 'Collapse ribbon',
       expand: 'Expand ribbon',
       undo: 'Undo',
@@ -206,6 +208,11 @@ export default {
       properties: 'Properties',
       agent: 'AI Assistant',
       search: 'Search'
+    },
+    hover: {
+      layer: 'Layer',
+      color: 'Color',
+      linetype: 'Linetype'
     },
     status: {
       ortho: 'Ortho mode',

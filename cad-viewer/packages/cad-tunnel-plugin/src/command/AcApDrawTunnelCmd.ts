@@ -1,6 +1,5 @@
 import {
   AcApContext,
-  AcApDocManager,
   acapRunDatabaseEdit,
   AcEdCommand,
   AcEdOpenMode,
@@ -18,6 +17,7 @@ import { getTunnelPluginOptions,TunnelDrawOptions } from '../config'
 import { geojsonToEntities } from '../geojson/geojsonToEntities'
 import { parseTunnelGeoJson } from '../geojson/parseTunnelGeoJson'
 import { tunnelT } from '../i18n'
+import { waitForCurrentDocument } from './waitForDocument'
 
 const ensureLayer = (db: AcDbDatabase, name: string): void => {
   if (db.tables.layerTable.has(name)) return
@@ -71,7 +71,11 @@ export class AcApDrawTunnelCmd extends AcEdCommand {
         return
       }
 
-      const doc = AcApDocManager.instance.curDocument
+      // The click may have been queued while the document was still opening
+      // (or the command was typed early on the command line). Wait for the
+      // document instead of failing once: only a `null` result (open failed
+      // or timed out) is a real "no document" error.
+      const doc = await waitForCurrentDocument()
       if (!doc) {
         log.error(`[cad-tunnel] ${tunnelT('draw.noDocument')}`)
         return

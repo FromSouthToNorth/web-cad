@@ -527,7 +527,16 @@ export function installBatchHighlightRenderer(
       material,
       group
     )
-    if (!state.hasAnyHighlight() || !material) {
+    if (!material) {
+      return
+    }
+    if (!state.hasAnyHighlight()) {
+      // The final highlight was just cleared. A partial mask upload may
+      // still be pending after the CPU mask was zeroed; flush it here so
+      // the GPU texture cannot keep the old hover bits and dash the line.
+      if (state.hasPendingMaskUpload()) {
+        state.uploadPendingMaskRegion(renderer)
+      }
       return
     }
     bindBatchHighlightUniforms(material, state, renderer)

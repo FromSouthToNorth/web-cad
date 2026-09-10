@@ -35,12 +35,16 @@
       :title="labelFor(item)"
       placement="bottom"
     >
-      <!-- span host keeps the tooltip working while the button is disabled -->
+      <!-- span host keeps the tooltip working while the button is disabled.
+           Rendered disabled through is-disabled/aria-disabled only: the
+           native attribute would swallow the click, and clicks arriving
+           while a document is opening are queued by the ribbon instead. -->
       <span class="antd-ribbon-tooltip-host">
         <button
           type="button"
           class="antd-qat-btn"
-          :disabled="props.disabled"
+          :class="{ 'is-disabled': props.disabled }"
+          :aria-disabled="props.disabled"
           @click="execute(item.command)"
         >
           <component :is="item.icon" />
@@ -51,7 +55,6 @@
 </template>
 
 <script setup lang="ts">
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
 import { useI18n } from 'vue-i18n'
 
 import type { QatItemDef, RibbonFileItemDef } from './ribbonTypes'
@@ -64,14 +67,21 @@ const props = defineProps<{
   disabled?: boolean
 }>()
 
+const emit = defineEmits<{
+  execute: [command: string]
+}>()
+
 /** Look up a localised label via `shell.ribbon.qat.<id>`. */
 function labelFor(item: QatItemDef): string {
   const key = `shell.ribbon.qat.${item.id}`
   return te(key) ? t(key) : item.label
 }
 
+/**
+ * Forwards the command to the ribbon, which queues it when a document is
+ * still opening instead of rejecting the click.
+ */
 function execute(command: string) {
-  if (props.disabled) return
-  AcApDocManager.instance.sendStringToExecute(command)
+  emit('execute', command)
 }
 </script>

@@ -57,10 +57,14 @@
                   <AntdLayerPanel v-if="leftActiveTab === 'layers'" />
                   <AntdBlocksPanel v-else-if="leftActiveTab === 'blocks'" />
                   <SearchPanel
-                    v-else-if="leftActiveTab === 'search' && store.features.searchPlugin"
+                    v-else-if="
+                      leftActiveTab === 'search' && store.features.searchPlugin
+                    "
                   />
                   <AgentChatPanel
-                    v-else-if="leftActiveTab === 'agent' && store.features.agentPlugin"
+                    v-else-if="
+                      leftActiveTab === 'agent' && store.features.agentPlugin
+                    "
                     @close="closeAgentPanel"
                   />
                 </div>
@@ -79,6 +83,7 @@
               :class="themeClass"
               class="ml-cad-container antd-cad-canvas-host"
             ></div>
+            <AntdEntityHoverTip v-if="editorReady" />
             <MlDialogManager v-if="editorReady" />
             <MlFontFileReader v-if="editorReady" />
           </a-layout-content>
@@ -130,6 +135,8 @@
 </template>
 
 <script setup lang="ts">
+import './shell.css'
+
 import { CloseOutlined } from '@ant-design/icons-vue'
 import { AcApOpenViewMode, AcEdOpenMode } from '@mlightcad/cad-simple-viewer'
 import {
@@ -138,16 +145,23 @@ import {
   store,
   useDocument
 } from '@mlightcad/cad-viewer'
-import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } from 'vue'
+import {
+  computed,
+  defineAsyncComponent,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import AntdRibbon from './ribbon/AntdRibbon.vue'
+import AntdEntityHoverTip from './AntdEntityHoverTip.vue'
 import AntdBlocksPanel from './panels/AntdBlocksPanel.vue'
 import AntdLayerPanel from './panels/AntdLayerPanel.vue'
 import AntdPropertiesPanel from './panels/AntdPropertiesPanel.vue'
+import AntdRibbon from './ribbon/AntdRibbon.vue'
 import AntdStatusBar from './status/AntdStatusBar.vue'
 import { useAntdCadShell } from './useAntdCadShell'
-import './shell.css'
 
 const AgentChatPanel = defineAsyncComponent(() =>
   import('@mlightcad/cad-agent-plugin').then(module => module.AgentChatPanel)

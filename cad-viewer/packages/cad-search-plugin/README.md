@@ -1,4 +1,4 @@
-# @mlightcad/cad-search-plugin
+# @hy/cad-search-plugin
 
 Content search palette plugin for cad-viewer.
 
@@ -9,7 +9,7 @@ the entity and zooms the view to it.
 ## Usage
 
 ```ts
-import { registerLazySearchPlugin } from '@mlightcad/cad-search-plugin/register'
+import { registerLazySearchPlugin } from '@hy/cad-search-plugin/register'
 
 registerLazySearchPlugin(pluginManager)
 ```

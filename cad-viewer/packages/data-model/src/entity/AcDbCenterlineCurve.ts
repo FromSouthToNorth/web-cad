@@ -7,7 +7,7 @@ import {
   AcGePoint3dLike,
   AcGePolyline2d,
   AcGeVector3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { AcDbSystemVariables } from '../database/AcDbSystemVariables'

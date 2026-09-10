@@ -1,4 +1,4 @@
-import { AcCmErrors } from '@mlightcad/common'
+import { AcCmErrors } from '@hy/common'
 import {
   AcGeKnotParameterizationType,
   AcGeMatrix3d,
@@ -8,8 +8,8 @@ import {
   AcGeSpline3d,
   AcGeVector3d,
   AcGeVector3dLike
-} from '@mlightcad/geometry-engine'
-import { AcGiRenderer } from '@mlightcad/graphic-interface'
+} from '@hy/geometry-engine'
+import { AcGiRenderer } from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { AcDbOsnapMode } from '../misc/AcDbOsnapMode'

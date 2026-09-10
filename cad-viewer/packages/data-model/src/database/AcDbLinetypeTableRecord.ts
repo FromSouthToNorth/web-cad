@@ -1,8 +1,8 @@
-import { AcCmStringKey, defaults } from '@mlightcad/common'
+import { AcCmStringKey, defaults } from '@hy/common'
 import {
   AcGiBaseLineStyle,
   AcGiLineTypePatternElement
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import {

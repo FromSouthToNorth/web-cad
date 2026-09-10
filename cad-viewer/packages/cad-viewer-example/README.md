@@ -1,6 +1,6 @@
 # CAD Viewer Example
 
-A Vue 3 demo that embeds [`@mlightcad/cad-viewer`](https://github.com/mlightcad/cad-viewer/tree/main/packages/cad-viewer): a file-upload landing screen, then a full CAD shell built with Ant Design Vue (ribbons, panels, dialogs, command line, status bar) for viewing and editing local DXF/DWG files.
+A Vue 3 demo that embeds [`@hy/cad-viewer`](https://github.com/mlightcad/cad-viewer/tree/main/packages/cad-viewer): a file-upload landing screen, then a full CAD shell built with Ant Design Vue (ribbons, panels, dialogs, command line, status bar) for viewing and editing local DXF/DWG files.
 
 ## Features
 
@@ -17,8 +17,8 @@ A Vue 3 demo that embeds [`@mlightcad/cad-viewer`](https://github.com/mlightcad/
 
 - Node.js **≥ 24** and pnpm **≥ 10** (monorepo workspace)
 - Built dependencies before **dev** or **build**:
-  - `@mlightcad/cad-html-plugin` (produces `viewer-runtime.iife.js`, copied into the example dist)
-  - `@mlightcad/cad-simple-viewer` and `@mlightcad/cad-viewer` (workers and bundles)
+  - `@hy/cad-html-plugin` (produces `viewer-runtime.iife.js`, copied into the example dist)
+  - `@hy/cad-simple-viewer` and `@hy/cad-viewer` (workers and bundles)
 
 From the repo root, a full workspace build satisfies this:
 
@@ -30,9 +30,9 @@ pnpm build
 Or build only what this example needs:
 
 ```bash
-pnpm --filter @mlightcad/cad-html-plugin build
-pnpm --filter @mlightcad/cad-simple-viewer build
-pnpm --filter @mlightcad/cad-viewer build
+pnpm --filter @hy/cad-html-plugin build
+pnpm --filter @hy/cad-simple-viewer build
+pnpm --filter @hy/cad-viewer build
 ```
 
 ## Getting Started
@@ -52,7 +52,7 @@ cd packages/cad-viewer-example
 pnpm dev
 ```
 
-Vite prints the local URL (default `http://localhost:5173`). In dev mode, Vite aliases `@mlightcad/cad-viewer`, `@mlightcad/cad-simple-viewer`, and renderer packages to their **source** for faster iteration.
+Vite prints the local URL (default `http://localhost:5173`). In dev mode, Vite aliases `@hy/cad-viewer`, `@hy/cad-simple-viewer`, and renderer packages to their **source** for faster iteration.
 
 ### Production
 
@@ -74,23 +74,23 @@ The build runs `vue-tsc`, then copies parser workers and `viewer-runtime.iife.js
 
 | Format | Notes |
 |--------|--------|
-| **DXF** | Built-in parser in `@mlightcad/data-model` |
+| **DXF** | Built-in parser in `@hy/data-model` |
 | **DWG** | Optional `@mlightcad/libredwg-converter` (GPL) — registered by this example |
 
 ## What this example demonstrates
 
-Integration patterns useful when embedding `@mlightcad/cad-viewer` in your own Vue app:
+Integration patterns useful when embedding `@hy/cad-viewer` in your own Vue app:
 
 | Topic | Implementation |
 |-------|----------------|
 | Viewer shell | `<AntdCadViewer :local-file="file" :mode="openMode" locale="en" :base-url="…" @create="onCreate" />` (see `src/shell/`) |
-| App bootstrap | `createApp(App).use(Antd).use(i18n).mount('#app')` — `i18n` exported from `@mlightcad/cad-viewer` |
+| App bootstrap | `createApp(App).use(Antd).use(i18n).mount('#app')` — `i18n` exported from `@hy/cad-viewer` |
 | Open modes | `AcEdOpenMode` (Read / Review / Write) passed via `:mode` |
 | Custom i18n | `AcApI18n.mergeLocaleMessage('en' \| 'zh', messages)` in `@create` (`src/locale/`) |
 | Custom commands | `AcApDocManager.instance.commandManager.addCommand(…)` — see `quit` / `exit` in `src/commands/` |
 | Upload flow | Reactive store + conditional render: upload screen until `selectedFile` is set |
 | Workers & runtime | `vite-plugin-static-copy` copies MTEXT worker, LibreDWG worker/wasm, and `viewer-runtime.iife.js` |
-| Export plugins | Declared in `package.json`; `@mlightcad/cad-viewer` registers them via `@mlightcad/cad-*-plugin/register` on bootstrap |
+| Export plugins | Declared in `package.json`; `@hy/cad-viewer` registers them via `@hy/cad-*-plugin/register` on bootstrap |
 
 Minimal host wiring in `App.vue`:
 
@@ -109,7 +109,7 @@ Minimal host wiring in `App.vue`:
 | Path | Role |
 |------|------|
 | `index.html` | Page shell and loading spinner |
-| `src/main.ts` | Vue app entry; mounts Ant Design Vue and `i18n` from `@mlightcad/cad-viewer` |
+| `src/main.ts` | Vue app entry; mounts Ant Design Vue and `i18n` from `@hy/cad-viewer` |
 | `src/App.vue` | Upload screen + `AntdCadViewer`; registers custom commands on `@create` |
 | `src/components/FileUpload.vue` | Ant Design Vue drag-and-drop uploader with open-mode selector |
 | `src/store.ts` | Reactive `selectedFile` for upload ↔ viewer navigation |
@@ -123,11 +123,11 @@ Minimal host wiring in `App.vue`:
 
 | Package | Role |
 |---------|------|
-| `@mlightcad/cad-viewer` | UI components, dialogs, commands, composables, and `i18n` setup |
-| `@mlightcad/cad-simple-viewer` | `AcApDocManager`, commands, `AcEdOpenMode`, `AcApI18n` |
-| `@mlightcad/data-model` | Logging and CAD data types |
-| `@mlightcad/cad-html-plugin` | Offline HTML export; supplies `viewer-runtime.iife.js` |
-| `@mlightcad/cad-pdf-plugin` | PDF export (`cpdf`) |
+| `@hy/cad-viewer` | UI components, dialogs, commands, composables, and `i18n` setup |
+| `@hy/cad-simple-viewer` | `AcApDocManager`, commands, `AcEdOpenMode`, `AcApI18n` |
+| `@hy/data-model` | Logging and CAD data types |
+| `@hy/cad-html-plugin` | Offline HTML export; supplies `viewer-runtime.iife.js` |
+| `@hy/cad-pdf-plugin` | PDF export (`cpdf`) |
 | `ant-design-vue` | Shell UI toolkit: ribbons, panels, dialogs, upload |
 | `vue` / `vue-i18n` | Vue 3 host and internationalization |
 | `three` | Peer of the viewer render stack |
@@ -157,9 +157,9 @@ From the monorepo root: `pnpm dev`, `pnpm preview`, `pnpm test:e2e`.
 
 ## Related packages
 
-- [`@mlightcad/cad-viewer`](../cad-viewer) — Component API, props, and customization
-- [`@mlightcad/cad-html-plugin`](../cad-html-plugin) — HTML export and `viewer-runtime.iife.js`
-- [`@mlightcad/cad-simple-viewer-cli`](../cad-simple-viewer-cli) — Headless HTML export CLI (`-chtml` via `.scr`)
+- [`@hy/cad-viewer`](../cad-viewer) — Component API, props, and customization
+- [`@hy/cad-html-plugin`](../cad-html-plugin) — HTML export and `viewer-runtime.iife.js`
+- [`@hy/cad-simple-viewer-cli`](../cad-simple-viewer-cli) — Headless HTML export CLI (`-chtml` via `.scr`)
 
 ## License
 

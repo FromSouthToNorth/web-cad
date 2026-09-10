@@ -2,7 +2,7 @@ import {
   AcCmEventManager,
   AcDbObjectId,
   AcGePoint2d
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import type { AcEdViewHoverEventArgs } from './AcEdBaseView'
 

@@ -57,7 +57,7 @@ jest.mock('../src/i18n', () => ({
   }
 }))
 
-import { AcDbPolyline, AcGePoint2d } from '@mlightcad/data-model'
+import { AcDbPolyline, AcGePoint2d } from '@hy/data-model'
 
 import {
   buildRevCloud,

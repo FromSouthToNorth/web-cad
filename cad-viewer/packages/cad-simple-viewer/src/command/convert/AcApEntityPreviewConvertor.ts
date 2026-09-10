@@ -1,5 +1,5 @@
-import { AcDbObjectId, AcGeBox2d, AcGeVector2d } from '@mlightcad/data-model'
-import { disposePreviewSubset } from '@mlightcad/three-renderer'
+import { AcDbObjectId, AcGeBox2d, AcGeVector2d } from '@hy/data-model'
+import { disposePreviewSubset } from '@hy/three-renderer'
 
 import { AcApDocManager } from '../../app'
 import { resolveExportDownloadName } from '../../util/AcApExportFileNameUtil'

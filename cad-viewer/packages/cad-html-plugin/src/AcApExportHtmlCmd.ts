@@ -5,7 +5,7 @@ import {
   AcEdCommand,
   AcEdPromptKeywordOptions,
   AcEdPromptStatus
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 import { AcApHtmlConvertor } from './AcApHtmlConvertor'
 import {

@@ -4,7 +4,7 @@ import {
   AcDbSystemVariables,
   AcDbSysVarManager,
   AcGiLineWeight
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /** Factory default CAD line weight for measurement geometry. */
 export const MEASUREMENT_LINE_WEIGHT = AcGiLineWeight.LineWeight070

@@ -7,7 +7,7 @@ const mockDocManager = {
   sendStringToExecute: jest.fn()
 }
 
-jest.mock('@mlightcad/cad-simple-viewer', () => {
+jest.mock('@hy/cad-simple-viewer', () => {
   class AcApHatchCmd {
     globalName = 'HATCH'
 
@@ -69,7 +69,7 @@ import {
   DEFAULT_GRADIENT_HATCH_NAME,
   DEFAULT_HATCH_PATTERN_IMPERIAL,
   HATCH_PATTERN_SOLID
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcApHatchRibbonCmd } from '../src/command/AcApHatchRibbonCmd'
 import {

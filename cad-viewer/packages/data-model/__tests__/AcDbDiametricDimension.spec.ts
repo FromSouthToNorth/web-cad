@@ -1,4 +1,4 @@
-import { AcGePoint3d } from '@mlightcad/geometry-engine'
+import { AcGePoint3d } from '@hy/geometry-engine'
 import { AcDbDiametricDimension } from '../src/entity'
 import { expectDetachedClone } from '../test-utils/cloneTestUtils'
 

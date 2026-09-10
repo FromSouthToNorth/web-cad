@@ -1,5 +1,5 @@
-import { AcGePoint2dLike } from '@mlightcad/geometry-engine'
-import { AcGiRenderer } from '@mlightcad/graphic-interface'
+import { AcGePoint2dLike } from '@hy/geometry-engine'
+import { AcGiRenderer } from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { AcDbCenterlineCurve } from './AcDbCenterlineCurve'

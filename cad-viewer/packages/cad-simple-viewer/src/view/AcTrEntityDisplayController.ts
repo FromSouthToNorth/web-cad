@@ -4,7 +4,7 @@ import {
   AcDbEntity,
   AcDbLayerTableRecordAttrs,
   AcDbObjectId
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcEdLayerInfo } from '../editor'
 import { AcTrLayer } from './AcTrLayer'

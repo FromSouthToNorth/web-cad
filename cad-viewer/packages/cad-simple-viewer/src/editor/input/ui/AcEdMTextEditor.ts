@@ -3,7 +3,7 @@ import {
   AcDbSysVarManager,
   AcGePoint3dLike,
   AcGiMTextAttachmentPoint
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   MTextInputBox,
   type MTextToolbarColorPickerFactory,

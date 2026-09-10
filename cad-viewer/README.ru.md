@@ -119,7 +119,7 @@ pnpm preview:simple
 
 ## Система плагинов
 
-CAD-Viewer построен вокруг модульной **системы плагинов** в [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer). Плагины реализуют интерфейс `AcApPlugin` и подключаются к жизненному циклу просмотрщика через `onLoad` / `onUnload` — обычно для регистрации команд, добавления UI или подключения конвейеров экспорта/импорта.
+CAD-Viewer построен вокруг модульной **системы плагинов** в [`@hy/cad-simple-viewer`](packages/cad-simple-viewer). Плагины реализуют интерфейс `AcApPlugin` и подключаются к жизненному циклу просмотрщика через `onLoad` / `onUnload` — обычно для регистрации команд, добавления UI или подключения конвейеров экспорта/импорта.
 
 Загружайте плагины через `AcApDocManager.instance.pluginManager` (`loadPlugin`, `registerLazyPlugin` или `plugins.fromConfig` при создании менеджера документов). Плагины экспорта поддерживают **ленивую загрузку**: зарегистрируйте небольшую заглушку заранее и загружайте тяжёлый бандл только когда пользователь запускает связанную команду (например `-chtml`, или при подтверждении экспорта из диалога `chtml` в `cad-viewer`).
 
@@ -129,13 +129,13 @@ CAD-Viewer построен вокруг модульной **системы п�
 
 | Пакет | Роль | Команды / возможности |
 |---------|------|-------------------------|
-| [`@mlightcad/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | **Панель инструментов, менеджер слоёв и палитра рецензирования** для `cad-simple-viewer` (plain DOM, без Vue/React) | `layer`, `markuppanel`, панель инструментов по умолчанию (вид, измерение, экспорт, рецензирование, тема, локаль) |
-| [`@mlightcad/cad-agent-plugin`](packages/cad-agent-plugin) | **CAD-агент на естественном языке** (AI-панель чата + вызовы инструментов чертежа) | `agent` |
-| [`@mlightcad/cad-html-plugin`](packages/cad-html-plugin) | Экспорт чертежей в **автономный HTML** | `chtml` (диалог в `cad-viewer`), `-chtml` (командная строка) |
-| [`@mlightcad/cad-pdf-plugin`](packages/cad-pdf-plugin) | **Экспорт и импорт PDF** (векторный конвейер) | `cpdf`, `ipdf` |
-| [`@mlightcad/cad-svg-plugin`](packages/cad-svg-plugin) | **Экспорт SVG** и общий векторный рендерер (также используется экспортом PDF) | `csvg` |
+| [`@hy/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | **Панель инструментов, менеджер слоёв и палитра рецензирования** для `cad-simple-viewer` (plain DOM, без Vue/React) | `layer`, `markuppanel`, панель инструментов по умолчанию (вид, измерение, экспорт, рецензирование, тема, локаль) |
+| [`@hy/cad-agent-plugin`](packages/cad-agent-plugin) | **CAD-агент на естественном языке** (AI-панель чата + вызовы инструментов чертежа) | `agent` |
+| [`@hy/cad-html-plugin`](packages/cad-html-plugin) | Экспорт чертежей в **автономный HTML** | `chtml` (диалог в `cad-viewer`), `-chtml` (командная строка) |
+| [`@hy/cad-pdf-plugin`](packages/cad-pdf-plugin) | **Экспорт и импорт PDF** (векторный конвейер) | `cpdf`, `ipdf` |
+| [`@hy/cad-svg-plugin`](packages/cad-svg-plugin) | **Экспорт SVG** и общий векторный рендерер (также используется экспортом PDF) | `csvg` |
 
-### `@mlightcad/cad-simple-ui-plugin` — UI-оболочка для простого просмотрщика
+### `@hy/cad-simple-ui-plugin` — UI-оболочка для простого просмотрщика
 
 [`cad-simple-viewer`](packages/cad-simple-viewer) намеренно **не поставляет прикладной UI** — только холст и CAD-ядро. Если вы встраиваете простой просмотрщик в своё веб-приложение и хотите готовую оболочку без полной Vue-оболочки [`cad-viewer`](packages/cad-viewer), **`cad-simple-ui-plugin` — предназначенный UI-слой**.
 
@@ -150,7 +150,7 @@ CAD-Viewer построен вокруг модульной **системы п�
 
 → **Быстрый старт, настройка панели инструментов и параметры:** [packages/cad-simple-ui-plugin/README.md](packages/cad-simple-ui-plugin/README.md)
 
-### `@mlightcad/cad-agent-plugin` — AI-помощник для чертежей
+### `@hy/cad-agent-plugin` — AI-помощник для чертежей
 
 [`cad-agent-plugin`](packages/cad-agent-plugin) добавляет **CAD-агента на естественном языке** в приложения на базе `cad-simple-viewer`. Пользователи описывают желаемое простым языком; агент вызывает CAD-инструменты для анализа чертежа и создания или изменения геометрии.
 
@@ -436,6 +436,6 @@ CAD-Viewer спроектирован для **исключительной пр
 
 Монорепозиторий cad-viewer в основном распространяется под лицензией [MIT](LICENSE).
 
-Загрузка DXF использует встроенный MIT-парсер в `@mlightcad/data-model`. **Путь загрузки DWG по умолчанию** в `@mlightcad/cad-simple-viewer` зависит от пакетов GPL-3.0 (`libredwg-web` / `@mlightcad/libredwg-converter`). Если вы поставляете продукт с закрытым исходным кодом и не можете распространять GPL-код своим клиентам, используйте [**проприетарный парсер DWG**](./PROPRIETARY-PARSER.md) — он заменяет этот конвертер и позволяет остальному стеку оставаться только под MIT.
+Загрузка DXF использует встроенный MIT-парсер в `@hy/data-model`. **Путь загрузки DWG по умолчанию** в `@hy/cad-simple-viewer` зависит от пакетов GPL-3.0 (`libredwg-web` / `@mlightcad/libredwg-converter`). Если вы поставляете продукт с закрытым исходным кодом и не можете распространять GPL-код своим клиентам, используйте [**проприетарный парсер DWG**](./PROPRIETARY-PARSER.md) — он заменяет этот конвертер и позволяет остальному стеку оставаться только под MIT.
 
 → **Коммерческий парсер:** [PROPRIETARY-PARSER.md](./PROPRIETARY-PARSER.md) (объём, лицензирование, цены, интеграция, соответствие GPL, поддержка)

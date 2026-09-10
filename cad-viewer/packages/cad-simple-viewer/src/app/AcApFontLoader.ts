@@ -1,6 +1,6 @@
-import { AcDbOpenDatabaseError } from '@mlightcad/data-model'
+import { AcDbOpenDatabaseError } from '@hy/data-model'
 import type { FontInfo } from '@mlightcad/mtext-renderer'
-import { AcTrFontLoader } from '@mlightcad/three-renderer'
+import { AcTrFontLoader } from '@hy/three-renderer'
 
 import { AcEdFontNotLoadedInfo, eventBus } from '../editor'
 

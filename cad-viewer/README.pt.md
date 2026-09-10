@@ -119,7 +119,7 @@ pnpm preview:simple
 
 ## Sistema de plugins
 
-O CAD-Viewer é construído em torno de um **sistema de plugins** modular em [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer). Os plugins implementam a interface `AcApPlugin` e se conectam ao ciclo de vida do visualizador via `onLoad` / `onUnload` — normalmente para registrar comandos, adicionar UI ou conectar pipelines de exportação/importação.
+O CAD-Viewer é construído em torno de um **sistema de plugins** modular em [`@hy/cad-simple-viewer`](packages/cad-simple-viewer). Os plugins implementam a interface `AcApPlugin` e se conectam ao ciclo de vida do visualizador via `onLoad` / `onUnload` — normalmente para registrar comandos, adicionar UI ou conectar pipelines de exportação/importação.
 
 Carregue plugins por meio de `AcApDocManager.instance.pluginManager` (`loadPlugin`, `registerLazyPlugin` ou `plugins.fromConfig` ao criar o gerenciador de documentos). Plugins orientados à exportação suportam **lazy loading**: registre um stub pequeno antecipadamente e baixe o bundle pesado somente quando o usuário executar o comando relacionado (por exemplo `-chtml`, ou ao confirmar a exportação na caixa de diálogo `chtml` no `cad-viewer`).
 
@@ -129,13 +129,13 @@ O monorepo inclui vários plugins oficiais. Cada um foca em uma preocupação; c
 
 | Pacote | Função | Comandos / capacidades |
 |--------|--------|------------------------|
-| [`@mlightcad/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | **UI de barra de ferramentas, gerenciador de camadas e paleta de revisão** para `cad-simple-viewer` (DOM puro, sem Vue/React) | `layer`, `markuppanel`, barra de ferramentas padrão (view, measure, export, review, theme, locale) |
-| [`@mlightcad/cad-agent-plugin`](packages/cad-agent-plugin) | **Agente CAD em linguagem natural** (painel de chat com IA + chamadas de ferramentas de desenho) | `agent` |
-| [`@mlightcad/cad-html-plugin`](packages/cad-html-plugin) | Exportar desenhos para **HTML offline autossuficiente** | `chtml` (diálogo no `cad-viewer`), `-chtml` (linha de comando) |
-| [`@mlightcad/cad-pdf-plugin`](packages/cad-pdf-plugin) | **Exportação e importação de PDF** (pipeline vetorial) | `cpdf`, `ipdf` |
-| [`@mlightcad/cad-svg-plugin`](packages/cad-svg-plugin) | **Exportação SVG** e renderizador vetorial compartilhado (também usado pela exportação PDF) | `csvg` |
+| [`@hy/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | **UI de barra de ferramentas, gerenciador de camadas e paleta de revisão** para `cad-simple-viewer` (DOM puro, sem Vue/React) | `layer`, `markuppanel`, barra de ferramentas padrão (view, measure, export, review, theme, locale) |
+| [`@hy/cad-agent-plugin`](packages/cad-agent-plugin) | **Agente CAD em linguagem natural** (painel de chat com IA + chamadas de ferramentas de desenho) | `agent` |
+| [`@hy/cad-html-plugin`](packages/cad-html-plugin) | Exportar desenhos para **HTML offline autossuficiente** | `chtml` (diálogo no `cad-viewer`), `-chtml` (linha de comando) |
+| [`@hy/cad-pdf-plugin`](packages/cad-pdf-plugin) | **Exportação e importação de PDF** (pipeline vetorial) | `cpdf`, `ipdf` |
+| [`@hy/cad-svg-plugin`](packages/cad-svg-plugin) | **Exportação SVG** e renderizador vetorial compartilhado (também usado pela exportação PDF) | `csvg` |
 
-### `@mlightcad/cad-simple-ui-plugin` — UI chrome para o visualizador simples
+### `@hy/cad-simple-ui-plugin` — UI chrome para o visualizador simples
 
 O [`cad-simple-viewer`](packages/cad-simple-viewer) deliberadamente **não inclui UI de aplicativo** — apenas o canvas e o núcleo CAD. Se você incorporar o visualizador simples em seu próprio app web e quiser chrome pronto sem adotar o shell completo baseado em Vue do [`cad-viewer`](packages/cad-viewer), **`cad-simple-ui-plugin` é a camada de UI indicada**.
 
@@ -150,7 +150,7 @@ Todos os widgets são agnósticos a framework (DOM puro). O app completo Vue [`c
 
 → **Início rápido, personalização da barra de ferramentas e opções:** [packages/cad-simple-ui-plugin/README.md](packages/cad-simple-ui-plugin/README.md)
 
-### `@mlightcad/cad-agent-plugin` — Assistente de desenho com IA
+### `@hy/cad-agent-plugin` — Assistente de desenho com IA
 
 O [`cad-agent-plugin`](packages/cad-agent-plugin) adiciona um **agente CAD em linguagem natural** a apps baseados em `cad-simple-viewer`. Os usuários descrevem o que querem em linguagem simples; o agente chama ferramentas CAD para inspecionar o desenho e criar ou modificar geometria.
 
@@ -436,6 +436,6 @@ Contribuições são bem-vindas! Abra issues ou pull requests para correções d
 
 O monorepo cad-viewer é licenciado principalmente sob [MIT](LICENSE).
 
-O carregamento DXF usa o parser MIT integrado em `@mlightcad/data-model`. O **caminho padrão de carregamento DWG** em `@mlightcad/cad-simple-viewer` depende de pacotes GPL-3.0 (`libredwg-web` / `@mlightcad/libredwg-converter`). Se você distribui um produto closed-source e não pode distribuir código GPL aos seus clientes, use o [**parser DWG proprietário**](./PROPRIETARY-PARSER.md) — ele substitui esse conversor e permite que o restante da stack permaneça apenas MIT.
+O carregamento DXF usa o parser MIT integrado em `@hy/data-model`. O **caminho padrão de carregamento DWG** em `@hy/cad-simple-viewer` depende de pacotes GPL-3.0 (`libredwg-web` / `@mlightcad/libredwg-converter`). Se você distribui um produto closed-source e não pode distribuir código GPL aos seus clientes, use o [**parser DWG proprietário**](./PROPRIETARY-PARSER.md) — ele substitui esse conversor e permite que o restante da stack permaneça apenas MIT.
 
 → **Parser comercial:** [PROPRIETARY-PARSER.md](./PROPRIETARY-PARSER.md) (escopo, licenciamento, preços, integração, conformidade GPL, suporte)

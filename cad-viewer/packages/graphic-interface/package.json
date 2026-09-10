@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/graphic-interface",
+  "name": "@hy/graphic-interface",
   "version": "3.13.0",
   "license": "MIT",
   "type": "module",
@@ -39,7 +39,7 @@
     "lint:fix": "eslint --fix --quiet src/"
   },
   "peerDependencies": {
-    "@mlightcad/common": "workspace:*",
-    "@mlightcad/geometry-engine": "workspace:*"
+    "@hy/common": "workspace:*",
+    "@hy/geometry-engine": "workspace:*"
   }
 }

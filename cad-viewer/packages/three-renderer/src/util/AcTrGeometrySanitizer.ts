@@ -5,7 +5,7 @@ import {
   acgeGetOcsReferenceVector,
   AcGePoint3dLike,
   AcGeVector3d
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcTrBufferGeometryUtil } from './AcTrBufferGeometryUtil'
 

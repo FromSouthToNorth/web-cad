@@ -1,4 +1,4 @@
-# @mlightcad/cad-tunnel-plugin
+# @hy/cad-tunnel-plugin
 
 「绘制巷道」规划插件：**不解析任何 DWG/DXF 文件**，直接从 GeoJSON 数据（HTTP 请求返回，例如 axios/fetch）绘制自定义对象——点、线（巷道中心线 `TunnelRoadway`）、面（闭合多段线 + SOLID 填充）、文字标注。
 
@@ -19,13 +19,13 @@
 
 ```bash
 cd cad-viewer
-pnpm --filter @mlightcad/cad-tunnel-plugin build
+pnpm --filter @hy/cad-tunnel-plugin build
 ```
 
 应用侧注册（参考 `cad-viewer-example/src/App.vue`）：
 
 ```typescript
-import { registerTunnelPlugin } from '@mlightcad/cad-tunnel-plugin/register'
+import { registerTunnelPlugin } from '@hy/cad-tunnel-plugin/register'
 
 void registerTunnelPlugin(AcApDocManager.instance.pluginManager, {
   url: `${import.meta.env.BASE_URL}geojson/tunnel.json`

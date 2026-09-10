@@ -1,4 +1,4 @@
-import { AcGePoint3d } from '@mlightcad/data-model'
+import { AcGePoint3d } from '@hy/data-model'
 
 import { AcEdPromptOptions } from './AcEdPromptOptions'
 

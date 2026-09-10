@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-layerctx-plugin",
+  "name": "@hy/cad-layerctx-plugin",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
@@ -44,11 +44,11 @@
     "lint:fix": "eslint --fix --quiet src/"
   },
   "devDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*"
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*"
   },
   "peerDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*"
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*"
   }
 }

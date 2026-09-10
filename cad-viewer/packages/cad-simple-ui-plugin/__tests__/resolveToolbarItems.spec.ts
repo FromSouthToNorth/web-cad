@@ -1,5 +1,5 @@
 /** Unit tests for toolbar item resolution and open-mode visibility filtering. */
-jest.mock('@mlightcad/cad-simple-viewer', () => ({
+jest.mock('@hy/cad-simple-viewer', () => ({
   AcApDocManager: {
     instance: {
       curDocument: undefined
@@ -15,7 +15,7 @@ jest.mock('@mlightcad/cad-simple-viewer', () => ({
   }
 }))
 
-import { AcEdOpenMode } from '@mlightcad/cad-simple-viewer'
+import { AcEdOpenMode } from '@hy/cad-simple-viewer'
 
 import { createDefaultToolbarItems } from '../src/config/defaultToolbarItems'
 import {

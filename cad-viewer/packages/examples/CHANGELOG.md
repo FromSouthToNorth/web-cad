@@ -1,4 +1,4 @@
-# @mlightcad/cad-viewer-examples
+# @hy/cad-viewer-examples
 
 ## 1.6.1
 

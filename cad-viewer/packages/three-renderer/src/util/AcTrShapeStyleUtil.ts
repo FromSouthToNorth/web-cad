@@ -1,4 +1,4 @@
-import { AcGiShapeData, AcGiTextStyle } from '@mlightcad/data-model'
+import { AcGiShapeData, AcGiTextStyle } from '@hy/data-model'
 import {
   FontManager,
   ShxFontData,

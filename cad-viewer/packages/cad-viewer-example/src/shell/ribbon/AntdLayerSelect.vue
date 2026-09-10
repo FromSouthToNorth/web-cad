@@ -244,16 +244,16 @@ import {
 import {
   AcApDocManager,
   acapRunDatabaseEdit
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   type LayerInfo,
   type LayerStateToggleKey,
   useLayers
-} from '@mlightcad/cad-viewer'
+} from '@hy/cad-viewer'
 import {
   type AcDbEntity,
   type AcDbObjectId
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { computed, effectScope, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 

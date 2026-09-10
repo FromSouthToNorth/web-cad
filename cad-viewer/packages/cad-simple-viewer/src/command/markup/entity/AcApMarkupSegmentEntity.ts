@@ -1,11 +1,11 @@
 import {
   AcGePoint3d,
   type AcGeVector3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   AcTrHtmlCanvasOverlay,
   AcTrHtmlDot
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 
 import type { AcTrView2d } from '../../../view'
 import {

@@ -8,7 +8,7 @@ import { AcApPlugin } from './AcApPlugin'
  *
  * @example
  * ```typescript
- * import { registerLazyPdfPlugin } from '@mlightcad/cad-pdf-plugin/register'
+ * import { registerLazyPdfPlugin } from '@hy/cad-pdf-plugin/register'
  *
  * registerLazyPdfPlugin(pluginManager)
  * ```

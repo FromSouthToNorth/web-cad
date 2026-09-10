@@ -1,5 +1,5 @@
-import { AcApDocManager, type AcTrView2d } from '@mlightcad/cad-simple-viewer'
-import type { AcDbObjectId } from '@mlightcad/data-model'
+import { AcApDocManager, type AcTrView2d } from '@hy/cad-simple-viewer'
+import type { AcDbObjectId } from '@hy/data-model'
 
 /**
  * Maximum number of entity ids printed per selection log line before the list

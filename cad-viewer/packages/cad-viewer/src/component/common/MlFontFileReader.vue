@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { eventBus } from '@mlightcad/cad-simple-viewer'
+import { eventBus } from '@hy/cad-simple-viewer'
 import { onMounted, onUnmounted, ref } from 'vue'
 
 const fontFileInput = ref<HTMLInputElement | null>(null)

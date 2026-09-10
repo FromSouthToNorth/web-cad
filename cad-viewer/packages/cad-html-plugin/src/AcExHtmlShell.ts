@@ -1,4 +1,4 @@
-import { ML_UI_MOBILE_MAX_WIDTH } from '@mlightcad/cad-simple-viewer'
+import { ML_UI_MOBILE_MAX_WIDTH } from '@hy/cad-simple-viewer'
 
 import { acExHtmlIcons, acExToolbarButton } from './AcExHtmlIcons'
 import {

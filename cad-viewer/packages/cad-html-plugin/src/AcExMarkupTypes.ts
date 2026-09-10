@@ -1,7 +1,7 @@
 /**
  * Design Review–style markup types for the offline HTML viewer.
  *
- * Schema matches `@mlightcad/cad-simple-viewer` sidecar JSON so markups can be
+ * Schema matches `@hy/cad-simple-viewer` sidecar JSON so markups can be
  * exchanged between the full CAD app and exported HTML files.
  *
  * @module AcExMarkupTypes

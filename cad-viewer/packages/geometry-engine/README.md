@@ -1,7 +1,7 @@
-# @mlightcad/geometry-engine
+# @hy/geometry-engine
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://img.shields.io/npm/v/@mlightcad/geometry-engine.svg)](https://www.npmjs.com/package/@mlightcad/geometry-engine)
+[![npm version](https://img.shields.io/npm/v/@hy/geometry-engine.svg)](https://www.npmjs.com/package/@hy/geometry-engine)
 
 The geometry-engine package provides comprehensive geometric entities, mathematical operations, and transformations for 2D and 3D space. This package mimics AutoCAD ObjectARX's AcGe (Geometry) classes and provides the mathematical foundation for CAD operations.
 
@@ -26,7 +26,7 @@ Most math classes are adapted from [THREE.js](https://threejs.org/docs/index.htm
 ## Installation
 
 ```bash
-npm install @mlightcad/geometry-engine
+npm install @hy/geometry-engine
 ```
 
 ## Key Classes
@@ -71,7 +71,7 @@ npm install @mlightcad/geometry-engine
 
 ### Basic Point and Vector Operations
 ```typescript
-import { AcGePoint3d, AcGeVector3d, AcGeMatrix3d } from '@mlightcad/geometry-engine';
+import { AcGePoint3d, AcGeVector3d, AcGeMatrix3d } from '@hy/geometry-engine';
 
 // Create points and vectors
 const point1 = new AcGePoint3d(0, 0, 0);
@@ -88,7 +88,7 @@ const transformedPoint = point1.transformBy(matrix);
 
 ### Line and Curve Operations
 ```typescript
-import { AcGeLine3d, AcGeCircArc3d, AcGePoint3d } from '@mlightcad/geometry-engine';
+import { AcGeLine3d, AcGeCircArc3d, AcGePoint3d } from '@hy/geometry-engine';
 
 // Create a line
 const startPoint = new AcGePoint3d(0, 0, 0);
@@ -110,7 +110,7 @@ const pointOnArc = arc.evalPoint(param);
 
 ### Matrix Transformations
 ```typescript
-import { AcGeMatrix3d, AcGePoint3d } from '@mlightcad/geometry-engine';
+import { AcGeMatrix3d, AcGePoint3d } from '@hy/geometry-engine';
 
 // Create transformation matrices
 const translation = AcGeMatrix3d.translation(10, 20, 30);
@@ -127,7 +127,7 @@ const transformed = point.transformBy(combined);
 
 ### Polyline Operations
 ```typescript
-import { AcGePolyline2d, AcGePoint2d } from '@mlightcad/geometry-engine';
+import { AcGePolyline2d, AcGePoint2d } from '@hy/geometry-engine';
 
 // Create a polyline
 const polyline = new AcGePolyline2d();
@@ -147,7 +147,7 @@ const isClosed = polyline.isClosed();
 
 ### Geometric Utilities
 ```typescript
-import { AcGeGeometryUtil, AcGePoint3d, AcGeVector3d } from '@mlightcad/geometry-engine';
+import { AcGeGeometryUtil, AcGePoint3d, AcGeVector3d } from '@hy/geometry-engine';
 
 // Calculate intersection between lines
 const line1 = new AcGeLine3d(new AcGePoint3d(0, 0, 0), new AcGeVector3d(1, 0, 0));
@@ -167,7 +167,7 @@ const areCollinear = AcGeGeometryUtil.areCollinear(points);
 
 ## Dependencies
 
-- **@mlightcad/common**: For common utilities (peer dependency)
+- **@hy/common**: For common utilities (peer dependency)
 
 ## API Documentation
 

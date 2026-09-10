@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import type { AcApMarkupRecord } from '@mlightcad/cad-simple-viewer'
+import type { AcApMarkupRecord } from '@hy/cad-simple-viewer'
 
 const records: AcApMarkupRecord[] = []
 let selectedId: string | undefined
@@ -54,7 +54,7 @@ const mockPresenter = {
   })
 }
 
-jest.mock('@mlightcad/cad-simple-viewer', () => ({
+jest.mock('@hy/cad-simple-viewer', () => ({
   AcApDocManager: {
     instance: {
       curView: mockView
@@ -72,7 +72,7 @@ jest.mock('@mlightcad/cad-simple-viewer', () => ({
   MARKUP_STATUSES: ['open', 'question', 'answered', 'closed']
 }))
 
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 
 import { AcExI18n, registerSimpleUiI18n } from '../src/i18n'
 import { AcExReviewPaletteView } from '../src/ui/AcExReviewPaletteView'

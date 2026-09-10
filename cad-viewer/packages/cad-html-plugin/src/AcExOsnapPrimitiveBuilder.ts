@@ -51,7 +51,7 @@ import {
   type AcGeVector3dLike,
   FLOAT_TOL,
   TAU
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 
 import type {
@@ -84,7 +84,7 @@ function transformPoint(
 /**
  * Converts an {@link AcGeMatrix3d} (or compatible matrix) to `THREE.Matrix4`.
  *
- * Block and dimension transforms from `@mlightcad/data-model` are `AcGeMatrix3d`
+ * Block and dimension transforms from `@hy/data-model` are `AcGeMatrix3d`
  * instances. They share column-major `elements` with Three.js but are not
  * `THREE.Matrix4` subclasses, so they must be copied before use with Three APIs
  * that rely on matrix type checks.
@@ -194,7 +194,7 @@ function resolveLayoutBlock(
 }
 
 /**
- * Type guard for CAD line entities across `@mlightcad/data-model` versions.
+ * Type guard for CAD line entities across `@hy/data-model` versions.
  *
  * Prefer {@link AcDbLine} via `instanceof` when available. Some runtime builds
  * expose LINE entities with `type === 'LINE'` (or `'Line'`) and `startPoint` /

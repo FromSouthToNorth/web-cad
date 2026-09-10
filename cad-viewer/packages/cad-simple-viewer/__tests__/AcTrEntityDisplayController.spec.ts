@@ -3,7 +3,7 @@ import {
   AcDbBlockReference,
   type AcDbBlockTableRecord,
   type AcDbEntity
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcTrEntityDisplayController } from '../src/view/AcTrEntityDisplayController'
 import { AcTrLayer } from '../src/view/AcTrLayer'

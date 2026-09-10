@@ -3,7 +3,7 @@ import {
   AcDbTextStyleTableRecord,
   acdbHostApplicationServices,
   AcGiTextStyle
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { FontManager } from '@mlightcad/mtext-renderer'
 
 import { AcTrRenderContext } from '../src/renderer/AcTrRenderContext'

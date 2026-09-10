@@ -119,7 +119,7 @@ pnpm preview:simple
 
 ## 插件系统（Plugin System）
 
-CAD-Viewer 在 [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer) 中提供可扩展的**插件系统**。插件实现 `AcApPlugin` 接口，通过 `onLoad` / `onUnload` 接入查看器生命周期，常见用途包括注册命令、挂载 UI、或接入导出/导入流程。
+CAD-Viewer 在 [`@hy/cad-simple-viewer`](packages/cad-simple-viewer) 中提供可扩展的**插件系统**。插件实现 `AcApPlugin` 接口，通过 `onLoad` / `onUnload` 接入查看器生命周期，常见用途包括注册命令、挂载 UI、或接入导出/导入流程。
 
 通过 `AcApDocManager.instance.pluginManager` 加载插件（`loadPlugin`、`registerLazyPlugin`，或在创建文档管理器时使用 `plugins.fromConfig`）。面向导出的插件支持**懒加载**：应用启动时只注册轻量 stub，用户首次执行相关命令（例如 `-chtml`，或在 `cad-viewer` 中通过 `chtml` 对话框确认导出）时才下载完整 bundle。
 
@@ -129,13 +129,13 @@ CAD-Viewer 在 [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer) 中�
 
 | 包名 | 作用 | 命令 / 能力 |
 |------|------|-------------|
-| [`@mlightcad/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | 为 `cad-simple-viewer` 提供**工具栏、图层管理器与批注列表面板 UI**（纯 DOM，不依赖 Vue/React） | `layer`、`markuppanel`、默认工具栏（视图、测量、导出、审阅、主题、语言） |
-| [`@mlightcad/cad-agent-plugin`](packages/cad-agent-plugin) | **自然语言 CAD 智能体**（AI 对话面板 + 绘图工具调用） | `agent` |
-| [`@mlightcad/cad-html-plugin`](packages/cad-html-plugin) | 导出为**自包含离线 HTML** | `chtml`（`cad-viewer` 对话框）、`-chtml`（命令行） |
-| [`@mlightcad/cad-pdf-plugin`](packages/cad-pdf-plugin) | **PDF 导出与导入**（矢量管线） | `cpdf`、`ipdf` |
-| [`@mlightcad/cad-svg-plugin`](packages/cad-svg-plugin) | **SVG 导出**及共享矢量渲染器（PDF 导出也会用到） | `csvg` |
+| [`@hy/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | 为 `cad-simple-viewer` 提供**工具栏、图层管理器与批注列表面板 UI**（纯 DOM，不依赖 Vue/React） | `layer`、`markuppanel`、默认工具栏（视图、测量、导出、审阅、主题、语言） |
+| [`@hy/cad-agent-plugin`](packages/cad-agent-plugin) | **自然语言 CAD 智能体**（AI 对话面板 + 绘图工具调用） | `agent` |
+| [`@hy/cad-html-plugin`](packages/cad-html-plugin) | 导出为**自包含离线 HTML** | `chtml`（`cad-viewer` 对话框）、`-chtml`（命令行） |
+| [`@hy/cad-pdf-plugin`](packages/cad-pdf-plugin) | **PDF 导出与导入**（矢量管线） | `cpdf`、`ipdf` |
+| [`@hy/cad-svg-plugin`](packages/cad-svg-plugin) | **SVG 导出**及共享矢量渲染器（PDF 导出也会用到） | `csvg` |
 
-### `@mlightcad/cad-simple-ui-plugin` — 简易查看器的 UI 层
+### `@hy/cad-simple-ui-plugin` — 简易查看器的 UI 层
 
 [`cad-simple-viewer`](packages/cad-simple-viewer) 有意只提供 **CAD 核心与画布**，不包含应用级界面。若你在自有 Web 应用中嵌入简易查看器，又不想引入完整 Vue 版 [`cad-viewer`](packages/cad-viewer) 外壳，**`cad-simple-ui-plugin` 即推荐的 UI 插件**。
 
@@ -150,7 +150,7 @@ CAD-Viewer 在 [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer) 中�
 
 → **快速开始、工具栏定制与配置项：** [packages/cad-simple-ui-plugin/README.md](packages/cad-simple-ui-plugin/README.md)
 
-### `@mlightcad/cad-agent-plugin` — AI 绘图助手
+### `@hy/cad-agent-plugin` — AI 绘图助手
 
 [`cad-agent-plugin`](packages/cad-agent-plugin) 为基于 `cad-simple-viewer` 的应用提供**自然语言 CAD 智能体**。用户用自然语言描述需求，智能体通过 CAD 工具读取图纸上下文并创建或修改几何图形。
 
@@ -437,7 +437,7 @@ CAD-Viewer 针对复杂图纸渲染进行了多项优化，可在保持高帧率
 
 cad-viewer monorepo 主体采用 [MIT](LICENSE) 授权。
 
-DXF 加载使用 `@mlightcad/data-model` 中内置的 MIT 解析器。`@mlightcad/cad-simple-viewer` 的**默认 DWG 加载路径**依赖 GPL-3.0 包（`libredwg-web` / `@mlightcad/libredwg-converter`）。若您交付闭源产品且无法向客户分发 GPL 代码，可使用 [**专有 DWG 解析器**](./PROPRIETARY-PARSER.zh-CN.md) 替换该 converter，其余技术栈可保持纯 MIT。
+DXF 加载使用 `@hy/data-model` 中内置的 MIT 解析器。`@hy/cad-simple-viewer` 的**默认 DWG 加载路径**依赖 GPL-3.0 包（`libredwg-web` / `@mlightcad/libredwg-converter`）。若您交付闭源产品且无法向客户分发 GPL 代码，可使用 [**专有 DWG 解析器**](./PROPRIETARY-PARSER.zh-CN.md) 替换该 converter，其余技术栈可保持纯 MIT。
 
 → **专有解析器说明：** [PROPRIETARY-PARSER.zh-CN.md](./PROPRIETARY-PARSER.zh-CN.md)（支持范围、授权条款、价格、集成方式、GPL 合规、支持维护）
 

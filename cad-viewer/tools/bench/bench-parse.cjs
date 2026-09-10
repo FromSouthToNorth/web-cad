@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Benchmark DXF parsing with @mlightcad/data-model (main-thread native
+ * Benchmark DXF parsing with @hy/data-model (main-thread native
  * converter, same path the example app uses).
  *
  * Uses the CJS dist bundle so it can run in plain Node without a bundler.
@@ -21,7 +21,7 @@ const { readFile } = require('node:fs/promises')
 // this runs from anywhere inside the monorepo.
 const dataModel = (() => {
   try {
-    return require('@mlightcad/data-model')
+    return require('@hy/data-model')
   } catch {
     return require('../../packages/data-model/dist/data-model.cjs')
   }

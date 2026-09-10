@@ -1,4 +1,4 @@
-import type { AcTrView2d } from '@mlightcad/cad-simple-viewer'
+import type { AcTrView2d } from '@hy/cad-simple-viewer'
 
 import type {
   AcExInitialViewMode,

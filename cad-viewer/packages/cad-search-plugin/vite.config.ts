@@ -7,7 +7,7 @@ import {
   createLibRollupOutput
 } from '../vite-config/pluginRollupOutput'
 
-const packageName = '@mlightcad/cad-search-plugin'
+const packageName = '@hy/cad-search-plugin'
 const packageId = 'cad-search-plugin'
 
 export default defineConfig({
@@ -28,7 +28,7 @@ export default defineConfig({
       external: [packageName],
       output: {
         ...createLibRollupOutput(packageId),
-        // Keep `style.css` so `@mlightcad/cad-search-plugin/style.css` resolves
+        // Keep `style.css` so `@hy/cad-search-plugin/style.css` resolves
         // (Vite 6 lib mode defaults to `{name}.css` instead of `style.css`).
         assetFileNames: 'style[extname]'
       }

@@ -1,4 +1,4 @@
-import { AcGiLineWeight } from '@mlightcad/data-model'
+import { AcGiLineWeight } from '@hy/data-model'
 
 import {
   measurementSidecarFileName,

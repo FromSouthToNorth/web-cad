@@ -1,4 +1,4 @@
-import { AcGeBox2d, AcGePoint2d } from '@mlightcad/data-model'
+import { AcGeBox2d, AcGePoint2d } from '@hy/data-model'
 
 jest.mock('../src/app', () => ({
   AcApDocManager: {

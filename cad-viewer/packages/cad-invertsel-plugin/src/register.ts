@@ -1,4 +1,4 @@
-import type { AcApPluginManager } from '@mlightcad/cad-simple-viewer'
+import type { AcApPluginManager } from '@hy/cad-simple-viewer'
 
 /** Plugin name used by {@link AcApInvertSelPlugin}. */
 export const INVERTSEL_PLUGIN_NAME = 'InvertSelPlugin'
@@ -9,7 +9,7 @@ export const INVERTSEL_COMMAND_NAME = 'invertsel'
 /**
  * Loads the invert-selection plugin on the given plugin manager.
  *
- * Import from `@mlightcad/cad-invertsel-plugin/register` so the main plugin
+ * Import from `@hy/cad-invertsel-plugin/register` so the main plugin
  * bundle is not pulled into the application entry chunk.
  *
  * Unlike the export plugins (pdf/html/svg) this plugin loads eagerly rather
@@ -27,7 +27,7 @@ export async function registerInvertSelPlugin(
     return
   }
   const { createInvertSelPlugin } = await import(
-    '@mlightcad/cad-invertsel-plugin'
+    '@hy/cad-invertsel-plugin'
   )
   await pluginManager.loadPlugin(await createInvertSelPlugin())
 }

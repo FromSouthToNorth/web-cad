@@ -3,7 +3,7 @@ import {
   AcGePoint2d,
   AcGePoint2dLike,
   AcGiViewport
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 
 import { AcTrRenderer } from '../renderer/AcTrRenderer'

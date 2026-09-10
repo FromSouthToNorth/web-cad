@@ -4,7 +4,7 @@ import {
   AcGePoint2d,
   AcGePoint3d,
   AcGePoint3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 
 import { AcDbOsnapMode } from '../misc/AcDbOsnapMode'
 

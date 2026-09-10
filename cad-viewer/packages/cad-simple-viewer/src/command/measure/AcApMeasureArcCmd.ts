@@ -4,14 +4,14 @@ import {
   AcDbCircle,
   AcDbDatabase,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   AcTrHtmlBadge,
   AcTrHtmlCanvasOverlay,
   AcTrHtmlDot,
   AcTrHtmlSnapIndicator,
   AcTrHtmlTransientManager
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 
 import { AcApContext } from '../../app'
 import {

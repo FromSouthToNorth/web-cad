@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-viewer",
+  "name": "@hy/cad-viewer",
   "version": "1.6.1",
   "license": "MIT",
   "type": "module",
@@ -43,14 +43,14 @@
     "lint:fix": "eslint --fix --quiet src/"
   },
   "devDependencies": {
-    "@mlightcad/cad-agent-plugin": "workspace:*",
-    "@mlightcad/cad-html-plugin": "workspace:*",
-    "@mlightcad/cad-pdf-plugin": "workspace:*",
-    "@mlightcad/cad-search-plugin": "workspace:*",
-    "@mlightcad/cad-svg-plugin": "workspace:*",
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
-    "@mlightcad/three-renderer": "workspace:*",
+    "@hy/cad-agent-plugin": "workspace:*",
+    "@hy/cad-html-plugin": "workspace:*",
+    "@hy/cad-pdf-plugin": "workspace:*",
+    "@hy/cad-search-plugin": "workspace:*",
+    "@hy/cad-svg-plugin": "workspace:*",
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*",
+    "@hy/three-renderer": "workspace:*",
     "@ant-design/icons-vue": "^7.0.1",
     "@vueuse/core": "^11.1.0",
     "@vitejs/plugin-vue": "^6.0.8",
@@ -67,14 +67,14 @@
     "vue-tsc": "^2.1.6"
   },
   "peerDependencies": {
-    "@mlightcad/cad-agent-plugin": "workspace:*",
-    "@mlightcad/cad-html-plugin": "workspace:*",
-    "@mlightcad/cad-pdf-plugin": "workspace:*",
-    "@mlightcad/cad-search-plugin": "workspace:*",
-    "@mlightcad/cad-svg-plugin": "workspace:*",
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
-    "@mlightcad/three-renderer": "workspace:*",
+    "@hy/cad-agent-plugin": "workspace:*",
+    "@hy/cad-html-plugin": "workspace:*",
+    "@hy/cad-pdf-plugin": "workspace:*",
+    "@hy/cad-search-plugin": "workspace:*",
+    "@hy/cad-svg-plugin": "workspace:*",
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*",
+    "@hy/three-renderer": "workspace:*",
     "@vueuse/core": "^11.1.0",
     "ant-design-vue": "^4.2.6",
     "lodash-es": "4.17.21",
@@ -83,19 +83,19 @@
     "vue-i18n": "^11.4.4"
   },
   "peerDependenciesMeta": {
-    "@mlightcad/cad-agent-plugin": {
+    "@hy/cad-agent-plugin": {
       "optional": true
     },
-    "@mlightcad/cad-html-plugin": {
+    "@hy/cad-html-plugin": {
       "optional": true
     },
-    "@mlightcad/cad-pdf-plugin": {
+    "@hy/cad-pdf-plugin": {
       "optional": true
     },
-    "@mlightcad/cad-search-plugin": {
+    "@hy/cad-search-plugin": {
       "optional": true
     },
-    "@mlightcad/cad-svg-plugin": {
+    "@hy/cad-svg-plugin": {
       "optional": true
     }
   }

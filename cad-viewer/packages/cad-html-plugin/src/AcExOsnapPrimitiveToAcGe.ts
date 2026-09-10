@@ -12,7 +12,7 @@ import {
   AcGeNurbsCurve,
   AcGePoint2d,
   TAU
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import type {
   AcExOsnapArcPrimitive,

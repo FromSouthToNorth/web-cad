@@ -22,8 +22,8 @@ import {
   AcGePoint2d,
   AcGePoint2dLike,
   log
-} from '@mlightcad/data-model'
-import { AcDbSystemVariables } from '@mlightcad/data-model'
+} from '@hy/data-model'
+import { AcDbSystemVariables } from '@hy/data-model'
 import {
   AcTrEntity,
   AcTrGlyphEntity,
@@ -31,8 +31,8 @@ import {
   AcTrHtmlTransientManager,
   AcTrRenderer,
   AcTrViewportView
-} from '@mlightcad/three-renderer'
-import { AcTrMatrixUtil } from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
+import { AcTrMatrixUtil } from '@hy/three-renderer'
 import * as THREE from 'three'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
@@ -956,7 +956,7 @@ export class AcTrView2d extends AcEdBaseView {
     try {
       const db = AcApDocManager.instance?.curDocument?.database
       if (!db) return []
-      // Available once @mlightcad/data-model exports getUnresolvedXrefs on the
+      // Available once @hy/data-model exports getUnresolvedXrefs on the
       // block table. Soft-detect so older package versions still run.
       const blockTable = db.tables.blockTable as {
         getUnresolvedXrefs?: () => Array<{

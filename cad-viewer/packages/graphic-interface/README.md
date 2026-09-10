@@ -1,7 +1,7 @@
-# @mlightcad/graphic-interface
+# @hy/graphic-interface
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://img.shields.io/npm/v/@mlightcad/graphic-interface.svg)](https://www.npmjs.com/package/@mlightcad/graphic-interface)
+[![npm version](https://img.shields.io/npm/v/@hy/graphic-interface.svg)](https://www.npmjs.com/package/@hy/graphic-interface)
 
 The graphic-interface package provides the graphics interface for controlling how AutoCAD entities are displayed on screen. This package offers a simplified API compared to AutoCAD ObjectARX's AcGi classes, making it more developer-friendly while maintaining the core functionality needed for rendering CAD entities.
 
@@ -21,7 +21,7 @@ This package provides the graphics interface layer that bridges the gap between 
 ## Installation
 
 ```bash
-npm install @mlightcad/graphic-interface
+npm install @hy/graphic-interface
 ```
 
 ## Key Classes
@@ -44,8 +44,8 @@ npm install @mlightcad/graphic-interface
 
 ### Basic Entity Rendering
 ```typescript
-import { AcGiRenderer, AcGiEntity } from '@mlightcad/graphic-interface';
-import { AcDbLine, AcGePoint3d } from '@mlightcad/data-model';
+import { AcGiRenderer, AcGiEntity } from '@hy/graphic-interface';
+import { AcDbLine, AcGePoint3d } from '@hy/data-model';
 
 // Create a renderer
 const renderer = new AcGiRenderer();
@@ -66,7 +66,7 @@ import {
   AcGiTextStyle, 
   AcGiPointStyle,
   AcGiArrowType 
-} from '@mlightcad/graphic-interface';
+} from '@hy/graphic-interface';
 
 // Configure line style
 const lineStyle = new AcGiLineStyle();
@@ -96,7 +96,7 @@ arrowStyle.setColor(1); // Red
 
 ### View and Viewport Management
 ```typescript
-import { AcGiView, AcGiViewport, AcGePoint3d } from '@mlightcad/graphic-interface';
+import { AcGiView, AcGiViewport, AcGePoint3d } from '@hy/graphic-interface';
 
 // Create a view
 const view = new AcGiView();
@@ -118,7 +118,7 @@ viewport.setClippingBounds(0, 0, 100, 100);
 
 ### Hatch Pattern Rendering
 ```typescript
-import { AcGiHatchStyle } from '@mlightcad/graphic-interface';
+import { AcGiHatchStyle } from '@hy/graphic-interface';
 
 // Configure hatch style
 const hatchStyle = new AcGiHatchStyle();
@@ -134,7 +134,7 @@ const hatchedEntity = renderer.renderEntityWithHatch(entity, hatchStyle);
 
 ### Image Rendering
 ```typescript
-import { AcGiImageStyle } from '@mlightcad/graphic-interface';
+import { AcGiImageStyle } from '@hy/graphic-interface';
 
 // Configure image style
 const imageStyle = new AcGiImageStyle();
@@ -150,7 +150,7 @@ const imageEntity = renderer.renderImage(imagePath, imageStyle);
 
 ### Custom Rendering Pipeline
 ```typescript
-import { AcGiRenderer, AcGiEntity } from '@mlightcad/graphic-interface';
+import { AcGiRenderer, AcGiEntity } from '@hy/graphic-interface';
 
 // Create a custom renderer
 class CustomRenderer extends AcGiRenderer {
@@ -184,7 +184,7 @@ customRenderer.renderToCanvas(canvas, drawableEntities);
 
 ### Batch Rendering
 ```typescript
-import { AcGiRenderer } from '@mlightcad/graphic-interface';
+import { AcGiRenderer } from '@hy/graphic-interface';
 
 // Batch render multiple entities
 const renderer = new AcGiRenderer();
@@ -203,7 +203,7 @@ viewport.applyTransformations(drawableEntities);
 
 ## Dependencies
 
-- **@mlightcad/geometry-engine**: For geometric operations (peer dependency)
+- **@hy/geometry-engine**: For geometric operations (peer dependency)
 
 ## API Documentation
 

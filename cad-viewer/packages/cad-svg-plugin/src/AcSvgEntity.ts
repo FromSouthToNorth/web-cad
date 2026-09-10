@@ -3,7 +3,7 @@ import {
   AcGeMatrix3d,
   AcGePoint3d,
   AcGiEntity
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcSvgMatrixUtil } from './AcSvgMatrixUtil'
 

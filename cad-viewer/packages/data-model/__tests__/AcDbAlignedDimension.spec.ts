@@ -2,7 +2,7 @@ import {
   AcGeMatrix3d,
   AcGePoint3d,
   AcGeVector3d
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 import { acdbHostApplicationServices } from '../src/base'
 import { AcDbBlockTableRecord, AcDbDatabase } from '../src/database'
 import { AcDbAlignedDimension, AcDbLine } from '../src/entity'

@@ -1,9 +1,9 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 import {
   AcDbDatabase,
   acdbHostApplicationServices,
   AcDbObjectId
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { reactive } from 'vue'
 
 export interface LayoutInfo {

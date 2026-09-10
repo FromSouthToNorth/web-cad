@@ -11,7 +11,7 @@
  *   ?progressive=0  open with progressiveRendering disabled (baseline A/B)
  *   ?file=NAME      fixture served from /bench/fixtures/ (default progressive.dxf)
  */
-import { AcApDocManager, AcEdOpenMode } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager, AcEdOpenMode } from '@hy/cad-simple-viewer'
 
 const bar = document.getElementById('bar') as HTMLDivElement
 const paint = document.getElementById('paint') as HTMLDivElement

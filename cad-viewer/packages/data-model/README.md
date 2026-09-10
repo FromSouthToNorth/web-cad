@@ -1,7 +1,7 @@
-# @mlightcad/data-model
+# @hy/data-model
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://img.shields.io/npm/v/@mlightcad/data-model.svg)](https://www.npmjs.com/package/@mlightcad/data-model)
+[![npm version](https://img.shields.io/npm/v/@hy/data-model.svg)](https://www.npmjs.com/package/@hy/data-model)
 
 The data-model package provides the core classes for interacting with AutoCAD's database and entities. This package mimics AutoCAD ObjectARX's AcDb (Database) classes and implements the drawing database structure that AutoCAD developers are familiar with.
 
@@ -22,7 +22,7 @@ This package contains the core classes for defining and manipulating AutoCAD ent
 ## Installation
 
 ```bash
-npm install @mlightcad/data-model
+npm install @hy/data-model
 ```
 
 ## Key Classes
@@ -96,7 +96,7 @@ DXF import is built in via `AcDbNativeDxfConverter` (registered by default). An 
 
 ### Database Operations
 ```typescript
-import { AcDbDatabase } from '@mlightcad/data-model';
+import { AcDbDatabase } from '@hy/data-model';
 
 // Create a new database
 const database = new AcDbDatabase();
@@ -109,7 +109,7 @@ const linetypeTable = database.getLinetypeTable();
 
 ### Entity Creation
 ```typescript
-import { AcDbLine, AcDbCircle, AcGePoint3d } from '@mlightcad/data-model';
+import { AcDbLine, AcDbCircle, AcGePoint3d } from '@hy/data-model';
 
 // Create a line entity
 const startPoint = new AcGePoint3d(0, 0, 0);
@@ -129,7 +129,7 @@ circle.setLinetype('CONTINUOUS');
 
 ### Layer Management
 ```typescript
-import { AcDbLayerTableRecord } from '@mlightcad/data-model';
+import { AcDbLayerTableRecord } from '@hy/data-model';
 
 // Create a new layer
 const layerRecord = new AcDbLayerTableRecord();
@@ -144,7 +144,7 @@ layerTable.add(layerRecord);
 
 ### Block Operations
 ```typescript
-import { AcDbBlockReference, AcGePoint3d } from '@mlightcad/data-model';
+import { AcDbBlockReference, AcGePoint3d } from '@hy/data-model';
 
 // Create a block reference
 const insertionPoint = new AcGePoint3d(0, 0, 0);
@@ -172,7 +172,7 @@ import {
   AcDbFileType,
   acdbHostApplicationServices,
   AcDbOpenDatabaseOptions
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { AcDbLibreDwgConverter } from '@mlightcad/libredwg-converter'
 
 // Optional: replace the default native DXF converter (e.g. GPL worker-based parser)
@@ -204,7 +204,7 @@ await database.read(buffer, { readOnly: true }, AcDbFileType.DXF)
 ### Font Loading
 
 Fonts referenced by text entities are loaded on demand by the mtext renderer when a
-font is first needed. Viewers such as `@mlightcad/cad-simple-viewer` typically resolve
+font is first needed. Viewers such as `@hy/cad-simple-viewer` typically resolve
 font metadata from [mlightcad/cad-data](https://github.com/mlightcad/cad-data)
 (default CDN: `https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/`).
 
@@ -215,7 +215,7 @@ guide in the cad-viewer wiki.
 
 ### Dimension Creation
 ```typescript
-import { AcDbAlignedDimension, AcGePoint3d } from '@mlightcad/data-model';
+import { AcDbAlignedDimension, AcGePoint3d } from '@hy/data-model';
 
 // Create an aligned dimension
 const defPoint1 = new AcGePoint3d(0, 0, 0);
@@ -229,7 +229,7 @@ dimension.setDimensionStyle('Standard');
 
 ### Layout Management
 ```typescript
-import { AcDbLayoutManager } from '@mlightcad/data-model';
+import { AcDbLayoutManager } from '@hy/data-model';
 
 // Get layout manager
 const layoutManager = database.getLayoutManager();
@@ -248,9 +248,9 @@ newLayout.setPlotCentered(true);
 
 ## Dependencies
 
-- **@mlightcad/common**: For common utilities (peer dependency)
-- **@mlightcad/geometry-engine**: For geometric operations (peer dependency)
-- **@mlightcad/graphic-interface**: For graphics interface (peer dependency)
+- **@hy/common**: For common utilities (peer dependency)
+- **@hy/geometry-engine**: For geometric operations (peer dependency)
+- **@hy/graphic-interface**: For graphics interface (peer dependency)
 - **iconv-lite**: For text encoding conversion
 - **uid**: For unique ID generation
 

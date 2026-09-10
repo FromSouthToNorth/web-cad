@@ -58,13 +58,13 @@ export interface AcApLayerIsolateResult {
  */
 export interface AcApLaydelEntitySnapshot {
   /** Object id of the block table record that owned the entity. */
-  ownerId: import('@mlightcad/data-model').AcDbObjectId
+  ownerId: import('@hy/data-model').AcDbObjectId
 
   /** Object id of the erased entity. */
-  objectId: import('@mlightcad/data-model').AcDbObjectId
+  objectId: import('@hy/data-model').AcDbObjectId
 
   /** Cloned entity data for restoration. */
-  entity: import('@mlightcad/data-model').AcDbEntity
+  entity: import('@hy/data-model').AcDbEntity
 }
 
 /**
@@ -80,7 +80,7 @@ export type AcApDeleteLayerResult =
       /** Name of the deleted layer. */
       layerName: string
       /** Cloned layer table record before removal. */
-      layer: import('@mlightcad/data-model').AcDbLayerTableRecord
+      layer: import('@hy/data-model').AcDbLayerTableRecord
       /** Entity snapshots removed with the layer. */
       entities: AcApLaydelEntitySnapshot[]
     }

@@ -1,5 +1,5 @@
-import { AcCmColor } from '@mlightcad/common'
-import { AcGeLine2d, AcGeLoop2d } from '@mlightcad/geometry-engine'
+import { AcCmColor } from '@hy/common'
+import { AcGeLine2d, AcGeLoop2d } from '@hy/geometry-engine'
 
 import { AcDbBlockTableRecord } from '../database/AcDbBlockTableRecord'
 import { AcDbDatabase } from '../database/AcDbDatabase'

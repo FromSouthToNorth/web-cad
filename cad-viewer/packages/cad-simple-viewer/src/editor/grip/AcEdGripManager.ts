@@ -3,7 +3,7 @@ import {
   AcDbSystemVariables,
   AcDbSysVarManager,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcApDocManager } from '../../app'
 import { AcEdMTextEditor } from '../input/ui/AcEdMTextEditor'

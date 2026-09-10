@@ -1,4 +1,4 @@
-import type { AcApPluginManager } from '@mlightcad/cad-simple-viewer'
+import type { AcApPluginManager } from '@hy/cad-simple-viewer'
 
 import { AGENT_PLUGIN_NAME } from './AcApAgentPlugin'
 import { registerAgentI18n } from './i18n'
@@ -9,7 +9,7 @@ export const AGENT_PLUGIN_TRIGGERS = ['agent'] as const
 /**
  * Registers the CAD Agent plugin for lazy loading.
  *
- * Import from `@mlightcad/cad-agent-plugin/register` so the main bundle
+ * Import from `@hy/cad-agent-plugin/register` so the main bundle
  * is not pulled into the application entry chunk.
  */
 export function registerLazyAgentPlugin(
@@ -21,7 +21,7 @@ export function registerLazyAgentPlugin(
     name: AGENT_PLUGIN_NAME,
     triggers: [...AGENT_PLUGIN_TRIGGERS],
     loader: async () => {
-      const { createAgentPlugin } = await import('@mlightcad/cad-agent-plugin')
+      const { createAgentPlugin } = await import('@hy/cad-agent-plugin')
       return createAgentPlugin()
     }
   })

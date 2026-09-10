@@ -183,12 +183,12 @@ import {
   SearchOutlined
 } from '@ant-design/icons-vue'
 import { App as AntdApp } from 'ant-design-vue'
-import { AcApDocManager, AcApLayerService } from '@mlightcad/cad-simple-viewer'
-import { AcCmColor, AcCmColorMethod } from '@mlightcad/data-model'
+import { AcApDocManager, AcApLayerService } from '@hy/cad-simple-viewer'
+import { AcCmColor, AcCmColorMethod } from '@hy/data-model'
 import {
   type LayerInfo,
   useLayers
-} from '@mlightcad/cad-viewer'
+} from '@hy/cad-viewer'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 

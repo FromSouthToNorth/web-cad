@@ -1,4 +1,4 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 import {
   AcCmColor,
   AcCmColorMethod,
@@ -6,7 +6,7 @@ import {
   AcDbDatabase,
   AcDbSystemVariables,
   AcDbSysVarManager
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { computed, ref } from 'vue'
 
 import {

@@ -5,7 +5,7 @@ import {
   acgiResolveSubEntityTraitsRgbFromBackground,
   AcGiSubEntityTraits,
   deepClone
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 
 import { AcTrCommonUtil, AcTrMaterialUtil } from '../util'

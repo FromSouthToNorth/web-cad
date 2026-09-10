@@ -9,7 +9,7 @@ import {
   isHighlightCloneDrawable,
   isHighlightOverlayDescendant,
   isObjectHierarchyVisible
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 import * as THREE from 'three'
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js'

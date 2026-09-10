@@ -1,4 +1,4 @@
-import { AcGeBox2d, AcGeMatrix3d, AcGePoint3dLike } from '@mlightcad/data-model'
+import { AcGeBox2d, AcGeMatrix3d, AcGePoint3dLike } from '@hy/data-model'
 
 /**
  * Converts CAD 4×4 matrices to SVG transforms and transforms 2D boxes.

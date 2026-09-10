@@ -1,4 +1,4 @@
-import { AcDbLayerTableRecord } from '@mlightcad/data-model'
+import { AcDbLayerTableRecord } from '@hy/data-model'
 
 import { LAYER_LOCKED_FLAG } from './types'
 

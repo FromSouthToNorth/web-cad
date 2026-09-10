@@ -1,4 +1,4 @@
-import type { AcApPluginManager } from '@mlightcad/cad-simple-viewer'
+import type { AcApPluginManager } from '@hy/cad-simple-viewer'
 
 import type { AcApHtmlPluginOptions } from './AcApHtmlPluginOptions'
 
@@ -23,7 +23,7 @@ let registeredOptions: AcApHtmlPluginOptions = {}
 /**
  * Registers the HTML export plugin for lazy loading.
  *
- * Import from `@mlightcad/cad-html-plugin/register` so the main plugin bundle
+ * Import from `@hy/cad-html-plugin/register` so the main plugin bundle
  * is not pulled into the application entry chunk.
  *
  * @param pluginManager - Plugin manager that receives the lazy registration
@@ -44,7 +44,7 @@ export function registerLazyHtmlPlugin(
     name: HTML_PLUGIN_NAME,
     triggers: [...HTML_PLUGIN_TRIGGERS],
     loader: async () => {
-      const { createHtmlPlugin } = await import('@mlightcad/cad-html-plugin')
+      const { createHtmlPlugin } = await import('@hy/cad-html-plugin')
       return createHtmlPlugin(optionsForLoader)
     }
   })

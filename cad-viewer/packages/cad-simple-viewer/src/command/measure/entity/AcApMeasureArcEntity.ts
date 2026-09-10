@@ -1,9 +1,9 @@
-import type { AcDbDatabase } from '@mlightcad/data-model'
+import type { AcDbDatabase } from '@hy/data-model'
 import {
   AcTrHtmlBadge,
   AcTrHtmlCanvasOverlay,
   AcTrHtmlDot
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 
 import {
   acapMeasurementCanvasLineWidth,

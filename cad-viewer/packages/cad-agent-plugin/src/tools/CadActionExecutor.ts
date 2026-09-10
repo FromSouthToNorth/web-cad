@@ -1,7 +1,7 @@
 import {
   AcApDocManager,
   acapRunDatabaseEdit
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   AcDbArc,
   AcDbCircle,
@@ -24,7 +24,7 @@ import {
   AcGePoint3d,
   AcGeTol,
   HATCH_PATTERN_SOLID
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { requireDocument, requireView } from './documentAccess'
 import type { DrawingContextSnapshot } from './DrawingContextProvider'

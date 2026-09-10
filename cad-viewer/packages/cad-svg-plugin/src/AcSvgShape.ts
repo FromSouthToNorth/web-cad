@@ -2,7 +2,7 @@ import {
   AcGiShapeData,
   AcGiSubEntityTraits,
   AcGiTextStyle
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcSvgEntity } from './AcSvgEntity'
 import { buildSvgShape } from './AcSvgShapeUtil'

@@ -224,10 +224,10 @@
 
 ### C.4.3 cad-invertsel-plugin 的 data-model 依赖未用 workspace 协议
 
-- **问题**：`packages/cad-invertsel-plugin/package.json:48`（devDependencies）与 `:52`（peerDependencies）把 `@mlightcad/data-model` 写成 `^1.13.0`，是全仓 24 处声明中唯一的漂移，违反 CLAUDE.md「包内引用一律使用 `workspace:*`」。
+- **问题**：`packages/cad-invertsel-plugin/package.json:48`（devDependencies）与 `:52`（peerDependencies）把 `@hy/data-model` 写成 `^1.13.0`，是全仓 24 处声明中唯一的漂移，违反 CLAUDE.md「包内引用一律使用 `workspace:*`」。
 - **证据**：`tools/sync-versions.mjs:139-152` 只重写 `workspace:*` 或 `pnpm-workspace.yaml` overrides 中列出的名字，而 data-model 不在 overrides（`pnpm-workspace.yaml:10-17`），所以 `pnpm sync:versions:check` **永远看不到它**。
 - **验证修正（比原文更严重）**：`pnpm-lock.yaml:180-182` 已把它解析为 registry 的 **1.14.3**（repository 指向 realdwg-web），插件 node_modules 也软链到该 registry 副本而非本地 1.13.0（`link-workspace-packages` 未生效）；即本地改动不会进入插件。原文「publish 后 peer 范围静默失效」那半不成立——该包 `private:true`。
-- **建议修复**：两处都改为 `workspace:*` 并重装；考虑在 sync-versions.mjs 中把内部包名（`@mlightcad/*`）纳入强制 workspace 协议检查。
+- **建议修复**：两处都改为 `workspace:*` 并重装；考虑在 sync-versions.mjs 中把内部包名（`@hy/*`）纳入强制 workspace 协议检查。
 
 ### C.4.4 标签碰撞重算与绘制路径的优先级不一致
 
@@ -292,7 +292,7 @@
 
 ### C.5.3 changeset fixed 组与 lockstep 约定不符
 
-- **问题**：`.changeset/config.json:5-19` 的 `fixed` 组只有 11 个包，缺 `@mlightcad/cad-search-plugin`(1.6.1)、`common`(1.13.0)、`data-model`(1.13.0)、`geometry-engine`(3.13.0)、`graphic-interface`(3.13.0)。这 5 个都不是 private，会被 `ci.yml:149` 的 `pnpm -r publish` 发布。
+- **问题**：`.changeset/config.json:5-19` 的 `fixed` 组只有 11 个包，缺 `@hy/cad-search-plugin`(1.6.1)、`common`(1.13.0)、`data-model`(1.13.0)、`geometry-engine`(3.13.0)、`graphic-interface`(3.13.0)。这 5 个都不是 private，会被 `ci.yml:149` 的 `pnpm -r publish` 发布。
 - **证据**：CLAUDE.md 要求「packages/* 采用 lockstep 发布（所有包最终统一到同一版本）」；只要它们不同属一个 fixed 组，`pnpm changeset version` 只能得到 1.6.1→1.7.0 与 3.13.0→3.14.0 等多条版本线——正是 CLAUDE.md 自己记录的版本线不一致的成因。另：config.json `:21` 的 `"access": "restricted"` 与 CI 的 `--access public` 相互矛盾（实际发布走 pnpm，影响小）；更强的证据是现存 `.changeset/legacy-shell-removal.md` 只列 3 个包且 bump 混用（major/minor），与 SKILL.md「覆盖全部包、同一 bump」冲突，lockstep 事实上未达成。
 - **建议修复**：把这 5 个包并入同一个 fixed 组（需先把 version 对齐到统一版本线），并把 `access` 改为 `public`；或明确放弃 lockstep 并同步修改 CLAUDE.md 的约定。
 
@@ -310,7 +310,7 @@
 
 ### C.5.6 bootstrap.mjs 的构建完成判据过弱
 
-- **问题**：`bootstrap.mjs:78` 只要 `packages/cad-viewer-example/dist` 存在就跳过 `pnpm build`，即便 `data-model/lib`、`three-renderer/lib` 等上游产物缺失或过期（例如单独跑过 `pnpm --filter @mlightcad/data-model clean`，或新加了包）。
+- **问题**：`bootstrap.mjs:78` 只要 `packages/cad-viewer-example/dist` 存在就跳过 `pnpm build`，即便 `data-model/lib`、`three-renderer/lib` 等上游产物缺失或过期（例如单独跑过 `pnpm --filter @hy/data-model clean`，或新加了包）。
 - **证据**：第 3 步校验只检查 3 个硬编码文件（`:90-94`），失败时仅 `process.exit(1)` 而**不会补跑构建**（与 CLAUDE.md「缺失时重新 pnpm build」的描述不符）；`--fast` 模式下 `:87` 整段校验被跳过，使用者会拿到残缺环境。可复现：删除 `packages/data-model/lib` 后运行，步骤 2 被跳过、步骤 3 报缺失退出，须人工 `cd cad-viewer && pnpm build` 恢复。nx 有构建缓存，真正重跑 `pnpm build` 成本很低，跳过几乎无收益，故 P2→P3。
 - **建议修复**：改为遍历 workspace 包逐一校验产物（或直接无条件执行 `pnpm build`，依赖 nx cache 兜底），并把 expectedFiles 由包清单生成而不是硬编码 3 个路径。
 
@@ -345,7 +345,7 @@
 
 ### C.6.3 cad-svg-plugin README 的 peer 依赖与产物名不准
 
-- **问题**：`README.md:27-31` 的 peer 依赖只列 `@mlightcad/cad-simple-viewer`、`@mlightcad/data-model`、`@mlightcad/mtext-parser`，漏了 `@mlightcad/mtext-renderer`；`:35` 还称产物为 `dist/index.js` / `dist/register.js`。
+- **问题**：`README.md:27-31` 的 peer 依赖只列 `@hy/cad-simple-viewer`、`@hy/data-model`、`@mlightcad/mtext-parser`，漏了 `@mlightcad/mtext-renderer`；`:35` 还称产物为 `dist/index.js` / `dist/register.js`。
 - **证据**：`package.json:51-56` 声明了 peerDependency `@mlightcad/mtext-renderer@^0.12.4`，且 `AcSvgShapeUtil.ts:8-13` 在运行时从 `'@mlightcad/mtext-renderer'` 导入 `FontManager`/`ShxParserFont`（SHAPE 实体导出路径；`AcSvgMTextUtil.ts:19` 另用 mtext-parser，已列）。实际产物为 `cad-svg-plugin.js` / `cad-svg-plugin-register.js`（`package.json:30/35` 与磁盘 `dist/` 一致）。
 - **影响**：按文档安装的宿主（`.pnpmrc` 开启 `strict-peer-dependencies=true`）会在执行 `csvg` 时缺包失败。
 - **建议修复**：README 补齐 `@mlightcad/mtext-renderer` 并修正产物文件名（或让其与 `pluginRollupOutput` 的 `createLibEntryFileName` 生成规则一致）。

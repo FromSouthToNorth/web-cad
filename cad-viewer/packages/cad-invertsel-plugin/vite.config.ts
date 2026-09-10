@@ -6,7 +6,7 @@ import {
   createLibRollupOutput
 } from '../vite-config/pluginRollupOutput'
 
-const packageName = '@mlightcad/cad-invertsel-plugin'
+const packageName = '@hy/cad-invertsel-plugin'
 const pluginId = 'cad-invertsel-plugin'
 
 export default defineConfig({

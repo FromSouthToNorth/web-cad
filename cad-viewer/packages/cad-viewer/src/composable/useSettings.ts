@@ -1,4 +1,4 @@
-import { AcApSettingManager, AcApSettings } from '@mlightcad/cad-simple-viewer'
+import { AcApSettingManager, AcApSettings } from '@hy/cad-simple-viewer'
 import { reactive } from 'vue'
 
 export function useSettings() {

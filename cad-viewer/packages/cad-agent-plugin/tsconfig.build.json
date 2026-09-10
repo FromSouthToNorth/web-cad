@@ -9,7 +9,7 @@
     "emitDeclarationOnly": true,
     "skipLibCheck": true,
     "paths": {
-      "@mlightcad/cad-agent-plugin": [
+      "@hy/cad-agent-plugin": [
         "./src/index.ts"
       ]
     }

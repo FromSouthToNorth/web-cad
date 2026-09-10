@@ -2,7 +2,7 @@ import {
   type AcGiHatchPatternLine,
   AcGiSubEntityTraits,
   log
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 
 import {

@@ -1,9 +1,9 @@
-import { AcGiSubEntityTraits } from '@mlightcad/data-model'
+import { AcGiSubEntityTraits } from '@hy/data-model'
 import {
   AcTrRenderer,
   getMaterialMetadata,
   setMaterialMetadata
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 import * as THREE from 'three'
 
 import { AcTrInheritedLayerMaterialMapper } from '../src/view/AcTrInheritedLayerMaterialMapper'

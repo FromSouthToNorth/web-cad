@@ -1,5 +1,5 @@
-import type { AcDbEntity } from '@mlightcad/data-model'
-import { AcGeMatrix3d, AcGePoint3d } from '@mlightcad/data-model'
+import type { AcDbEntity } from '@hy/data-model'
+import { AcGeMatrix3d, AcGePoint3d } from '@hy/data-model'
 
 import {
   AcEdSelectionStaticPreviewJig,

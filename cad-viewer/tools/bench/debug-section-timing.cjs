@@ -9,7 +9,7 @@
 'use strict'
 
 const { readFile } = require('node:fs/promises')
-const { AcDbDxfFiler } = require('@mlightcad/data-model')
+const { AcDbDxfFiler } = require('@hy/data-model')
 
 async function main() {
   const file = process.argv[2]

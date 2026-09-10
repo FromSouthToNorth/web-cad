@@ -2,7 +2,7 @@ import {
   AcGePoint3dLike,
   AcGiPointStyle,
   AcGiSubEntityTraits
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 
 import type { AcTrDrawMode } from '../draw/AcTrDrawMode'

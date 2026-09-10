@@ -3,8 +3,8 @@ import {
   AcDbBlockReference,
   AcDbBlockTableRecord,
   acdbPreviewIconToDataUrl,
-  AcDbRenderingCache} from '@mlightcad/data-model'
-import { AcTrEntity, type AcTrRenderer } from '@mlightcad/three-renderer'
+  AcDbRenderingCache} from '@hy/data-model'
+import { AcTrEntity, type AcTrRenderer } from '@hy/three-renderer'
 
 import { AcApDocManager } from '../../app'
 import { AcTrView2d } from '../../view'

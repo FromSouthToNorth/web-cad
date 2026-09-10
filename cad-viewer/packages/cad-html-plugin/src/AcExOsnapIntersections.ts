@@ -8,7 +8,7 @@
  * @packageDocumentation
  */
 
-import { FLOAT_TOL, TAU } from '@mlightcad/data-model'
+import { FLOAT_TOL, TAU } from '@hy/data-model'
 
 import { normalizeArcDelta } from './AcExOsnapPrimitiveToAcGe'
 import type {

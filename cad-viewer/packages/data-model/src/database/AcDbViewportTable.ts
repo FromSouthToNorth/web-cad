@@ -1,4 +1,4 @@
-import { AcGeBox2d } from '@mlightcad/geometry-engine'
+import { AcGeBox2d } from '@hy/geometry-engine'
 
 import { ACTIVE_VPORT_NAME } from '../misc/AcDbConstants'
 import { AcDbDatabase } from './AcDbDatabase'

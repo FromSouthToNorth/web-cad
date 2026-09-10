@@ -1,4 +1,4 @@
-import { AcDbLayerTableRecord, AcDbObjectId } from '@mlightcad/data-model'
+import { AcDbLayerTableRecord, AcDbObjectId } from '@hy/data-model'
 
 import { AcApContext, AcApDocManager } from '../../app'
 import {

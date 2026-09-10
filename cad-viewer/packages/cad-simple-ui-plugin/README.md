@@ -1,6 +1,6 @@
-# @mlightcad/cad-simple-ui-plugin
+# @hy/cad-simple-ui-plugin
 
-Framework-agnostic toolbar, layer manager, and review palette UI for [`@mlightcad/cad-simple-viewer`](https://github.com/mlightcad/cad-viewer).
+Framework-agnostic toolbar, layer manager, and review palette UI for [`@hy/cad-simple-viewer`](https://github.com/mlightcad/cad-viewer).
 
 This plugin provides ready-to-use CAD viewer chrome without Vue, React, or Element Plus. All UI uses plain DOM and respects the cad-simple-viewer `--ml-ui-*` theme tokens.
 
@@ -24,7 +24,7 @@ This plugin provides ready-to-use CAD viewer chrome without Vue, React, or Eleme
 ## Install
 
 ```bash
-pnpm add @mlightcad/cad-simple-ui-plugin @mlightcad/cad-simple-viewer @mlightcad/data-model
+pnpm add @hy/cad-simple-ui-plugin @hy/cad-simple-viewer @hy/data-model
 ```
 
 ## Quick start
@@ -32,8 +32,8 @@ pnpm add @mlightcad/cad-simple-ui-plugin @mlightcad/cad-simple-viewer @mlightcad
 Load the plugin after creating the document manager. Apply the initial UI theme on `host` first so theme/locale/placement buttons work even before a drawing is opened:
 
 ```typescript
-import { AcApDocManager, acedApplyUiTheme } from '@mlightcad/cad-simple-viewer'
-import { createSimpleUiPlugin } from '@mlightcad/cad-simple-ui-plugin'
+import { AcApDocManager, acedApplyUiTheme } from '@hy/cad-simple-viewer'
+import { createSimpleUiPlugin } from '@hy/cad-simple-ui-plugin'
 
 const host = document.getElementById('viewer-host')!
 
@@ -54,10 +54,10 @@ await AcApDocManager.instance.pluginManager.loadPlugin(
 
 ### Lazy registration (smaller initial bundle)
 
-Import from `@mlightcad/cad-simple-ui-plugin/register` so the main plugin bundle is loaded only when you register it:
+Import from `@hy/cad-simple-ui-plugin/register` so the main plugin bundle is loaded only when you register it:
 
 ```typescript
-import { registerSimpleUiPlugin } from '@mlightcad/cad-simple-ui-plugin/register'
+import { registerSimpleUiPlugin } from '@hy/cad-simple-ui-plugin/register'
 
 await registerSimpleUiPlugin(AcApDocManager.instance.pluginManager, {
   host,
@@ -210,7 +210,7 @@ import {
   type AcApSimpleUiPlugin,
   createToolbarLayoutSwitcher,
   toolbarPreset
-} from '@mlightcad/cad-simple-ui-plugin'
+} from '@hy/cad-simple-ui-plugin'
 
 const plugin = docManager.pluginManager.getPlugin(
   SIMPLE_UI_PLUGIN_NAME
@@ -266,8 +266,8 @@ Built-in preset ids include: `select`, `pan`, `zoom-extent`, `layer`, `measure`,
 Keep all predefined buttons and append your own at the end:
 
 ```typescript
-import { AcEdOpenMode } from '@mlightcad/cad-simple-viewer'
-import { createSimpleUiPlugin } from '@mlightcad/cad-simple-ui-plugin'
+import { AcEdOpenMode } from '@hy/cad-simple-viewer'
+import { createSimpleUiPlugin } from '@hy/cad-simple-ui-plugin'
 
 createSimpleUiPlugin({
   toolbar: {
@@ -294,7 +294,7 @@ import {
   createSimpleUiPlugin,
   createToolbarSeparator,
   toolbarPreset
-} from '@mlightcad/cad-simple-ui-plugin'
+} from '@hy/cad-simple-ui-plugin'
 
 createSimpleUiPlugin({
   toolbar: {
@@ -454,8 +454,8 @@ Disabling the toolbar also disables the layer dock UI, because the layer list is
 ### Complete example
 
 ```typescript
-import { AcApDocManager, AcEdOpenMode, acedApplyUiTheme } from '@mlightcad/cad-simple-viewer'
-import { createSimpleUiPlugin } from '@mlightcad/cad-simple-ui-plugin'
+import { AcApDocManager, AcEdOpenMode, acedApplyUiTheme } from '@hy/cad-simple-viewer'
+import { createSimpleUiPlugin } from '@hy/cad-simple-ui-plugin'
 
 const viewerPane = document.getElementById('viewerPane')!
 

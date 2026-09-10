@@ -1,4 +1,4 @@
-import type { AcDbDatabase } from '@mlightcad/data-model'
+import type { AcDbDatabase } from '@hy/data-model'
 
 import type { AcEdBaseView } from '../../editor'
 import { eventBus } from '../../editor/global/eventBus'

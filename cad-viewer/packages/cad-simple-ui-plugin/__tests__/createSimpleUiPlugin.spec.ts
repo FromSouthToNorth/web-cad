@@ -24,7 +24,7 @@ function createEventStub() {
   }
 }
 
-jest.mock('@mlightcad/cad-simple-viewer', () => {
+jest.mock('@hy/cad-simple-viewer', () => {
   const layout = jest.requireActual(
     '../../cad-simple-viewer/src/editor/global/AcEdUiLayout'
   ) as typeof import('../../cad-simple-viewer/src/editor/global/AcEdUiLayout')
@@ -123,7 +123,7 @@ jest.mock('@mlightcad/cad-simple-viewer', () => {
   }
 })
 
-jest.mock('@mlightcad/data-model', () => ({
+jest.mock('@hy/data-model', () => ({
   AcCmColor: {
     fromString: jest.fn(() => null)
   },
@@ -145,8 +145,8 @@ jest.mock('@mlightcad/data-model', () => ({
   }
 }))
 
-import { AcApDocManager, AcEdCommandStack } from '@mlightcad/cad-simple-viewer'
-import { AcDbDatabase } from '@mlightcad/data-model'
+import { AcApDocManager, AcEdCommandStack } from '@hy/cad-simple-viewer'
+import { AcDbDatabase } from '@hy/data-model'
 
 import { AcApSimpleUiPlugin } from '../src/createSimpleUiPlugin'
 import { toolbarPreset } from '../src/config/toolbarItemUtils'

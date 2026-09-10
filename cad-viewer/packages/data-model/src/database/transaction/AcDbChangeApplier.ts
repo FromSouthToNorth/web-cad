@@ -1,4 +1,4 @@
-import { isEqual } from '@mlightcad/common'
+import { isEqual } from '@hy/common'
 
 import { AcDbObject } from '../../base'
 import { AcDbEntity } from '../../entity/AcDbEntity'

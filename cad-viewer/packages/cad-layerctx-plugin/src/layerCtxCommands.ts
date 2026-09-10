@@ -9,8 +9,8 @@ import {
   AcEdPromptPointOptions,
   AcEdPromptStatus,
   resolveSelectedEntities
-} from '@mlightcad/cad-simple-viewer'
-import { AcDbCurve, AcGePoint3d, AcGePoint3dLike, AcGeTol } from '@mlightcad/data-model'
+} from '@hy/cad-simple-viewer'
+import { AcDbCurve, AcGePoint3d, AcGePoint3dLike, AcGeTol } from '@hy/data-model'
 
 import { layerCtxT } from './i18n'
 import { deleteSelectedEntitiesCtx, deselectAllCtx } from './layerCtxOps'

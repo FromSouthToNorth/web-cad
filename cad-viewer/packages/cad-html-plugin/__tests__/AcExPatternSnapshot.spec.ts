@@ -1,4 +1,4 @@
-import { AcTrLinePatternShaders } from '@mlightcad/three-renderer'
+import { AcTrLinePatternShaders } from '@hy/three-renderer'
 import * as THREE from 'three'
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 
@@ -14,7 +14,7 @@ import {
 import {
   createGradientHatchShaderMaterial,
   createHatchPatternShaderMaterial
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 
 describe('AcExPatternSnapshot', () => {
   it('extracts scaled linetype data from shader materials', () => {

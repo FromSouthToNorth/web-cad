@@ -1,6 +1,6 @@
-import { AcCmColor, AcCmTransparency } from '@mlightcad/common'
-import { AcGePoint2d, AcGePoint3d } from '@mlightcad/geometry-engine'
-import { AcGiLineWeight } from '@mlightcad/graphic-interface'
+import { AcCmColor, AcCmTransparency } from '@hy/common'
+import { AcGePoint2d, AcGePoint3d } from '@hy/geometry-engine'
+import { AcGiLineWeight } from '@hy/graphic-interface'
 
 import { acdbHostApplicationServices } from '../src/base'
 import { AcDbDxfFiler } from '../src/base/AcDbDxfFiler'

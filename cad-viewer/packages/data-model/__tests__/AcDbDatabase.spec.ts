@@ -1,4 +1,4 @@
-import { AcCmColor, AcCmColorMethod } from '@mlightcad/common'
+import { AcCmColor, AcCmColorMethod } from '@hy/common'
 
 import { acdbHostApplicationServices } from '../src/base/AcDbHostApplicationServices'
 import { AcDbOpenDatabaseError } from '../src/database/AcDbOpenDatabaseError'

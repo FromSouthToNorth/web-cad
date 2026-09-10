@@ -70,7 +70,7 @@ async function main() {
   }
   if (!existsSync(cliJs)) {
     console.error(
-      'CLI not built. Run: pnpm --filter @mlightcad/cad-simple-viewer-cli build'
+      'CLI not built. Run: pnpm --filter @hy/cad-simple-viewer-cli build'
     )
     process.exitCode = 1
     return

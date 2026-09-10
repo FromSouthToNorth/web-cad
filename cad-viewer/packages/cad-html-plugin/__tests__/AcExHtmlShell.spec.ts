@@ -1,4 +1,4 @@
-jest.mock('@mlightcad/cad-simple-viewer', () => ({
+jest.mock('@hy/cad-simple-viewer', () => ({
   ML_UI_MOBILE_MAX_WIDTH: 768
 }))
 

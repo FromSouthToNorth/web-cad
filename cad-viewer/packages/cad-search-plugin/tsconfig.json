@@ -5,7 +5,7 @@
     "rootDir": "./src",
     "outDir": "./lib",
     "paths": {
-      "@mlightcad/cad-search-plugin": [
+      "@hy/cad-search-plugin": [
         "./src/index.ts"
       ]
     }

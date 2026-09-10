@@ -3,7 +3,7 @@ import { DownOutlined, UpOutlined } from '@ant-design/icons-vue'
 import {
   AcApBlockInsertSession,
   AcApDocManager
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

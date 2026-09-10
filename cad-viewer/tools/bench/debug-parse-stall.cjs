@@ -17,7 +17,7 @@ const {
   AcDbFileType,
   acdbHostApplicationServices,
   AcDbNativeDxfConverter
-} = require('@mlightcad/data-model')
+} = require('@hy/data-model')
 
 async function main() {
   const file = process.argv[2]

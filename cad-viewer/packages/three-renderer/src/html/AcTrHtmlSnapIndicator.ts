@@ -1,4 +1,4 @@
-import { AcCmColor } from '@mlightcad/data-model'
+import { AcCmColor } from '@hy/data-model'
 
 import { acTrHtmlCssColor } from './AcTrHtmlColorUtil'
 import { AcTrHtmlElement, type AcTrHtmlElementOptions } from './AcTrHtmlElement'

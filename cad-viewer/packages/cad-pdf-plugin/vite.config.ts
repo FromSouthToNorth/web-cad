@@ -6,7 +6,7 @@ import {
   createLibRollupOutput
 } from '../vite-config/pluginRollupOutput'
 
-const packageName = '@mlightcad/cad-pdf-plugin'
+const packageName = '@hy/cad-pdf-plugin'
 const pluginId = 'cad-pdf-plugin'
 
 export default defineConfig({

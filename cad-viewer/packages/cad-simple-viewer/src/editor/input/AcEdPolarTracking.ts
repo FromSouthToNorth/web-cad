@@ -17,7 +17,7 @@ import {
   AcDbSysVarManager,
   AcGeMathUtil,
   AcGePoint2dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { constrainToOrtho, isOrthoModeEnabled } from './AcEdOrthoMode'
 

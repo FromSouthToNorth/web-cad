@@ -9,7 +9,7 @@
  *
  * The old bundle is expected to be a snapshot of dist/data-model.cjs taken
  * before the span-based rewrite; the new bundle is resolved from the workspace
- * package (@mlightcad/data-model).
+ * package (@hy/data-model).
  */
 'use strict'
 
@@ -27,7 +27,7 @@ if (!oldPath || files.length === 0) {
 }
 
 const oldDm = req(oldPath)
-const newDm = req('@mlightcad/data-model')
+const newDm = req('@hy/data-model')
 
 function valuesEqual(a, b) {
   if (a instanceof Uint8Array || b instanceof Uint8Array) {

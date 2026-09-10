@@ -4,7 +4,7 @@ import {
   AcDbDxfFiler,
   AcDbEntityProperties,
   AcDbEntityPropertyGroup
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   AcGeBox3d,
   AcGeCircArc3d,
@@ -13,8 +13,8 @@ import {
   AcGePoint3dLike,
   AcGeVector3d,
   TAU
-} from '@mlightcad/geometry-engine'
-import type { AcGiEntity, AcGiRenderer } from '@mlightcad/graphic-interface'
+} from '@hy/geometry-engine'
+import type { AcGiEntity, AcGiRenderer } from '@hy/graphic-interface'
 
 /** XDATA application name used to persist the shaft metadata in DXF. */
 const SHAFT_XDATA_APP = 'SHAFT'

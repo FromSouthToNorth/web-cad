@@ -1,8 +1,8 @@
-import { AcGiSubEntityTraits } from '@mlightcad/data-model'
+import { AcGiSubEntityTraits } from '@hy/data-model'
 import {
   ACGI_MODEL_SPACE_BACKGROUND,
   acgiForegroundColorForBackground
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 
 import { AcTrFillMaterialManager } from './AcTrFillMaterialManager'

@@ -19,7 +19,7 @@ import {
   AcDbRenderingCache,
   acdbHostApplicationServices,
   type AcDbProgressdEventArgs
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 
 import { AcTrRenderer } from '../src/renderer/AcTrRenderer'

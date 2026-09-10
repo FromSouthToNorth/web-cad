@@ -256,14 +256,14 @@
 import {
   AcApDocManager,
   acapRunDatabaseEdit
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   AcCmColor,
   AcDbAttribute,
   AcDbTextHorizontalMode,
   AcDbTextVerticalMode,
   AcGiLineWeight
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   Button as AButton,
   Checkbox as ACheckbox,

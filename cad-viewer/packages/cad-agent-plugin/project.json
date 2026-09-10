@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-agent-plugin",
+  "name": "@hy/cad-agent-plugin",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/cad-agent-plugin/src",
   "projectType": "library",

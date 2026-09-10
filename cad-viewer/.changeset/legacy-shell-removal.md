@@ -1,12 +1,12 @@
 ---
-'@mlightcad/cad-viewer': major
-'@mlightcad/cad-viewer-example': minor
-'@mlightcad/cad-viewer-examples': minor
+'@hy/cad-viewer': major
+'@hy/cad-viewer-example': minor
+'@hy/cad-viewer-examples': minor
 ---
 
 # 删除旧 Element Plus 壳
 
-`@mlightcad/cad-viewer` 基于 Element Plus 的旧壳组件已全部移除：
+`@hy/cad-viewer` 基于 Element Plus 的旧壳组件已全部移除：
 `MlCadViewer`、`MlToolBars`、`MlStatusBar`、`MlPaletteManager`、
 `MlRibbonCommands`、`MlNotificationCenter`、`MlHatchPatternPanel`、
 `MlHatchPatternDropdown`、`MlCharacterMapDialog` 等，以及仅旧壳使用的
@@ -23,7 +23,7 @@ lockfile 中。
 
 ## 迁移方式
 
-`@mlightcad/cad-viewer` 不再提供完整查看器壳。请基于导出的命令、对话框、
+`@hy/cad-viewer` 不再提供完整查看器壳。请基于导出的命令、对话框、
 公共组件与组合式函数自行组装壳，或参考 `cad-viewer-example` 的 Ant Design
 Vue 壳实现。
 
@@ -34,7 +34,7 @@ import {
   registerDialogs,
   registerLazyPlugins,
   i18n
-} from '@mlightcad/cad-viewer'
+} from '@hy/cad-viewer'
 ```
 
 ## 其它变更

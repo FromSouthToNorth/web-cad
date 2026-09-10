@@ -204,7 +204,7 @@ import {
   AcEdPromptDistanceOptions,
   AcEdPromptPointOptions,
   AcEdPromptStatus
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   AcDbAttributeDefinition,
   AcDbMText,
@@ -212,7 +212,7 @@ import {
   AcDbTextVerticalMode,
   AcGePoint3d,
   DEFAULT_TEXT_STYLE
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   Button as AButton,
   Checkbox as ACheckbox,

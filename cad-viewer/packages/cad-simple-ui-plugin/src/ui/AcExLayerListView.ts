@@ -2,8 +2,8 @@ import {
   AcApDocManager,
   type AcApLayerInfo,
   AcApLayerStore
-} from '@mlightcad/cad-simple-viewer'
-import { AcCmColor } from '@mlightcad/data-model'
+} from '@hy/cad-simple-viewer'
+import { AcCmColor } from '@hy/data-model'
 
 import type { AcExI18n } from '../i18n'
 import { AcExColorPicker } from './AcExColorPicker'

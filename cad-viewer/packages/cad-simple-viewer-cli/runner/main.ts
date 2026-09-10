@@ -1,5 +1,5 @@
-import { registerLazyHtmlPlugin } from '@mlightcad/cad-html-plugin/register'
-import { registerLazyPdfPlugin } from '@mlightcad/cad-pdf-plugin/register'
+import { registerLazyHtmlPlugin } from '@hy/cad-html-plugin/register'
+import { registerLazyPdfPlugin } from '@hy/cad-pdf-plugin/register'
 import {
   AcApDocManager,
   AcApI18n,
@@ -8,14 +8,14 @@ import {
   AcTrView2d,
   DXF_PARSER_WORKER_FILE,
   MTEXT_RENDERER_WORKER_FILE
-} from '@mlightcad/cad-simple-viewer'
-import { registerLazySvgPlugin } from '@mlightcad/cad-svg-plugin/register'
+} from '@hy/cad-simple-viewer'
+import { registerLazySvgPlugin } from '@hy/cad-svg-plugin/register'
 import {
   accmYieldForPaint,
   AcDbDatabaseConverterManager,
   AcDbFileType,
   AcDbNativeDxfConverter
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /** Max time to wait for convert + deferred font/text geometry after open. */
 const SCENE_IDLE_TIMEOUT_MS = 120_000

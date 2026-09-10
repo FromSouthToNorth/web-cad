@@ -119,7 +119,7 @@ pnpm preview:simple
 
 ## プラグインシステム
 
-CAD-Viewer は [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer) 内のモジュラー **プラグインシステム** を中心に構築されています。プラグインは `AcApPlugin` インターフェースを実装し、`onLoad` / `onUnload` 経由でビューアのライフサイクルにフックします。通常はコマンド登録、UI 追加、エクスポート/インポートパイプラインの接続に使用します。
+CAD-Viewer は [`@hy/cad-simple-viewer`](packages/cad-simple-viewer) 内のモジュラー **プラグインシステム** を中心に構築されています。プラグインは `AcApPlugin` インターフェースを実装し、`onLoad` / `onUnload` 経由でビューアのライフサイクルにフックします。通常はコマンド登録、UI 追加、エクスポート/インポートパイプラインの接続に使用します。
 
 プラグインは `AcApDocManager.instance.pluginManager`（`loadPlugin`、`registerLazyPlugin`、またはドキュメントマネージャー作成時の `plugins.fromConfig`）から読み込みます。エクスポート向けプラグインは **遅延読み込み** をサポートします。起動時に小さなスタブだけを登録し、ユーザーが関連コマンド（例：`-chtml`、または `cad-viewer` の `chtml` ダイアログでエクスポートを確定したとき）を実行した時点で重いバンドルをダウンロードします。
 
@@ -129,13 +129,13 @@ CAD-Viewer は [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer) 内�
 
 | パッケージ | 役割 | コマンド / 機能 |
 |---------|------|-------------------------|
-| [`@mlightcad/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | `cad-simple-viewer` 向け **ツールバー・レイヤーマネージャー・レビューパレット UI**（プレーン DOM、Vue/React 非依存） | `layer`、`markuppanel`、デフォルトツールバー（表示、測定、エクスポート、レビュー、テーマ、ロケール） |
-| [`@mlightcad/cad-agent-plugin`](packages/cad-agent-plugin) | **自然言語 CAD エージェント**（AI チャットパネル + 図面ツール呼び出し） | `agent` |
-| [`@mlightcad/cad-html-plugin`](packages/cad-html-plugin) | 図面を **自己完結型オフライン HTML** へエクスポート | `chtml`（`cad-viewer` のダイアログ）、`-chtml`（コマンドライン） |
-| [`@mlightcad/cad-pdf-plugin`](packages/cad-pdf-plugin) | **PDF エクスポートとインポート**（ベクターパイプライン） | `cpdf`、`ipdf` |
-| [`@mlightcad/cad-svg-plugin`](packages/cad-svg-plugin) | **SVG エクスポート** と共有ベクターレンダラー（PDF エクスポートでも使用） | `csvg` |
+| [`@hy/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | `cad-simple-viewer` 向け **ツールバー・レイヤーマネージャー・レビューパレット UI**（プレーン DOM、Vue/React 非依存） | `layer`、`markuppanel`、デフォルトツールバー（表示、測定、エクスポート、レビュー、テーマ、ロケール） |
+| [`@hy/cad-agent-plugin`](packages/cad-agent-plugin) | **自然言語 CAD エージェント**（AI チャットパネル + 図面ツール呼び出し） | `agent` |
+| [`@hy/cad-html-plugin`](packages/cad-html-plugin) | 図面を **自己完結型オフライン HTML** へエクスポート | `chtml`（`cad-viewer` のダイアログ）、`-chtml`（コマンドライン） |
+| [`@hy/cad-pdf-plugin`](packages/cad-pdf-plugin) | **PDF エクスポートとインポート**（ベクターパイプライン） | `cpdf`、`ipdf` |
+| [`@hy/cad-svg-plugin`](packages/cad-svg-plugin) | **SVG エクスポート** と共有ベクターレンダラー（PDF エクスポートでも使用） | `csvg` |
 
-### `@mlightcad/cad-simple-ui-plugin` — シンプルビューア向け UI 層
+### `@hy/cad-simple-ui-plugin` — シンプルビューア向け UI 層
 
 [`cad-simple-viewer`](packages/cad-simple-viewer) は意図的に **アプリケーション UI を同梱しません** — キャンバスと CAD コアのみです。シンプルビューアを独自 Web アプリに埋め込み、Vue ベースのフル [`cad-viewer`](packages/cad-viewer) シェルを採用せずにすぐ使える UI が必要な場合、**`cad-simple-ui-plugin` が想定される UI 層** です。
 
@@ -150,7 +150,7 @@ CAD-Viewer は [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer) 内�
 
 → **クイックスタート、ツールバーカスタマイズ、オプション：** [packages/cad-simple-ui-plugin/README.md](packages/cad-simple-ui-plugin/README.md)
 
-### `@mlightcad/cad-agent-plugin` — AI 図面アシスタント
+### `@hy/cad-agent-plugin` — AI 図面アシスタント
 
 [`cad-agent-plugin`](packages/cad-agent-plugin) は `cad-simple-viewer` ベースのアプリに **自然言語 CAD エージェント** を追加します。ユーザーは平易な言語で希望を記述し、エージェントが CAD ツールを呼び出して図面を調査し、ジオメトリを作成または変更します。
 
@@ -436,6 +436,6 @@ CAD-Viewer は **卓越したパフォーマンス** 向けに設計されてお
 
 cad-viewer モノレポは主に [MIT](LICENSE) ライセンスです。
 
-DXF 読み込みは `@mlightcad/data-model` 内の組み込み MIT パーサーを使用します。`@mlightcad/cad-simple-viewer` の **デフォルト DWG 読み込みパス** は GPL-3.0 パッケージ（`libredwg-web` / `@mlightcad/libredwg-converter`）に依存します。クローズドソース製品を提供し、GPL コードを顧客に配布できない場合は、代わりに [**プロプライエタリ DWG パーサー**](./PROPRIETARY-PARSER.md) を使用してください — このコンバーターを置き換え、スタックの残りを MIT のみに保てます。
+DXF 読み込みは `@hy/data-model` 内の組み込み MIT パーサーを使用します。`@hy/cad-simple-viewer` の **デフォルト DWG 読み込みパス** は GPL-3.0 パッケージ（`libredwg-web` / `@mlightcad/libredwg-converter`）に依存します。クローズドソース製品を提供し、GPL コードを顧客に配布できない場合は、代わりに [**プロプライエタリ DWG パーサー**](./PROPRIETARY-PARSER.md) を使用してください — このコンバーターを置き換え、スタックの残りを MIT のみに保てます。
 
 → **商用パーサー：** [PROPRIETARY-PARSER.md](./PROPRIETARY-PARSER.md)（スコープ、ライセンス、価格、統合、GPL コンプライアンス、サポート）

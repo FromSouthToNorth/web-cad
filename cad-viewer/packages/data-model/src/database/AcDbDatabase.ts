@@ -5,7 +5,7 @@ import {
   AcCmEventManager,
   AcCmTaskError,
   AcCmTransparency
-} from '@mlightcad/common'
+} from '@hy/common'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import {
@@ -81,10 +81,10 @@ import {
   AcGeBox3d,
   AcGePoint3d,
   AcGePoint3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 import { AcDbDwgVersion } from './AcDbDwgVersion'
 import type { AcDbClass } from './AcDbClass'
-import { AcGiLineWeight } from '@mlightcad/graphic-interface'
+import { AcGiLineWeight } from '@hy/graphic-interface'
 import { AcDbRegAppTable } from './AcDbRegAppTable'
 import { AcDbRegAppTableRecord } from './AcDbRegAppTableRecord'
 import { AcDbSysVarManager, AcDbSysVarType } from './AcDbSysVarManager'

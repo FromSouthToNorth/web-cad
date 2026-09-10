@@ -1,7 +1,7 @@
 import {
   AcApContext,
   AcEdCommand
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 import { toggleTunnelSettingsPanel } from '../settingsPanel'
 

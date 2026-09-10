@@ -3,13 +3,13 @@ import {
   acedApplyUiTheme,
   type AcEdUiTheme,
   isLightColorTheme
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   AcDbDatabase,
   AcDbSystemVariables,
   type AcDbSysVarEventArgs,
   AcDbSysVarManager
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /**
  * Reads the UI theme from a host element's `data-ml-ui-theme` attribute.

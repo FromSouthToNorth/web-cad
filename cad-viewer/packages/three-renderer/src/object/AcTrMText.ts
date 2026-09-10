@@ -2,7 +2,7 @@ import {
   AcGiMTextData,
   AcGiSubEntityTraits,
   AcGiTextStyle
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { MTextData } from '@mlightcad/mtext-renderer'
 
 import { AcTrMTextRenderer } from '../renderer/AcTrMTextRenderer'

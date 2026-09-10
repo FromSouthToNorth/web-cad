@@ -2,8 +2,8 @@ import {
   AcApDocManager,
   type AcEdCommandEventArgs,
   AcEdOpenMode
-} from '@mlightcad/cad-simple-viewer'
-import { type AcDbObjectId } from '@mlightcad/data-model'
+} from '@hy/cad-simple-viewer'
+import { type AcDbObjectId } from '@hy/data-model'
 
 import {
   HOST_CMD_COPY,

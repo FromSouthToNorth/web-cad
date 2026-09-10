@@ -2,8 +2,8 @@ import {
   AcApBlockPreviewConvertor,
   AcApDocManager,
   isInsertableBlockName
-} from '@mlightcad/cad-simple-viewer'
-import { accmYieldForPaint } from '@mlightcad/data-model'
+} from '@hy/cad-simple-viewer'
+import { accmYieldForPaint } from '@hy/data-model'
 import { ref } from 'vue'
 
 export interface InsertableBlockItem {

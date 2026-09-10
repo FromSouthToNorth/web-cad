@@ -157,7 +157,7 @@ src/
 ### 宿主集成
 
 ```typescript
-import { registerLazyAgentPlugin } from '@mlightcad/cad-agent-plugin/register'
+import { registerLazyAgentPlugin } from '@hy/cad-agent-plugin/register'
 
 registerLazyAgentPlugin(AcApDocManager.instance.pluginManager)
 ```

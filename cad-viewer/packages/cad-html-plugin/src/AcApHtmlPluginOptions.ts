@@ -1,7 +1,7 @@
 /**
  * Options for the HTML export plugin and convertor.
  *
- * These settings belong to `@mlightcad/cad-html-plugin`, not to
+ * These settings belong to `@hy/cad-html-plugin`, not to
  * `AcApDocManager`. Opening DXF/DWG never requires them.
  */
 export interface AcApHtmlPluginOptions {

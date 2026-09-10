@@ -119,7 +119,7 @@ pnpm preview:simple
 
 ## 플러그인 시스템
 
-CAD-Viewer는 [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer)의 모듈형 **플러그인 시스템**을 중심으로 구축됩니다. 플러그인은 `AcApPlugin` 인터페이스를 구현하고 `onLoad` / `onUnload`를 통해 뷰어 생명주기에 연결됩니다—일반적으로 명령 등록, UI 추가, 내보내기/가져오기 파이프라인 연결에 사용됩니다.
+CAD-Viewer는 [`@hy/cad-simple-viewer`](packages/cad-simple-viewer)의 모듈형 **플러그인 시스템**을 중심으로 구축됩니다. 플러그인은 `AcApPlugin` 인터페이스를 구현하고 `onLoad` / `onUnload`를 통해 뷰어 생명주기에 연결됩니다—일반적으로 명령 등록, UI 추가, 내보내기/가져오기 파이프라인 연결에 사용됩니다.
 
 `AcApDocManager.instance.pluginManager`(`loadPlugin`, `registerLazyPlugin`, 또는 문서 관리자 생성 시 `plugins.fromConfig`)를 통해 플러그인을 로드합니다. 내보내기 지향 플러그인은 **지연 로딩**을 지원합니다: 작은 stub을 먼저 등록하고, 사용자가 관련 명령(예: `-chtml`, 또는 `cad-viewer`의 `chtml` 대화상자에서 내보내기 확인)을 실행할 때만 무거운 번들을 다운로드합니다.
 
@@ -129,13 +129,13 @@ CAD-Viewer는 [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer)의 �
 
 | 패키지 | 역할 | 명령 / 기능 |
 |---------|------|-------------------------|
-| [`@mlightcad/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | `cad-simple-viewer`용 **툴바·레이어 관리자·검토 팔레트 UI**(순수 DOM, Vue/React 없음) | `layer`, `markuppanel`, 기본 툴바(보기, 측정, 내보내기, 검토, 테마, 로케일) |
-| [`@mlightcad/cad-agent-plugin`](packages/cad-agent-plugin) | **자연어 CAD 에이전트**(AI 채팅 패널 + 도면 도구 호출) | `agent` |
-| [`@mlightcad/cad-html-plugin`](packages/cad-html-plugin) | 도면을 **자체 포함 오프라인 HTML**로 내보내기 | `chtml` (`cad-viewer` 대화상자), `-chtml` (명령줄) |
-| [`@mlightcad/cad-pdf-plugin`](packages/cad-pdf-plugin) | **PDF 내보내기 및 가져오기**(벡터 파이프라인) | `cpdf`, `ipdf` |
-| [`@mlightcad/cad-svg-plugin`](packages/cad-svg-plugin) | **SVG 내보내기** 및 공유 벡터 렌더러(PDF 내보내기에서도 사용) | `csvg` |
+| [`@hy/cad-simple-ui-plugin`](packages/cad-simple-ui-plugin) | `cad-simple-viewer`용 **툴바·레이어 관리자·검토 팔레트 UI**(순수 DOM, Vue/React 없음) | `layer`, `markuppanel`, 기본 툴바(보기, 측정, 내보내기, 검토, 테마, 로케일) |
+| [`@hy/cad-agent-plugin`](packages/cad-agent-plugin) | **자연어 CAD 에이전트**(AI 채팅 패널 + 도면 도구 호출) | `agent` |
+| [`@hy/cad-html-plugin`](packages/cad-html-plugin) | 도면을 **자체 포함 오프라인 HTML**로 내보내기 | `chtml` (`cad-viewer` 대화상자), `-chtml` (명령줄) |
+| [`@hy/cad-pdf-plugin`](packages/cad-pdf-plugin) | **PDF 내보내기 및 가져오기**(벡터 파이프라인) | `cpdf`, `ipdf` |
+| [`@hy/cad-svg-plugin`](packages/cad-svg-plugin) | **SVG 내보내기** 및 공유 벡터 렌더러(PDF 내보내기에서도 사용) | `csvg` |
 
-### `@mlightcad/cad-simple-ui-plugin` — 간단한 뷰어용 UI 크롬
+### `@hy/cad-simple-ui-plugin` — 간단한 뷰어용 UI 크롬
 
 [`cad-simple-viewer`](packages/cad-simple-viewer)는 의도적으로 **애플리케이션 UI 없이** 캔버스와 CAD 코어만 제공합니다. 자체 웹 앱에 간단한 뷰어를 임베드하고 전체 Vue 기반 [`cad-viewer`](packages/cad-viewer) 셸을 채택하지 않으려면 **`cad-simple-ui-plugin`이 의도된 UI 레이어**입니다.
 
@@ -150,7 +150,7 @@ CAD-Viewer는 [`@mlightcad/cad-simple-viewer`](packages/cad-simple-viewer)의 �
 
 → **빠른 시작, 툴바 커스터마이징, 옵션:** [packages/cad-simple-ui-plugin/README.md](packages/cad-simple-ui-plugin/README.md)
 
-### `@mlightcad/cad-agent-plugin` — AI 도면 어시스턴트
+### `@hy/cad-agent-plugin` — AI 도면 어시스턴트
 
 [`cad-agent-plugin`](packages/cad-agent-plugin)은 `cad-simple-viewer` 기반 앱에 **자연어 CAD 에이전트**를 추가합니다. 사용자가 일반 언어로 원하는 것을 설명하면, 에이전트가 CAD 도구를 호출하여 도면을 검사하고 지오메트리를 생성하거나 수정합니다.
 
@@ -436,6 +436,6 @@ CAD-Viewer는 **탁월한 성능**을 위해 설계되었으며, 높은 프레�
 
 cad-viewer 모노레포는 주로 [MIT](LICENSE) 라이선스입니다.
 
-DXF 로딩은 `@mlightcad/data-model`의 내장 MIT 파서를 사용합니다. `@mlightcad/cad-simple-viewer`의 **기본 DWG 로딩 경로**는 GPL-3.0 패키지(`libredwg-web` / `@mlightcad/libredwg-converter`)에 의존합니다. 클로즈드소스 제품을 배포하고 고객에게 GPL 코드를 배포할 수 없다면, [**프로프라이어터리 DWG 파서**](./PROPRIETARY-PARSER.md)를 대신 사용하세요—해당 컨버터를 대체하고 나머지 스택은 MIT만 유지할 수 있습니다.
+DXF 로딩은 `@hy/data-model`의 내장 MIT 파서를 사용합니다. `@hy/cad-simple-viewer`의 **기본 DWG 로딩 경로**는 GPL-3.0 패키지(`libredwg-web` / `@mlightcad/libredwg-converter`)에 의존합니다. 클로즈드소스 제품을 배포하고 고객에게 GPL 코드를 배포할 수 없다면, [**프로프라이어터리 DWG 파서**](./PROPRIETARY-PARSER.md)를 대신 사용하세요—해당 컨버터를 대체하고 나머지 스택은 MIT만 유지할 수 있습니다.
 
 → **상용 파서:** [PROPRIETARY-PARSER.md](./PROPRIETARY-PARSER.md) (범위, 라이선스, 가격, 통합, GPL 준수, 지원)

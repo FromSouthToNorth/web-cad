@@ -6,8 +6,8 @@ import {
   type AcEdEvents,
   AcEdOpenMode,
   eventBus
-} from '@mlightcad/cad-simple-viewer'
-import type { AcDbOpenDatabaseErrorCode } from '@mlightcad/data-model'
+} from '@hy/cad-simple-viewer'
+import type { AcDbOpenDatabaseErrorCode } from '@hy/data-model'
 import {
   computed,
   type ComputedRef,

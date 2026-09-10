@@ -8,7 +8,7 @@
  *
  * Consumer (examples):
  *   node tools/copy-workers.mjs dist/workers
- *   → copies *-worker.js from @mlightcad/cad-simple-viewer/dist
+ *   → copies *-worker.js from @hy/cad-simple-viewer/dist
  */
 import {
   copyFileSync,
@@ -98,10 +98,10 @@ function copyProducerWorkers() {
 }
 
 function copyFromCadSimpleViewer(destRelativePath) {
-  const srcDir = join(pkgRoot('@mlightcad/cad-simple-viewer'), 'dist')
+  const srcDir = join(pkgRoot('@hy/cad-simple-viewer'), 'dist')
   if (!existsSync(srcDir)) {
     throw new Error(
-      `Missing ${srcDir}. Run copy:workers in @mlightcad/cad-simple-viewer first.`
+      `Missing ${srcDir}. Run copy:workers in @hy/cad-simple-viewer first.`
     )
   }
 
@@ -110,7 +110,7 @@ function copyFromCadSimpleViewer(destRelativePath) {
   )
   if (workers.length === 0) {
     throw new Error(
-      `No *-worker.js files in ${srcDir}. Run copy:workers in @mlightcad/cad-simple-viewer first.`
+      `No *-worker.js files in ${srcDir}. Run copy:workers in @hy/cad-simple-viewer first.`
     )
   }
 

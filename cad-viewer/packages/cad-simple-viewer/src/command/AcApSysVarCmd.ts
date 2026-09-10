@@ -1,4 +1,4 @@
-import { AcDbSysVarManager } from '@mlightcad/data-model'
+import { AcDbSysVarManager } from '@hy/data-model'
 
 import { AcApContext, AcApDocManager } from '../app'
 import {

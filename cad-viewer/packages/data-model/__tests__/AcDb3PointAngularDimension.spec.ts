@@ -1,4 +1,4 @@
-import { AcGePoint3d } from '@mlightcad/geometry-engine'
+import { AcGePoint3d } from '@hy/geometry-engine'
 import { acdbHostApplicationServices, AcDbDxfFiler } from '../src/base'
 import { AcDbDatabase } from '../src/database'
 import { AcDb3PointAngularDimension } from '../src/entity'

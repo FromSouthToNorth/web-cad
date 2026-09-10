@@ -10,7 +10,7 @@ jest.mock('../src/view', () => ({
   AcTrView2d: class AcTrView2d {}
 }))
 
-import { AcGeBox2d, AcGePoint2d } from '@mlightcad/data-model'
+import { AcGeBox2d, AcGePoint2d } from '@hy/data-model'
 
 import { AcApPngConvertor } from '../src/command/convert/AcApPngConvertor'
 

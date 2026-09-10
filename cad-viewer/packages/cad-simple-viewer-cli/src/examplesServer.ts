@@ -2,7 +2,7 @@
 /**
  * Local examples gallery: list `.scr` / batch examples and run them via the CLI.
  *
- *   pnpm --filter @mlightcad/cad-simple-viewer-cli examples
+ *   pnpm --filter @hy/cad-simple-viewer-cli examples
  *   # open http://127.0.0.1:5179
  */
 import { spawn } from 'node:child_process'
@@ -212,7 +212,7 @@ async function handleRun(options: RunOptions): Promise<{
 }> {
   if (!existsSync(cliJs)) {
     throw new Error(
-      'CLI not built. Run: pnpm --filter @mlightcad/cad-simple-viewer-cli build'
+      'CLI not built. Run: pnpm --filter @hy/cad-simple-viewer-cli build'
     )
   }
 
@@ -310,7 +310,7 @@ async function handleCustomRun(options: CustomRunOptions): Promise<{
 }> {
   if (!existsSync(cliJs)) {
     throw new Error(
-      'CLI not built. Run: pnpm --filter @mlightcad/cad-simple-viewer-cli build'
+      'CLI not built. Run: pnpm --filter @hy/cad-simple-viewer-cli build'
     )
   }
 
@@ -535,7 +535,7 @@ async function main() {
       )
       console.error(
         'Stop that process, or pick another port, e.g.:\n' +
-          '  set CAD_CLI_EXAMPLES_PORT=5180&& pnpm --filter @mlightcad/cad-simple-viewer-cli examples'
+          '  set CAD_CLI_EXAMPLES_PORT=5180&& pnpm --filter @hy/cad-simple-viewer-cli examples'
       )
       process.exitCode = 1
       return

@@ -1,4 +1,4 @@
-import { AcGePoint2dLike, AcGePoint3d } from '@mlightcad/data-model'
+import { AcGePoint2dLike, AcGePoint3d } from '@hy/data-model'
 
 import { AcApDocManager } from '../../../app'
 import { AcEdBaseView } from '../../view'

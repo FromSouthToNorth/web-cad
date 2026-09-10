@@ -1,4 +1,4 @@
-import { AcDbOpenDatabaseOptions } from '@mlightcad/data-model'
+import { AcDbOpenDatabaseOptions } from '@hy/data-model'
 
 import { AcEdOpenMode } from '../editor/view'
 

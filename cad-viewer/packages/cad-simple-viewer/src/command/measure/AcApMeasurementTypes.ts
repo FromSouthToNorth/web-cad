@@ -1,4 +1,4 @@
-import type { AcGiLineWeight } from '@mlightcad/data-model'
+import type { AcGiLineWeight } from '@hy/data-model'
 
 /** Measurement kinds that can be persisted in a sidecar JSON file. */
 export type AcApMeasurementType =

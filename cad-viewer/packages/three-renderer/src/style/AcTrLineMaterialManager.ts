@@ -1,4 +1,4 @@
-import { AcGiLineWeight, AcGiSubEntityTraits } from '@mlightcad/data-model'
+import { AcGiLineWeight, AcGiSubEntityTraits } from '@hy/data-model'
 import * as THREE from 'three'
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 

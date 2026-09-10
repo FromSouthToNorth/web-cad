@@ -1,4 +1,4 @@
-import { AcDbArc, AcDbEllipse, AcDbOsnapMode } from '@mlightcad/data-model'
+import { AcDbArc, AcDbEllipse, AcDbOsnapMode } from '@hy/data-model'
 
 import { collectPrimitiveSnapCandidates } from '../src/AcExOsnapGeometry'
 

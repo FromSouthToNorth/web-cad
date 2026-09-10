@@ -2,7 +2,7 @@ import {
   ACCM_DEFAULT_UI_YIELD_BUDGET_MS,
   AcCmUiYieldGate,
   accmYieldForPaint
-} from '@mlightcad/common'
+} from '@hy/common'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import {

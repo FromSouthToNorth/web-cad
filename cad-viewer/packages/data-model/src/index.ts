@@ -442,7 +442,7 @@ export {
   isEqual,
   log,
   setLogLevel
-} from '@mlightcad/common'
+} from '@hy/common'
 export type {
   AcCmAttributes,
   AcCmBaseEvent,
@@ -461,7 +461,7 @@ export type {
   AcCmStringKey,
   AcCmTaskError,
   AcCmUrlModifier
-} from '@mlightcad/common'
+} from '@hy/common'
 export {
   AcGeArea2d,
   AcGeBox2d,
@@ -536,7 +536,7 @@ export {
   acgeSmoothstep,
   acgeTransformOcsPointToWcs,
   acgeTransformWcsPointToOcs
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 export type {
   AcGeBoundaryEdgeType,
   AcGeIndexNode,
@@ -552,7 +552,7 @@ export type {
   AcGeVector3dLike,
   AcGeVectorLike,
   CatmullRomCurveType
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 export {
   AcGiArrowType,
   AcGiDefaultLightingType,
@@ -572,7 +572,7 @@ export {
   acgiForegroundColorForBackground,
   acgiIsLightBackground,
   acgiResolveSubEntityTraitsRgbFromBackground
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 export type {
   AcGiArrowStyle,
   AcGiBaseLineStyle,
@@ -592,4 +592,4 @@ export type {
   AcGiSubEntityTraits,
   AcGiTextStyle,
   AcGiView
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'

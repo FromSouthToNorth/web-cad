@@ -1,4 +1,4 @@
-import { AcCmStringKey, defaults } from '@mlightcad/common'
+import { AcCmStringKey, defaults } from '@hy/common'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { AcDbObject, AcDbObjectAttrs } from '../base/AcDbObject'

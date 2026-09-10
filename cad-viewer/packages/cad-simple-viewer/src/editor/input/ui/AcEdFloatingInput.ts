@@ -3,7 +3,7 @@ import {
   AcDbSysVarManager,
   AcGePoint2d,
   AcGePoint2dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcEdBaseView } from '../../view'
 import { AcEdOsnapPoint, AcEdOsnapResolver } from '../AcEdOsnapResolver'

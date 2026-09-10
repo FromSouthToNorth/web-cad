@@ -6,7 +6,7 @@ import {
   AcGePoint3dLike,
   AcGeVector3d,
   AcGeVector3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 import {
   AcGiEntity,
   AcGiMTextAttachmentPoint,
@@ -14,7 +14,7 @@ import {
   AcGiMTextFlowDirection,
   AcGiRenderer,
   AcGiTextStyle
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { AcDbOsnapMode } from '../misc/AcDbOsnapMode'

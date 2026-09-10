@@ -6,7 +6,7 @@ import {
   createLibRollupOutput
 } from '../vite-config/pluginRollupOutput'
 
-const packageName = '@mlightcad/cad-layerctx-plugin'
+const packageName = '@hy/cad-layerctx-plugin'
 const pluginId = 'cad-layerctx-plugin'
 
 export default defineConfig({

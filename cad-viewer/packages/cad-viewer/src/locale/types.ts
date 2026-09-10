@@ -1,3 +1,3 @@
-import { AcApLocale } from '@mlightcad/cad-simple-viewer'
+import { AcApLocale } from '@hy/cad-simple-viewer'
 
 export type LocaleProp = AcApLocale | 'default'

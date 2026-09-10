@@ -1,5 +1,5 @@
-import { AcCmColor } from '@mlightcad/common'
-import { AcGePoint2dLike } from '@mlightcad/geometry-engine'
+import { AcCmColor } from '@hy/common'
+import { AcGePoint2dLike } from '@hy/geometry-engine'
 
 export interface AcGiHatchPatternLine {
   angle: number

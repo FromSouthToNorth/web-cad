@@ -3,7 +3,7 @@ import {
   AcCmColorMethod,
   AcCmColorUtil,
   AcCmTransparency
-} from '@mlightcad/common'
+} from '@hy/common'
 import {
   AcGeArea2d,
   AcGeBox3d,
@@ -21,11 +21,11 @@ import {
   AcGePolyline2d,
   AcGeSpline3d,
   AcGeVector3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 import {
   AcGiHatchPatternLine,
   AcGiRenderer
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import type { AcDbDatabase } from '../database/AcDbDatabase'
@@ -1997,7 +1997,7 @@ export class AcDbHatch extends AcDbEntity {
 
     const flushEdgeLoop = () => {
       if (edges.length === 0) return
-      const built: import('@mlightcad/geometry-engine').AcGeLoop2dType[] = []
+      const built: import('@hy/geometry-engine').AcGeLoop2dType[] = []
       // Convert edges to geometry types (mirrors AcDbEntityConverter.convertHatch).
       const geoEdges: (
         | AcGeLine2d

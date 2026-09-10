@@ -4,7 +4,7 @@ import '../style/index.scss'
 import {
   AcApDocManager,
   AcApDocManagerOptions
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 import {
   registerCmds,
@@ -17,7 +17,7 @@ import {
 export type InitializeCadViewerOptions = AcApDocManagerOptions & {
   /**
    * URL of `viewer-runtime.iife.js` for HTML export (`chtml`).
-   * Forwarded to `@mlightcad/cad-html-plugin` — not required to open DXF/DWG.
+   * Forwarded to `@hy/cad-html-plugin` — not required to open DXF/DWG.
    * @default './assets/viewer-runtime.iife.js'
    */
   htmlViewerRuntimeUrl?: string | URL

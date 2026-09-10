@@ -1,4 +1,4 @@
-import { AcCmPerformanceCollector, log } from '@mlightcad/data-model'
+import { AcCmPerformanceCollector, log } from '@hy/data-model'
 
 import { AcApContext } from '../app'
 import { AcEdCommand } from '../editor'

@@ -1,4 +1,4 @@
-import type { AcTrHtmlGroup } from '@mlightcad/three-renderer'
+import type { AcTrHtmlGroup } from '@hy/three-renderer'
 
 import type { AcEdBaseView } from '../../editor'
 import { acapNotifyUndoStackChanged } from '../../util/AcApDatabaseEdit'

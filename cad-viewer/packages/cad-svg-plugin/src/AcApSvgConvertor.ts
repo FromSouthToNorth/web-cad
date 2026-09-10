@@ -1,8 +1,8 @@
-import type { AcApContext } from '@mlightcad/cad-simple-viewer'
+import type { AcApContext } from '@hy/cad-simple-viewer'
 import {
   AcApSettingManager,
   resolveExportDownloadName
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 import { AcSvgRenderer } from './AcSvgRenderer'
 

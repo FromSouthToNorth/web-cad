@@ -1,8 +1,8 @@
 import {
   AcApDocManager,
   acapRunDatabaseEdit
-} from '@mlightcad/cad-simple-viewer'
-import { log } from '@mlightcad/data-model'
+} from '@hy/cad-simple-viewer'
+import { log } from '@hy/data-model'
 
 import {
   TunnelSettingsResult,

@@ -1,13 +1,13 @@
 import {
   AcApDocManager,
   AcEdSelectionFilter
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   AcDbDxfCode,
   AcDbEntity,
   AcDbObjectId,
   AcDbTypedValue
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /**
  * Input scope for Quick Select:

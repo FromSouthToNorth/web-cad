@@ -42,8 +42,8 @@
 </template>
 
 <script setup lang="ts">
-import { AcCmColor } from '@mlightcad/data-model'
-import { AcGiLineWeight } from '@mlightcad/data-model'
+import { AcCmColor } from '@hy/data-model'
+import { AcGiLineWeight } from '@hy/data-model'
 import { computed } from 'vue'
 
 import MlColorPickerDropdown from './MlColorPickerDropdown.vue'

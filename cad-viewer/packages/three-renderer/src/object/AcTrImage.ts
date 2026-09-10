@@ -1,4 +1,4 @@
-import { AcGePoint2dLike, AcGiImageStyle } from '@mlightcad/data-model'
+import { AcGePoint2dLike, AcGiImageStyle } from '@hy/data-model'
 import * as THREE from 'three'
 
 import type { AcTrDrawMode } from '../draw/AcTrDrawMode'

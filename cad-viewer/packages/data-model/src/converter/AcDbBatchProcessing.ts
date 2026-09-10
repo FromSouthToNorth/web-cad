@@ -1,4 +1,4 @@
-import { accmYieldToUi } from '@mlightcad/common'
+import { accmYieldToUi } from '@hy/common'
 
 // Callback function to execute business logic of chunk processing.
 type AcDbChunkProcessingCallback = (start: number, end: number) => Promise<void>

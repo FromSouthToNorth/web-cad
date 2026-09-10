@@ -1,4 +1,4 @@
-import type { AcTrGroup } from '@mlightcad/three-renderer'
+import type { AcTrGroup } from '@hy/three-renderer'
 import * as THREE from 'three'
 
 const WCS_BBOX_TOLERANCE = 1e-5

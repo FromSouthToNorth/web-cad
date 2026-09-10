@@ -1,4 +1,4 @@
-import { AcCmEventManager } from '@mlightcad/data-model'
+import { AcCmEventManager } from '@hy/data-model'
 
 import { AcEdCommandStack } from '../editor'
 

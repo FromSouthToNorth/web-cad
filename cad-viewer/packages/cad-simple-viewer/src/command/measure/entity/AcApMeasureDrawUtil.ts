@@ -1,4 +1,4 @@
-import type { AcCmColor } from '@mlightcad/data-model'
+import type { AcCmColor } from '@hy/data-model'
 
 import type { AcEdBaseView } from '../../../editor'
 import { acapColorToCssAlpha, acapCssColor } from '../../../util'

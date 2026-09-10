@@ -6,8 +6,8 @@ import {
   acapRunServiceEdit,
   AcDbDocumentEventArgs,
   LAYER_EDIT_LABEL
-} from '@mlightcad/cad-simple-viewer'
-import { AcCmColor, AcCmTransparency, AcDbDatabase } from '@mlightcad/data-model'
+} from '@hy/cad-simple-viewer'
+import { AcCmColor, AcCmTransparency, AcDbDatabase } from '@hy/data-model'
 import { computed, onScopeDispose, reactive, ref } from 'vue'
 
 /**
@@ -137,8 +137,8 @@ function applyLayerStateSnapshot(
  *
  * @example
  * ```typescript
- * import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
- * import { useLayers } from '@mlightcad/cad-viewer'
+ * import { AcApDocManager } from '@hy/cad-simple-viewer'
+ * import { useLayers } from '@hy/cad-viewer'
  *
  * const { layers, currentLayerName, setLayerOn, toggleLayerFrozen } =
  *   useLayers(AcApDocManager.instance)

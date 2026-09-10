@@ -126,10 +126,10 @@ importers:
         specifier: ^3.24.0
         version: 3.25.76
     devDependencies:
-      '@mlightcad/cad-simple-viewer':
+      '@hy/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
       '@vitejs/plugin-vue':
@@ -144,13 +144,13 @@ importers:
 
   packages/cad-html-plugin:
     devDependencies:
-      '@mlightcad/cad-simple-viewer':
+      '@hy/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
-      '@mlightcad/three-renderer':
+      '@hy/three-renderer':
         specifier: workspace:*
         version: link:../three-renderer
       '@types/jest':
@@ -174,31 +174,31 @@ importers:
 
   packages/cad-invertsel-plugin:
     devDependencies:
-      '@mlightcad/cad-simple-viewer':
+      '@hy/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
-      '@mlightcad/data-model':
-        specifier: ^1.13.0
-        version: 1.14.3
+      '@hy/data-model':
+        specifier: workspace:*
+        version: link:../data-model
 
   packages/cad-layerctx-plugin:
     devDependencies:
-      '@mlightcad/cad-simple-viewer':
+      '@hy/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
 
   packages/cad-pdf-plugin:
     devDependencies:
-      '@mlightcad/cad-simple-viewer':
+      '@hy/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
-      '@mlightcad/cad-svg-plugin':
+      '@hy/cad-svg-plugin':
         specifier: workspace:*
         version: link:../cad-svg-plugin
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
       jspdf:
@@ -213,10 +213,10 @@ importers:
 
   packages/cad-search-plugin:
     devDependencies:
-      '@mlightcad/cad-simple-viewer':
+      '@hy/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
       '@vitejs/plugin-vue':
@@ -231,27 +231,27 @@ importers:
 
   packages/cad-simple-ui-plugin:
     devDependencies:
-      '@mlightcad/cad-simple-viewer':
+      '@hy/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
 
   packages/cad-simple-viewer:
     devDependencies:
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
+      '@hy/three-renderer':
+        specifier: workspace:*
+        version: link:../three-renderer
       '@mlightcad/mtext-input-box':
         specifier: ^0.2.23
         version: 0.2.23(@mlightcad/mtext-renderer@0.12.4(three@0.172.0))(three@0.172.0)
       '@mlightcad/mtext-renderer':
         specifier: ^0.12.4
         version: 0.12.4(three@0.172.0)
-      '@mlightcad/three-renderer':
-        specifier: workspace:*
-        version: link:../three-renderer
       '@mlightcad/three-viewcube':
         specifier: 0.0.9
         version: 0.0.9(three@0.172.0)
@@ -279,19 +279,19 @@ importers:
 
   packages/cad-simple-viewer-cli:
     dependencies:
-      '@mlightcad/cad-html-plugin':
+      '@hy/cad-html-plugin':
         specifier: workspace:*
         version: link:../cad-html-plugin
-      '@mlightcad/cad-pdf-plugin':
+      '@hy/cad-pdf-plugin':
         specifier: workspace:*
         version: link:../cad-pdf-plugin
-      '@mlightcad/cad-simple-viewer':
+      '@hy/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
-      '@mlightcad/cad-svg-plugin':
+      '@hy/cad-svg-plugin':
         specifier: workspace:*
         version: link:../cad-svg-plugin
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
       '@mlightcad/mtext-renderer':
@@ -319,10 +319,10 @@ importers:
 
   packages/cad-svg-plugin:
     devDependencies:
-      '@mlightcad/cad-simple-viewer':
+      '@hy/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
       '@mlightcad/mtext-parser':
@@ -334,16 +334,16 @@ importers:
 
   packages/cad-tunnel-plugin:
     devDependencies:
-      '@mlightcad/cad-simple-viewer':
+      '@hy/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
-      '@mlightcad/geometry-engine':
+      '@hy/geometry-engine':
         specifier: workspace:*
         version: link:../geometry-engine
-      '@mlightcad/graphic-interface':
+      '@hy/graphic-interface':
         specifier: workspace:*
         version: link:../graphic-interface
 
@@ -352,28 +352,28 @@ importers:
       '@ant-design/icons-vue':
         specifier: ^7.0.1
         version: 7.0.1(vue@3.5.31(typescript@5.9.3))
-      '@mlightcad/cad-agent-plugin':
+      '@hy/cad-agent-plugin':
         specifier: workspace:*
         version: link:../cad-agent-plugin
-      '@mlightcad/cad-html-plugin':
+      '@hy/cad-html-plugin':
         specifier: workspace:*
         version: link:../cad-html-plugin
-      '@mlightcad/cad-pdf-plugin':
+      '@hy/cad-pdf-plugin':
         specifier: workspace:*
         version: link:../cad-pdf-plugin
-      '@mlightcad/cad-search-plugin':
+      '@hy/cad-search-plugin':
         specifier: workspace:*
         version: link:../cad-search-plugin
-      '@mlightcad/cad-simple-viewer':
+      '@hy/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
-      '@mlightcad/cad-svg-plugin':
+      '@hy/cad-svg-plugin':
         specifier: workspace:*
         version: link:../cad-svg-plugin
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
-      '@mlightcad/three-renderer':
+      '@hy/three-renderer':
         specifier: workspace:*
         version: link:../three-renderer
       '@vitejs/plugin-vue':
@@ -421,42 +421,42 @@ importers:
       '@ant-design/icons-vue':
         specifier: ^7.0.1
         version: 7.0.1(vue@3.5.31(typescript@5.9.3))
-      '@mlightcad/cad-agent-plugin':
+      '@hy/cad-agent-plugin':
         specifier: workspace:*
         version: link:../cad-agent-plugin
-      '@mlightcad/cad-html-plugin':
+      '@hy/cad-html-plugin':
         specifier: workspace:*
         version: link:../cad-html-plugin
-      '@mlightcad/cad-invertsel-plugin':
+      '@hy/cad-invertsel-plugin':
         specifier: workspace:*
         version: link:../cad-invertsel-plugin
-      '@mlightcad/cad-layerctx-plugin':
+      '@hy/cad-layerctx-plugin':
         specifier: workspace:*
         version: link:../cad-layerctx-plugin
-      '@mlightcad/cad-pdf-plugin':
+      '@hy/cad-pdf-plugin':
         specifier: workspace:*
         version: link:../cad-pdf-plugin
-      '@mlightcad/cad-search-plugin':
+      '@hy/cad-search-plugin':
         specifier: workspace:*
         version: link:../cad-search-plugin
-      '@mlightcad/cad-simple-viewer':
+      '@hy/cad-simple-viewer':
         specifier: workspace:*
         version: link:../cad-simple-viewer
-      '@mlightcad/cad-tunnel-plugin':
+      '@hy/cad-tunnel-plugin':
         specifier: workspace:*
         version: link:../cad-tunnel-plugin
-      '@mlightcad/cad-viewer':
+      '@hy/cad-viewer':
         specifier: workspace:*
         version: link:../cad-viewer
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
+      '@hy/three-renderer':
+        specifier: workspace:*
+        version: link:../three-renderer
       '@mlightcad/mtext-renderer':
         specifier: ^0.12.4
         version: 0.12.4(three@0.172.0)
-      '@mlightcad/three-renderer':
-        specifier: workspace:*
-        version: link:../three-renderer
       ant-design-vue:
         specifier: ^4.2.6
         version: 4.2.6(vue@3.5.31(typescript@5.9.3))
@@ -503,13 +503,13 @@ importers:
 
   packages/data-model:
     dependencies:
-      '@mlightcad/common':
+      '@hy/common':
         specifier: workspace:*
         version: link:../common
-      '@mlightcad/geometry-engine':
+      '@hy/geometry-engine':
         specifier: workspace:*
         version: link:../geometry-engine
-      '@mlightcad/graphic-interface':
+      '@hy/graphic-interface':
         specifier: workspace:*
         version: link:../graphic-interface
       uid:
@@ -518,7 +518,7 @@ importers:
 
   packages/examples:
     devDependencies:
-      '@mlightcad/cad-viewer-example':
+      '@hy/cad-viewer-example':
         specifier: workspace:*
         version: link:../cad-viewer-example
       '@types/fs-extra':
@@ -533,16 +533,16 @@ importers:
 
   packages/geometry-engine:
     dependencies:
-      '@mlightcad/common':
+      '@hy/common':
         specifier: workspace:*
         version: link:../common
 
   packages/graphic-interface:
     dependencies:
-      '@mlightcad/common':
+      '@hy/common':
         specifier: workspace:*
         version: link:../common
-      '@mlightcad/geometry-engine':
+      '@hy/geometry-engine':
         specifier: workspace:*
         version: link:../geometry-engine
 
@@ -552,7 +552,7 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1
     devDependencies:
-      '@mlightcad/data-model':
+      '@hy/data-model':
         specifier: workspace:*
         version: link:../data-model
       '@mlightcad/mtext-renderer':
@@ -1811,23 +1811,6 @@ packages:
 
   '@microsoft/tsdoc@0.16.0':
     resolution: {integrity: sha512-xgAyonlVVS+q7Vc7qLW0UrJU7rSFcETRWsqdXZtjzRU8dF+6CkozTK4V4y1LwOX7j8r/vHphjDeMeGI4tNGeGA==}
-
-  '@mlightcad/common@1.14.3':
-    resolution: {integrity: sha512-R6hCZSn5jiLleifMV4ymySaOIjSPb3v6MdxLInpgGmGhH/7xGIAFrXSEfNrFuo/ATN8SAdig5Rkp0wwa6TxVaA==}
-
-  '@mlightcad/data-model@1.14.3':
-    resolution: {integrity: sha512-wB6JfxR4tQ52d3e0K/a+BQrL1ueMSzebKaXcob4JacO5Gw9OpFaGEjMLTbHHArCN6j+SRtHY5PJXgO2VWo1dNQ==}
-
-  '@mlightcad/geometry-engine@3.14.3':
-    resolution: {integrity: sha512-nh//ob7OV8l9J5QwSsrsbbSXavjr8z+QLBDbrkAy5CjfFZbxyWmXcfKIv04A4xFZpde68mlnWSZ2xekUq8KCZw==}
-    peerDependencies:
-      '@mlightcad/common': 1.14.3
-
-  '@mlightcad/graphic-interface@3.14.3':
-    resolution: {integrity: sha512-D6BnKR0pHbBEVrKAGGBHNo9U/EgD8UXft1WLjfBK71H8pJZCK4s1BBRofGZSsUsA5wrPyKyIJC0AchvNPyo1qw==}
-    peerDependencies:
-      '@mlightcad/common': 1.14.3
-      '@mlightcad/geometry-engine': 3.14.3
 
   '@mlightcad/mtext-input-box@0.2.23':
     resolution: {integrity: sha512-b3AmQhpVkqTb3ZaQ7Ty00XnngcFo5bjBPcdXrDDs4plUV841e9p86E1xLFtv+SLnLIx5m7/KkDKAIqLduj7WmQ==}
@@ -7253,26 +7236,6 @@ snapshots:
 
   '@microsoft/tsdoc@0.16.0':
     optional: true
-
-  '@mlightcad/common@1.14.3':
-    dependencies:
-      loglevel: 1.9.2
-
-  '@mlightcad/data-model@1.14.3':
-    dependencies:
-      '@mlightcad/common': 1.14.3
-      '@mlightcad/geometry-engine': 3.14.3(@mlightcad/common@1.14.3)
-      '@mlightcad/graphic-interface': 3.14.3(@mlightcad/common@1.14.3)(@mlightcad/geometry-engine@3.14.3(@mlightcad/common@1.14.3))
-      uid: 2.0.2
-
-  '@mlightcad/geometry-engine@3.14.3(@mlightcad/common@1.14.3)':
-    dependencies:
-      '@mlightcad/common': 1.14.3
-
-  '@mlightcad/graphic-interface@3.14.3(@mlightcad/common@1.14.3)(@mlightcad/geometry-engine@3.14.3(@mlightcad/common@1.14.3))':
-    dependencies:
-      '@mlightcad/common': 1.14.3
-      '@mlightcad/geometry-engine': 3.14.3(@mlightcad/common@1.14.3)
 
   '@mlightcad/mtext-input-box@0.2.23(@mlightcad/mtext-renderer@0.12.4(three@0.172.0))(three@0.172.0)':
     dependencies:

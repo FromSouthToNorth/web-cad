@@ -26,7 +26,7 @@ import {
   AcGePolyline2d,
   AcGeVector3d,
   acdbHostApplicationServices
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { buildOsnapCatalog } from '../src/AcExOsnapPrimitiveBuilder'
 import { AcExOsnapIndex } from '../src/AcExOsnap'

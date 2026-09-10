@@ -1,5 +1,5 @@
-import { AcApContext, AcEdCommand } from '@mlightcad/cad-simple-viewer'
-import { log } from '@mlightcad/data-model'
+import { AcApContext, AcEdCommand } from '@hy/cad-simple-viewer'
+import { log } from '@hy/data-model'
 
 import { openAgentPalette } from '../palette/agentPaletteIntegration'
 

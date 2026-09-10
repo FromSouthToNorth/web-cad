@@ -1,4 +1,4 @@
-import { AcTrHtmlBadge } from '@mlightcad/three-renderer'
+import { AcTrHtmlBadge } from '@hy/three-renderer'
 
 import type { AcTrView2d } from '../../../view'
 import type { AcApOverlayWorldDrawResult } from '../../overlay'

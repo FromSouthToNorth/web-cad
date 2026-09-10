@@ -5,7 +5,7 @@
     "rootDir": "./src",
     "outDir": "./lib",
     "paths": {
-      "@mlightcad/cad-simple-ui-plugin": [
+      "@hy/cad-simple-ui-plugin": [
         "./src/index.ts"
       ]
     }

@@ -1,4 +1,4 @@
-import { AcDbObjectId, AcGePoint3dLike } from '@mlightcad/data-model'
+import { AcDbObjectId, AcGePoint3dLike } from '@hy/data-model'
 
 import { AcEdPromptResult } from './AcEdPromptResult'
 import { AcEdPromptStatus } from './AcEdPromptStatus'

@@ -1,4 +1,4 @@
-import { log } from '@mlightcad/data-model'
+import { log } from '@hy/data-model'
 
 import { eventBus } from '../editor/global/eventBus'
 import { AcEdOpenMode } from '../editor/view/AcEdOpenMode'

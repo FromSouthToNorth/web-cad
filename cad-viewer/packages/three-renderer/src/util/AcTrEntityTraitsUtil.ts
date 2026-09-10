@@ -3,7 +3,7 @@ import {
   AcCmTransparency,
   AcGiLineWeight,
   AcGiSubEntityTraits
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { ColorSettings } from '@mlightcad/mtext-renderer'
 
 import { AcTrMTextColorUtil } from './AcTrMTextColorUtil'

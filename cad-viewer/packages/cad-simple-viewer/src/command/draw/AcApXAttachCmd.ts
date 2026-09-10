@@ -7,7 +7,7 @@ import {
   AcGePoint2d,
   AcGePoint3d,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import {
   AcApContext,

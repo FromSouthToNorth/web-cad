@@ -1,4 +1,4 @@
-import type { AcDbEntity } from '@mlightcad/data-model'
+import type { AcDbEntity } from '@hy/data-model'
 
 import {
   canApplyVisibilityOnlySceneUpdate,

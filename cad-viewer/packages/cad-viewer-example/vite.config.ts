@@ -21,7 +21,7 @@ export default defineConfig(({ command, mode }) => {
   if (!hasViewerRuntime) {
     console.warn(
       '[cad-viewer-example] viewer-runtime.iife.js not found — HTML export will be unavailable. ' +
-        'Build @mlightcad/cad-html-plugin to enable it. Opening DXF does not require this file.'
+        'Build @hy/cad-html-plugin to enable it. Opening DXF does not require this file.'
     )
   }
   const aliases: Alias[] = []
@@ -33,7 +33,7 @@ export default defineConfig(({ command, mode }) => {
   ]
   if (command === 'serve') {
     aliases.push({
-      find: /^@mlightcad\/(cad-svg-plugin|three-renderer|cad-simple-viewer|cad-viewer)$/,
+      find: /^@hy\/(cad-svg-plugin|three-renderer|cad-simple-viewer|cad-viewer)$/,
       replacement: resolve(__dirname, '../$1/src')
     })
   }
@@ -44,7 +44,7 @@ export default defineConfig(({ command, mode }) => {
     viteStaticCopy({
       targets: [
         {
-          src: `./node_modules/@mlightcad/cad-simple-viewer/dist/${MTEXT_RENDERER_WORKER_FILE}`,
+          src: `./node_modules/@hy/cad-simple-viewer/dist/${MTEXT_RENDERER_WORKER_FILE}`,
           dest: 'assets',
           rename: { stripBase: true }
         },
@@ -79,7 +79,7 @@ export default defineConfig(({ command, mode }) => {
       force: command === 'serve',
       exclude:
         command === 'serve'
-          ? devSourcePackages.map(name => `@mlightcad/${name}`)
+          ? devSourcePackages.map(name => `@hy/${name}`)
           : []
     },
     server: {

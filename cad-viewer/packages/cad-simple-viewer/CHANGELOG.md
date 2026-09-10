@@ -1,4 +1,4 @@
-# @mlightcad/cad-simple-viewer
+# @hy/cad-simple-viewer
 
 ## 1.6.1
 
@@ -6,7 +6,7 @@
 
 - feat: extends Design Review markup and measurement to the HTML viewer with sidecar persistence, aligned review icons, and HTML-only measure overlays that avoid forcing WebGL redraws. Also preserves absolute hatch colours when only lineweight is ByLayer, and documents GitMCP servers in the README and Cursor config
 - Updated dependencies
-  - @mlightcad/three-renderer@1.6.1
+  - @hy/three-renderer@1.6.1
 
 ## 1.6.0
 
@@ -17,7 +17,7 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @mlightcad/three-renderer@1.6.0
+  - @hy/three-renderer@1.6.0
 
 ## 1.5.11
 
@@ -25,7 +25,7 @@
 
 - feat: adds headless .scr script support to the simple-viewer CLI and waits for the scene to become idle before export so rendered output is complete. Example app bundles are split so data-model and three stay cacheable, isolating example chunks, and HTML runtime plugin options are fixed for more reliable offline HTML export workflows.
 - Updated dependencies
-  - @mlightcad/three-renderer@1.5.11
+  - @hy/three-renderer@1.5.11
 
 ## 1.5.10
 
@@ -443,7 +443,7 @@
 
 - feat: add property 'canvasId' for MlCadViewer component and update its example and readme
 - Updated dependencies
-  - @mlightcad/three-renderer@1.0.4
+  - @hy/three-renderer@1.0.4
   - @mlightcad/svg-renderer@0.0.5
 
 ## 1.0.3
@@ -452,7 +452,7 @@
 
 - feat: upgrade version of data-model package to fix issue on refreshing multiple times when opening one drawing
 - Updated dependencies
-  - @mlightcad/three-renderer@1.0.3
+  - @hy/three-renderer@1.0.3
   - @mlightcad/svg-renderer@0.0.4
 
 ## 1.0.2
@@ -462,7 +462,7 @@
 - feat: refine MlCadViewer component by adding properties 'url' and 'wait'
 - Updated dependencies
   - @mlightcad/svg-renderer@0.0.3
-  - @mlightcad/three-renderer@1.0.2
+  - @hy/three-renderer@1.0.2
 
 ## 1.0.1
 
@@ -470,5 +470,5 @@
 
 - feat: removing logic to create one example drawing when launching viewer
 - Updated dependencies
-  - @mlightcad/three-renderer@1.0.1
+  - @hy/three-renderer@1.0.1
   - @mlightcad/svg-renderer@0.0.2

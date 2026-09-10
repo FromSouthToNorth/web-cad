@@ -1,4 +1,4 @@
-import { AcDbEntity, AcDbObjectId } from '@mlightcad/data-model'
+import { AcDbEntity, AcDbObjectId } from '@hy/data-model'
 
 import { AcApContext, AcApDocManager } from '../app'
 import { AcEdPromptSelectionOptions, AcEdPromptStatus } from '../editor'

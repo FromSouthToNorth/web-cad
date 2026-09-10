@@ -1,9 +1,9 @@
-import type { AcApContext } from '@mlightcad/cad-simple-viewer'
+import type { AcApContext } from '@hy/cad-simple-viewer'
 import {
   AcApSettingManager,
   resolveExportDownloadName
-} from '@mlightcad/cad-simple-viewer'
-import { AcSvgRenderer } from '@mlightcad/cad-svg-plugin'
+} from '@hy/cad-simple-viewer'
+import { AcSvgRenderer } from '@hy/cad-svg-plugin'
 import { jsPDF } from 'jspdf'
 import { svg2pdf } from 'svg2pdf.js'
 

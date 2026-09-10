@@ -1,10 +1,10 @@
 import {
   AcApI18n,
   type AcTrScene
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   accmYieldForPaint,
-  type AcDbDatabase} from '@mlightcad/data-model'
+  type AcDbDatabase} from '@hy/data-model'
 
 import { computeLayoutExtents } from './AcExLayerExtents'
 import { buildOsnapCatalog } from './AcExOsnapPrimitiveBuilder'

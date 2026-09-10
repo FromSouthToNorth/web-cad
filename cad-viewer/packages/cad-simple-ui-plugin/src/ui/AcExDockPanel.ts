@@ -1,4 +1,4 @@
-import { acedIsMobileUiLayout } from '@mlightcad/cad-simple-viewer'
+import { acedIsMobileUiLayout } from '@hy/cad-simple-viewer'
 
 import {
   createIconElement,

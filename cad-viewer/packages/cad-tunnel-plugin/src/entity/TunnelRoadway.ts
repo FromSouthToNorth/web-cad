@@ -3,8 +3,8 @@ import {
   AcDbEntityProperties,
   AcDbEntityPropertyGroup,
   AcDbRoadway
-} from '@mlightcad/data-model'
-import { AcGePoint2dLike } from '@mlightcad/geometry-engine'
+} from '@hy/data-model'
+import { AcGePoint2dLike } from '@hy/geometry-engine'
 
 /** XDATA application name used to persist the tunnel metadata in DXF. */
 const TUNNEL_XDATA_APP = 'TUNNEL'

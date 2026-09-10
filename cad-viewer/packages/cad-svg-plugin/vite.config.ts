@@ -6,7 +6,7 @@ import {
   createLibRollupOutput
 } from '../vite-config/pluginRollupOutput'
 
-const packageName = '@mlightcad/cad-svg-plugin'
+const packageName = '@hy/cad-svg-plugin'
 const pluginId = 'cad-svg-plugin'
 
 export default defineConfig({

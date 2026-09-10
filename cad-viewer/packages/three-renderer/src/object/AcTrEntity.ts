@@ -1,4 +1,4 @@
-import { AcGeMatrix3d, AcGePoint3d, AcGiEntity } from '@mlightcad/data-model'
+import { AcGeMatrix3d, AcGePoint3d, AcGiEntity } from '@hy/data-model'
 import * as THREE from 'three'
 
 import type { AcTrBatchDrawPolicy } from '../draw/AcTrBatchDrawPolicy'

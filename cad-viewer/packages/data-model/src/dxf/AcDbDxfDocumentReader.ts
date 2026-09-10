@@ -2,8 +2,8 @@ import {
   ACCM_DEFAULT_UI_YIELD_BUDGET_MS,
   AcCmUiYieldGate,
   accmYieldToUi
-} from '@mlightcad/common'
-import { AcGePoint3d } from '@mlightcad/geometry-engine'
+} from '@hy/common'
+import { AcGePoint3d } from '@hy/geometry-engine'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { acdbDxfKeywordUpper } from '../base/AcDbDxfKeyword'

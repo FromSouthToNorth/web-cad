@@ -9,7 +9,7 @@ import {
   AcDbText,
   AcDbTextHorizontalMode,
   AcDbTextVerticalMode,
-  HATCH_PATTERN_SOLID} from '@mlightcad/data-model'
+  HATCH_PATTERN_SOLID} from '@hy/data-model'
 
 import { CoalBunker } from '../src/entity/CoalBunker'
 import { ShaftRoadway } from '../src/entity/ShaftRoadway'

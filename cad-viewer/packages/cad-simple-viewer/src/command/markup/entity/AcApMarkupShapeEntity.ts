@@ -1,5 +1,5 @@
-import { AcGePoint3d } from '@mlightcad/data-model'
-import { AcTrHtmlCanvasOverlay, AcTrHtmlDot } from '@mlightcad/three-renderer'
+import { AcGePoint3d } from '@hy/data-model'
+import { AcTrHtmlCanvasOverlay, AcTrHtmlDot } from '@hy/three-renderer'
 
 import type { AcTrView2d } from '../../../view'
 import {

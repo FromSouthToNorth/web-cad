@@ -28,7 +28,7 @@ jest.mock('../src/app/AcApFontLoader', () => ({
   AcApFontLoader: MockAcApFontLoader
 }))
 
-jest.mock('@mlightcad/three-renderer', () => ({
+jest.mock('@hy/three-renderer', () => ({
   AcTrMTextRenderer: {
     getInstance: jest.fn(() => ({
       initialize: mockInitialize,
@@ -218,7 +218,7 @@ jest.mock('../src/command', () => {
   }
 })
 
-jest.mock('@mlightcad/data-model', () => ({
+jest.mock('@hy/data-model', () => ({
   AcCmColor: jest.fn(),
   AcCmEventManager: jest.fn().mockImplementation(() => ({
     addEventListener: jest.fn(),

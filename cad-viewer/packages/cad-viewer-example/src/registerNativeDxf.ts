@@ -8,7 +8,7 @@ import {
   AcDbDatabaseConverterManager,
   AcDbFileType,
   AcDbNativeDxfConverter
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 export function registerNativeDxfConverter(parserWorkerUrl: string): void {
   const converter = new AcDbNativeDxfConverter({

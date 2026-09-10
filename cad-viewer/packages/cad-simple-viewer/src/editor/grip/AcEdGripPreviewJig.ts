@@ -3,7 +3,7 @@ import {
   AcGePoint3d,
   AcGePoint3dLike,
   AcGeVector3d
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcEdPreviewJig } from '../input/AcEdPreviewJig'
 import { AcEdBaseView } from '../view/AcEdBaseView'

@@ -1,4 +1,4 @@
-import { AcApI18n, type AcApLocale } from '@mlightcad/cad-simple-viewer'
+import { AcApI18n, type AcApLocale } from '@hy/cad-simple-viewer'
 
 import { agentCs } from './cs'
 import { agentEn } from './en'

@@ -1,4 +1,4 @@
-import { AcGeBox2d, AcGeVector2d } from '@mlightcad/data-model'
+import { AcGeBox2d, AcGeVector2d } from '@hy/data-model'
 import * as THREE from 'three'
 
 import { AcApDocManager } from '../../app'

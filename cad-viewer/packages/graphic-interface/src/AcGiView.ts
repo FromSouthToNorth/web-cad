@@ -1,4 +1,4 @@
-import { AcGePoint2d, AcGePoint3d } from '@mlightcad/geometry-engine'
+import { AcGePoint2d, AcGePoint3d } from '@hy/geometry-engine'
 
 export enum AcGiRenderMode {
   OPTIMIZED_2D = 0, // classic 2D

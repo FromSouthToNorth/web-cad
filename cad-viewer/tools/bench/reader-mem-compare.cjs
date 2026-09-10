@@ -8,7 +8,7 @@ const { readFileSync } = require('node:fs')
 // this runs from anywhere inside the monorepo.
 const dataModel = (() => {
   try {
-    return require('@mlightcad/data-model')
+    return require('@hy/data-model')
   } catch {
     return require('../../packages/data-model/dist/data-model.cjs')
   }

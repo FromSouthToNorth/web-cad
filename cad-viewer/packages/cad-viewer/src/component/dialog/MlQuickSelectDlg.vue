@@ -105,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import { AcDbEntity } from '@mlightcad/data-model'
+import { AcDbEntity } from '@hy/data-model'
 import {
   Form as AForm,
   FormItem as AFormItem,

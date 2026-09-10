@@ -1,6 +1,6 @@
 # data-model 解析器类结构详解
 
-> 面向包：`cad-viewer/packages/data-model`（`@mlightcad/data-model`）
+> 面向包：`cad-viewer/packages/data-model`（`@hy/data-model`）
 > 文档定位：系统梳理 DXF/DWG 解析链路的类结构、职责划分与调用关系。
 > 源码基准：当前 `dev_hy` 分支代码；类图与实际源码一致，引用路径均为包内相对路径。
 > 关联阅读：[架构图.md](./架构图.md)、[高性能技术分析.md](./高性能技术分析.md)、[性能优化总结.md](../02-性能优化/性能优化总结.md)。
@@ -198,7 +198,7 @@ export class AcDbObject<ATTRS extends AcDbObjectAttrs = AcDbObjectAttrs> {
 
 关键设计：
 
-1. **属性系统**：所有属性（objectId、ownerId、实体几何属性等）统一存放在 `_attrs`（`AcCmObject`，来自 `@mlightcad/common`），通过 `getAttr()/setAttr()/attrs` 访问。
+1. **属性系统**：所有属性（objectId、ownerId、实体几何属性等）统一存放在 `_attrs`（`AcCmObject`，来自 `@hy/common`），通过 `getAttr()/setAttr()/attrs` 访问。
 2. **objectId 生成**（构造期）：
    - 已绑定数据库 → `this._database.generateHandle()`（真实十六进制句柄）；
    - 未绑定 → `generateTemporaryHandle()`，即 `TEMP_` + `uid()`，对象加入数据库时换发真实句柄。

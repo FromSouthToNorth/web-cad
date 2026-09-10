@@ -9,7 +9,7 @@
 /** MTEXT layout/shaping worker from `@mlightcad/mtext-renderer`. */
 export const MTEXT_RENDERER_WORKER_FILE = 'mtext-renderer-worker.js'
 
-/** DXF tokenizer worker from `@mlightcad/data-model`. */
+/** DXF tokenizer worker from `@hy/data-model`. */
 export const DXF_PARSER_WORKER_FILE = 'dxf-parser-worker.js'
 
 /**
@@ -27,4 +27,4 @@ export const DWG_PARSER_MAIN_FILE = 'dwg-parser-main.js'
 
 export const MTEXT_RENDERER_PACKAGE = '@mlightcad/mtext-renderer'
 export const DWG_CONVERTER_PACKAGE = '@mlight-cad/dwg-converter'
-export const DATA_MODEL_PACKAGE = '@mlightcad/data-model'
+export const DATA_MODEL_PACKAGE = '@hy/data-model'

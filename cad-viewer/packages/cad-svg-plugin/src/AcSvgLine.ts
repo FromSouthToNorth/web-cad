@@ -1,4 +1,4 @@
-import { AcGePoint3dLike, AcGiSubEntityTraits } from '@mlightcad/data-model'
+import { AcGePoint3dLike, AcGiSubEntityTraits } from '@hy/data-model'
 
 import { AcSvgEntity } from './AcSvgEntity'
 import { AcSvgStyleContext, AcSvgStyleUtil } from './AcSvgStyleUtil'

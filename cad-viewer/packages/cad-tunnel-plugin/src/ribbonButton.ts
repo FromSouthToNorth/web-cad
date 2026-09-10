@@ -1,4 +1,4 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 
 import { DRAWTUNNEL_COMMAND_NAME } from './config'
 import { startTunnelLocaleSync, TunnelMessageKey,tunnelT } from './i18n'
@@ -7,7 +7,7 @@ import { toggleTunnelSettingsPanel } from './settingsPanel'
 /**
  * Ribbon integration without touching host source code.
  *
- * The host ribbon (`@mlightcad/ribbon` inside `@mlightcad/cad-viewer`) has no
+ * The host ribbon (`@mlightcad/ribbon` inside `@hy/cad-viewer`) has no
  * extension API, so this module injects two buttons into the rendered DOM of
  * the Home tab's Utilities group (实用工具): "Draw Tunnel" and "Tunnel
  * Settings".

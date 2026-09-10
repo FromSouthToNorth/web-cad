@@ -1,4 +1,4 @@
-jest.mock('@mlightcad/cad-simple-viewer', () => {
+jest.mock('@hy/cad-simple-viewer', () => {
   class AcEdCommand {}
 
   class MockKeywordCollection {
@@ -70,9 +70,9 @@ jest.mock('../src/AcApHtmlConvertor', () => ({
   }))
 }))
 
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 
-import { AcEdPromptStatus } from '@mlightcad/cad-simple-viewer'
+import { AcEdPromptStatus } from '@hy/cad-simple-viewer'
 
 import { AcApExportHtmlCmd } from '../src/AcApExportHtmlCmd'
 

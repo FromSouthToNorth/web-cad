@@ -1,5 +1,5 @@
-import { AcCmColor, AcCmTransparency, defaults } from '@mlightcad/common'
-import { AcGiLineStyle, AcGiLineWeight } from '@mlightcad/graphic-interface'
+import { AcCmColor, AcCmTransparency, defaults } from '@hy/common'
+import { AcGiLineStyle, AcGiLineWeight } from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import {

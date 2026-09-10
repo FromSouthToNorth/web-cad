@@ -2,14 +2,14 @@ import {
   AcApDocManager,
   AcEdPromptEntityOptions,
   AcEdPromptStatus
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   AcDbAttribute,
   AcDbAttributeDefinition,
   AcDbBlockReference,
   AcDbEntity,
   AcDbObjectId
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { ref } from 'vue'
 
 /** Shared target INSERT object id for the Enhanced Attribute Editor. */

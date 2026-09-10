@@ -1,7 +1,7 @@
 import {
   AcDbOpenDatabaseErrorCode,
   AcDbProgressdEventArgs
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import mitt, { type Emitter } from 'mitt'
 
 import { AcEdMessageType } from '../input/ui/AcEdMessageType'

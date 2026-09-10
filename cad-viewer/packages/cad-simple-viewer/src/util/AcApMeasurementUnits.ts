@@ -1,4 +1,4 @@
-import type { AcDbDatabase, AcDbFormatterOptions } from '@mlightcad/data-model'
+import type { AcDbDatabase, AcDbFormatterOptions } from '@hy/data-model'
 
 /** Linear/angular unit settings used when formatting measurement labels. */
 export interface AcApMeasurementUnits {

@@ -3,7 +3,7 @@ import {
   AcDbLayout,
   AcDbSystemVariables,
   AcDbSysVarManager
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcEdBaseView } from '../editor/view/AcEdBaseView'
 import { AcTrView2d } from '../view'

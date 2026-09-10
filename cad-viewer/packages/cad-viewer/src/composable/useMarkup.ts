@@ -6,7 +6,7 @@ import {
   getMarkupStore,
   MARKUP_STATUSES,
   runMarkupEdit
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import { onMounted, onUnmounted, ref } from 'vue'
 
 /**

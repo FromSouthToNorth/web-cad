@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-search-plugin",
+  "name": "@hy/cad-search-plugin",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/cad-search-plugin/src",
   "projectType": "library",

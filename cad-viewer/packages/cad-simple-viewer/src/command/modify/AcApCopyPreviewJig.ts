@@ -3,7 +3,7 @@ import {
   AcGeMatrix3d,
   AcGePoint3d,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { scaleCopyDisplacement } from '../../editor/input/AcEdBatchPreview'
 import { AcEdSelectionTransformPreviewJig } from '../../editor/input/AcEdSelectionPreviewJig'

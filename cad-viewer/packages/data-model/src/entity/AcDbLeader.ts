@@ -7,8 +7,8 @@ import {
   AcGeSpline3d,
   AcGeVector3d,
   AcGeVector3dLike
-} from '@mlightcad/geometry-engine'
-import { AcGiRenderer } from '@mlightcad/graphic-interface'
+} from '@hy/geometry-engine'
+import { AcGiRenderer } from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import {

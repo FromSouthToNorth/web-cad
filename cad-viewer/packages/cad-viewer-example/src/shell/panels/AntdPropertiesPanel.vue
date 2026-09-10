@@ -78,9 +78,9 @@ import {
   AcDbEntityProperties,
   AcDbEntityRuntimeProperty,
   AcGiLineWeight
-} from '@mlightcad/data-model'
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { entityPropEnum, entityPropName, useSelectionSet } from '@mlightcad/cad-viewer'
+} from '@hy/data-model'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
+import { entityPropEnum, entityPropName, useSelectionSet } from '@hy/cad-viewer'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

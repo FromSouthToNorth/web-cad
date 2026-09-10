@@ -1,10 +1,10 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 import {
   type AcDbColorTheme,
   AcDbDatabase,
   AcDbSystemVariables,
   AcDbSysVarManager
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { reactive } from 'vue'
 
 export const COLOR_THEME_SYSVAR_NAME = AcDbSystemVariables.COLORTHEME

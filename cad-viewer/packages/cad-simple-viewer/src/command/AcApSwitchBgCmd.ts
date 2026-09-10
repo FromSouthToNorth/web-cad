@@ -1,4 +1,4 @@
-import { AcCmColor, AcDbSysVarManager } from '@mlightcad/data-model'
+import { AcCmColor, AcDbSysVarManager } from '@hy/data-model'
 
 import { AcApContext } from '../app'
 import { AcEdCommand } from '../editor'

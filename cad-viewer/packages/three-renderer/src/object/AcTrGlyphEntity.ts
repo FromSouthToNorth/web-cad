@@ -3,7 +3,7 @@ import {
   AcGiSubEntityTraits,
   AcGiTextStyle,
   log
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { ColorSettings, MTextObject } from '@mlightcad/mtext-renderer'
 import * as THREE from 'three'
 

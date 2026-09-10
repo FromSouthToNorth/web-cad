@@ -2,8 +2,8 @@ import {
   AcApContext,
   acapRunDatabaseEdit,
   AcEdCommand,
-  AcEdOpenMode} from '@mlightcad/cad-simple-viewer'
-import { log } from '@mlightcad/data-model'
+  AcEdOpenMode} from '@hy/cad-simple-viewer'
+import { log } from '@hy/data-model'
 
 import {
   getTunnelPluginOptions,

@@ -2,11 +2,11 @@ import {
   AcApDocManager,
   AcApEntityPreviewConvertor,
   AcTrView2d
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   accmYieldForPaint,
   type AcDbObjectId
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /** Default preview long side in pixels for drawing verification. */
 export const VERIFICATION_PREVIEW_LONG_SIDE_PX = 1024

@@ -1,4 +1,4 @@
-import { AcGiSubEntityTraits } from '@mlightcad/data-model'
+import { AcGiSubEntityTraits } from '@hy/data-model'
 import {
   AcTrRenderer,
   getMaterialMetadata,
@@ -6,7 +6,7 @@ import {
   hasByLayerBinding,
   setMaterialMetadata,
   syncStyleMaterialIdFromMaterials
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 import * as THREE from 'three'
 
 /**

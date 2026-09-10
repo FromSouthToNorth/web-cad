@@ -70,8 +70,8 @@ pnpm build                  # nx 拓扑排序, 自动按依赖顺序构建全部
 ```bash
 cd cad-viewer
 pnpm test                                                # 全量测试
-pnpm --filter @mlightcad/cad-simple-viewer test          # 简单查看器单元测试
-pnpm --filter @mlightcad/cad-viewer-example test:e2e     # E2E 测试
+pnpm --filter @hy/cad-simple-viewer test          # 简单查看器单元测试
+pnpm --filter @hy/cad-viewer-example test:e2e     # E2E 测试
 ```
 
 ## 包依赖关系

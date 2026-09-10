@@ -1,4 +1,4 @@
-import { AcCmAttributes, AcCmObject, AcCmStringKey } from '@mlightcad/common'
+import { AcCmAttributes, AcCmObject, AcCmStringKey } from '@hy/common'
 import { uid } from 'uid'
 
 import type { AcDbDatabase } from '../database/AcDbDatabase'

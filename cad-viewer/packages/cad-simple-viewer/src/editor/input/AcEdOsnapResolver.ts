@@ -7,7 +7,7 @@ import {
   AcGeGeometryUtil,
   AcGePoint2dLike,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcApSettingManager } from '../../app'
 import { AcEdBaseView } from '../view/AcEdBaseView'

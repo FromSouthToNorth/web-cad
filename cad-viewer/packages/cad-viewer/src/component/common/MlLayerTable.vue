@@ -271,7 +271,7 @@
 </template>
 
 <script setup lang="ts">
-import { AcCmColor, AcGiLineWeight } from '@mlightcad/data-model'
+import { AcCmColor, AcGiLineWeight } from '@hy/data-model'
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

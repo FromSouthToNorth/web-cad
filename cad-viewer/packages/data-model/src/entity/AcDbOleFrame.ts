@@ -1,5 +1,5 @@
-import { AcGeBox3d } from '@mlightcad/geometry-engine'
-import { AcGiEntity, AcGiRenderer } from '@mlightcad/graphic-interface'
+import { AcGeBox3d } from '@hy/geometry-engine'
+import { AcGiEntity, AcGiRenderer } from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import {

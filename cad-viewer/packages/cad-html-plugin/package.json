@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-html-plugin",
+  "name": "@hy/cad-html-plugin",
   "version": "1.6.1",
   "license": "MIT",
   "type": "module",
@@ -46,9 +46,9 @@
     "lint:fix": "eslint --fix --quiet src/"
   },
   "devDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
-    "@mlightcad/three-renderer": "workspace:*",
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*",
+    "@hy/three-renderer": "workspace:*",
     "@types/jest": "^29.5.12",
     "@types/rbush": "^3.0.4",
     "@types/three": "^0.172.0",
@@ -57,9 +57,9 @@
     "three": "^0.172.0"
   },
   "peerDependencies": {
-    "@mlightcad/cad-simple-viewer": "workspace:*",
-    "@mlightcad/data-model": "workspace:*",
-    "@mlightcad/three-renderer": "workspace:*",
+    "@hy/cad-simple-viewer": "workspace:*",
+    "@hy/data-model": "workspace:*",
+    "@hy/three-renderer": "workspace:*",
     "three": "^0.172.0"
   }
 }

@@ -1,4 +1,4 @@
-import { AcCmColor, type AcDbDatabase, AcGiLineWeight } from '@mlightcad/data-model'
+import { AcCmColor, type AcDbDatabase, AcGiLineWeight } from '@hy/data-model'
 
 import {
   acapGetCurrentMeasurementStyle,

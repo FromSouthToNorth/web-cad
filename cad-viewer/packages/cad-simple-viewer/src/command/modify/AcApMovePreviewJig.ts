@@ -3,7 +3,7 @@ import {
   AcGeMatrix3d,
   AcGePoint3d,
   AcGePoint3dLike
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcEdSelectionTransformPreviewJig } from '../../editor/input/AcEdSelectionPreviewJig'
 import { AcEdBaseView } from '../../editor/view/AcEdBaseView'

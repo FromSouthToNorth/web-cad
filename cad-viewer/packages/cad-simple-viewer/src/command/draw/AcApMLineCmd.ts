@@ -6,7 +6,7 @@ import {
   AcGeTol,
   AcGeVector3dLike,
   DEFAULT_TOL
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { AcApContext, AcApDocManager } from '../../app'
 import {

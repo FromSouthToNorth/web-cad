@@ -1,11 +1,11 @@
-import { AcCmColor, AcCmTransparency } from '@mlightcad/common'
+import { AcCmColor, AcCmTransparency } from '@hy/common'
 import {
   AcGeBox3d,
   AcGeMatrix3d,
   AcGePoint3d,
   AcGePoint3dLike,
   AcGeVector3dLike
-} from '@mlightcad/geometry-engine'
+} from '@hy/geometry-engine'
 import {
   AcGiDirectBatchPrimitive,
   AcGiEntity,
@@ -13,7 +13,7 @@ import {
   AcGiLineWeight,
   AcGiRenderer,
   AcGiStyleType
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import { AcDbObject, type AcDbObjectId } from '../base/AcDbObject'

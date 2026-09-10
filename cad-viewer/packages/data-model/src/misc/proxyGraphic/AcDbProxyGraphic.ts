@@ -1,4 +1,4 @@
-import { AcCmColor, AcCmColorMethod } from '@mlightcad/common'
+import { AcCmColor, AcCmColorMethod } from '@hy/common'
 import {
   AcGeArea2d,
   AcGeCircArc3d,
@@ -13,7 +13,7 @@ import {
   acgeTransformWcsPointToOcs,
   AcGeVector3d,
   AcGeVector3dLike,
-  TAU} from '@mlightcad/geometry-engine'
+  TAU} from '@hy/geometry-engine'
 import {
   AcGiEntity,
   AcGiLineWeight,
@@ -23,7 +23,7 @@ import {
   AcGiRenderer,
   AcGiStyleType,
   AcGiTextStyle
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 
 import type { AcDbDatabase } from '../../database/AcDbDatabase'
 import { ByBlock, ByLayer, DEFAULT_TEXT_STYLE } from '../AcDbConstants'

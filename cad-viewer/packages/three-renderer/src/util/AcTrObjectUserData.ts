@@ -1,4 +1,4 @@
-import { AcGePoint3dLike } from '@mlightcad/data-model'
+import { AcGePoint3dLike } from '@hy/data-model'
 import * as THREE from 'three'
 
 import type { AcTrMTextEntityTraits } from './AcTrMTextColorUtil'

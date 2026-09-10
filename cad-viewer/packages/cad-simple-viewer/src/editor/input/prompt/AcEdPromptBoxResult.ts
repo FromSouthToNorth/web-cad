@@ -1,4 +1,4 @@
-import { AcGeBox2d } from '@mlightcad/data-model'
+import { AcGeBox2d } from '@hy/data-model'
 
 import { AcEdPromptResult } from './AcEdPromptResult'
 import { AcEdPromptStatus } from './AcEdPromptStatus'

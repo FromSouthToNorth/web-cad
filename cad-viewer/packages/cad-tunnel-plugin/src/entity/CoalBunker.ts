@@ -1,5 +1,5 @@
-import { AcGePoint3d } from '@mlightcad/geometry-engine'
-import type { AcGiEntity, AcGiRenderer } from '@mlightcad/graphic-interface'
+import { AcGePoint3d } from '@hy/geometry-engine'
+import type { AcGiEntity, AcGiRenderer } from '@hy/graphic-interface'
 
 import { ShaftRoadway } from './ShaftRoadway'
 

@@ -10,7 +10,7 @@
  *   canvas or ACI-7 rendering.
  *
  * Shared colour constants and luminance helpers are defined in
- * `@mlightcad/graphic-interface` (`AcGiContext.ts`) and re-exported here
+ * `@hy/graphic-interface` (`AcGiContext.ts`) and re-exported here
  * for editor callers.
  */
 export {
@@ -21,7 +21,7 @@ export {
   acgiContrastingForegroundColor,
   acgiForegroundColorForBackground,
   acgiIsLightBackground
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import {
   AcCmColor,
@@ -33,7 +33,7 @@ import {
   ACGI_PAPER_SPACE_BACKGROUND,
   acgiContrastingForegroundColor,
   acgiIsLightBackground
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 /**
  * Returns the UI chrome foreground colour that matches `COLORTHEME`.

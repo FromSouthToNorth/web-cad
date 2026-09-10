@@ -1,4 +1,4 @@
-import { AcGePoint3d } from '@mlightcad/geometry-engine'
+import { AcGePoint3d } from '@hy/geometry-engine'
 
 import { AcDbLine } from '../src/entity/AcDbLine'
 import { AcDbMText } from '../src/entity/AcDbMText'

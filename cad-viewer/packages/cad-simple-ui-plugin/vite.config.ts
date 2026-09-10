@@ -7,7 +7,7 @@ import {
   createLibRollupOutput
 } from '../vite-config/pluginRollupOutput'
 
-const packageName = '@mlightcad/cad-simple-ui-plugin'
+const packageName = '@hy/cad-simple-ui-plugin'
 const pluginId = 'cad-simple-ui-plugin'
 
 export default defineConfig({
@@ -27,8 +27,8 @@ export default defineConfig({
     rollupOptions: {
       external: [
         packageName,
-        '@mlightcad/cad-simple-viewer',
-        '@mlightcad/data-model'
+        '@hy/cad-simple-viewer',
+        '@hy/data-model'
       ],
       output: createLibRollupOutput(pluginId)
     }

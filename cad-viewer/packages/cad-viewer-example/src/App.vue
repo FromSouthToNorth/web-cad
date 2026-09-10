@@ -64,11 +64,11 @@ import {
   AcApOpenViewMode,
   AcEdCommandStack,
   AcEdOpenMode
-} from '@mlightcad/cad-simple-viewer'
-import { registerInvertSelPlugin } from '@mlightcad/cad-invertsel-plugin/register'
-import { registerLayerCtxPlugin } from '@mlightcad/cad-layerctx-plugin/register'
-import { registerTunnelPlugin } from '@mlightcad/cad-tunnel-plugin/register'
-import { useLocale } from '@mlightcad/cad-viewer'
+} from '@hy/cad-simple-viewer'
+import { registerInvertSelPlugin } from '@hy/cad-invertsel-plugin/register'
+import { registerLayerCtxPlugin } from '@hy/cad-layerctx-plugin/register'
+import { registerTunnelPlugin } from '@hy/cad-tunnel-plugin/register'
+import { useLocale } from '@hy/cad-viewer'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 

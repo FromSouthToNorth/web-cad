@@ -1,9 +1,9 @@
-import { AcGePoint3d, type AcGeVector3dLike } from '@mlightcad/data-model'
+import { AcGePoint3d, type AcGeVector3dLike } from '@hy/data-model'
 import {
   AcTrHtmlCallout,
   AcTrHtmlCanvasOverlay,
   AcTrHtmlDot
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 
 import type { AcTrView2d } from '../../../view'
 import {

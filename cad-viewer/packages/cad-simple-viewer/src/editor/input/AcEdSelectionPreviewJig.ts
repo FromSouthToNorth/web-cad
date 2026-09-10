@@ -1,4 +1,4 @@
-import { AcDbEntity, AcDbObjectId, AcGeMatrix3d } from '@mlightcad/data-model'
+import { AcDbEntity, AcDbObjectId, AcGeMatrix3d } from '@hy/data-model'
 
 import { AcEdBaseView } from '../view/AcEdBaseView'
 import { AcEdBatchedPreview } from './AcEdBatchPreview'

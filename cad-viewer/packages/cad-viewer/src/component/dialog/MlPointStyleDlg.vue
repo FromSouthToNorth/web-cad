@@ -30,7 +30,7 @@
 </template>
 
 <script lang="ts" setup>
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 import { Button as AButton, Col as ACol, Row as ARow } from 'ant-design-vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'

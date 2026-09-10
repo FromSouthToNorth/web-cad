@@ -78,7 +78,7 @@ jest.mock('@mlightcad/mtext-renderer', () => ({
   MTextAttachmentPoint: { TopLeft: 1 }
 }))
 
-jest.mock('@mlightcad/data-model', () => ({
+jest.mock('@hy/data-model', () => ({
   AcDbSystemVariables: {
     COLORTHEME: 'COLORTHEME'
   },

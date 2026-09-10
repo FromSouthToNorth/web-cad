@@ -1,4 +1,4 @@
-import { AcApI18n } from '@mlightcad/cad-simple-viewer'
+import { AcApI18n } from '@hy/cad-simple-viewer'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 import { type AgentChatLabelKey, agentT, buildAgentLabels } from './index'

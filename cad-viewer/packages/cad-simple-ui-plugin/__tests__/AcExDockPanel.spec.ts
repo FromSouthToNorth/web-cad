@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { ML_UI_MOBILE_MEDIA_QUERY } from '@mlightcad/cad-simple-viewer'
+import { ML_UI_MOBILE_MEDIA_QUERY } from '@hy/cad-simple-viewer'
 
 import { AcExI18n, registerSimpleUiI18n } from '../src/i18n'
 import { AcExDockPanel } from '../src/ui/AcExDockPanel'
@@ -15,7 +15,7 @@ beforeAll(() => {
   global.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver
 })
 
-jest.mock('@mlightcad/cad-simple-viewer', () => {
+jest.mock('@hy/cad-simple-viewer', () => {
   const layout = jest.requireActual(
     '../../cad-simple-viewer/src/editor/global/AcEdUiLayout'
   ) as typeof import('../../cad-simple-viewer/src/editor/global/AcEdUiLayout')

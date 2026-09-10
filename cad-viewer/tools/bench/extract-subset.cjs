@@ -13,7 +13,7 @@ const {
   AcDbFileType,
   acdbHostApplicationServices,
   AcDbNativeDxfConverter
-} = require('@mlightcad/data-model')
+} = require('@hy/data-model')
 
 async function main() {
   const [inFile, outFile, maxLineStr, maxArcStr] = process.argv.slice(2)

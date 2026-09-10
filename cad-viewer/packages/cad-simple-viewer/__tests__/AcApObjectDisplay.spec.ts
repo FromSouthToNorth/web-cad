@@ -1,4 +1,4 @@
-import { AcDbObjectId } from '@mlightcad/data-model'
+import { AcDbObjectId } from '@hy/data-model'
 
 import { hideObjects, unisolateObjects } from '../src/app/AcApObjectDisplay'
 import { AcApDocument } from '../src/app/AcApDocument'

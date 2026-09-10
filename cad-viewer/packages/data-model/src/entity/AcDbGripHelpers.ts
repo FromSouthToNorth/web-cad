@@ -1,4 +1,4 @@
-import { AcGePoint3d, AcGeVector3dLike } from '@mlightcad/geometry-engine'
+import { AcGePoint3d, AcGeVector3dLike } from '@hy/geometry-engine'
 
 /**
  * Invokes a grip move handler for each valid grip index.

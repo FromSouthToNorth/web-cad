@@ -4,8 +4,8 @@ import {
   AcGePoint3dLike,
   AcGeVector3d,
   AcGeVector3dLike
-} from '@mlightcad/geometry-engine'
-import { AcGiMTextAttachmentPoint } from '@mlightcad/graphic-interface'
+} from '@hy/geometry-engine'
+import { AcGiMTextAttachmentPoint } from '@hy/graphic-interface'
 
 const CHAR_WIDTH_FACTOR = 1
 

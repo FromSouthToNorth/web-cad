@@ -6,9 +6,9 @@ export const store = reactive({
     activePaletteTab: 'layerManager'
   },
   features: {
-    /** Set when `@mlightcad/cad-agent-plugin` is installed and registered. */
+    /** Set when `@hy/cad-agent-plugin` is installed and registered. */
     agentPlugin: false,
-    /** Set when `@mlightcad/cad-search-plugin` is installed and registered. */
+    /** Set when `@hy/cad-search-plugin` is installed and registered. */
     searchPlugin: false
   }
 })

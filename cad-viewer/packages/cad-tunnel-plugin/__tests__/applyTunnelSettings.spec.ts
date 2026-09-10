@@ -3,7 +3,7 @@ import {
   AcDbEntity,
   acdbHostApplicationServices,
   AcDbRoadway,
-  AcDbText} from '@mlightcad/data-model'
+  AcDbText} from '@hy/data-model'
 
 import { updateTunnelEntities } from '../src/applyTunnelSettings'
 import {

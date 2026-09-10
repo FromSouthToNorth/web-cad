@@ -134,7 +134,7 @@
       "line": "27-31（另 35 行）",
       "severity": "P3",
       "category": "docs",
-      "evidence": "Peer dependencies:\n\n- `@mlightcad/cad-simple-viewer`\n- `@mlightcad/data-model`\n- `@mlightcad/mtext-parser`",
+      "evidence": "Peer dependencies:\n\n- `@hy/cad-simple-viewer`\n- `@hy/data-model`\n- `@mlightcad/mtext-parser`",
       "impact": "package.json:49/55 声明 @mlightcad/mtext-renderer 为 peerDependency，且 AcSvgShapeUtil.ts:8-13 在运行时从 '@mlightcad/mtext-renderer' 导入 FontManager/ShxParserFont（SHAPE 实体导出路径），README 却漏列，按文档安装的宿主（.pnpmrc strict-peer-dependencies=true）会在执行 csvg 时缺包失败；同节 35 行还称产物为 dist/index.js / dist/register.js，实际构建产物为 dist/cad-svg-plugin.js / dist/cad-svg-plugin-register.js。",
       "fix": "README 补齐 @mlightcad/mtext-renderer 并修正产物文件名（或让其与 pluginRollupOutput 的 createLibEntryFileName 生成规则一致）。",
       "confidence": "high",

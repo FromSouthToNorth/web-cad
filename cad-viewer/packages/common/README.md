@@ -1,7 +1,7 @@
-# @mlightcad/common
+# @hy/common
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://img.shields.io/npm/v/@mlightcad/common.svg)](https://www.npmjs.com/package/@mlightcad/common)
+[![npm version](https://img.shields.io/npm/v/@hy/common.svg)](https://www.npmjs.com/package/@hy/common)
 
 The common package provides shared utilities and base classes that are used across the RealDWG-Web ecosystem. This package contains fundamental components for color management, event handling, logging, performance monitoring, and file loading operations.
 
@@ -21,7 +21,7 @@ This package serves as the foundation for the RealDWG-Web project, providing ess
 ## Installation
 
 ```bash
-npm install @mlightcad/common
+npm install @hy/common
 ```
 
 ## Key Classes
@@ -55,7 +55,7 @@ npm install @mlightcad/common
 
 ### Color Management
 ```typescript
-import { AcCmColor, AcCmColorUtil } from '@mlightcad/common';
+import { AcCmColor, AcCmColorUtil } from '@hy/common';
 
 // Create a color from AutoCAD color index
 const color = new AcCmColor(1); // Red
@@ -70,7 +70,7 @@ const index = AcCmColorUtil.toColorIndex(rgbColor);
 
 ### Event Handling
 ```typescript
-import { AcCmEventManager, AcCmEventDispatcher } from '@mlightcad/common';
+import { AcCmEventManager, AcCmEventDispatcher } from '@hy/common';
 
 // Create an event dispatcher
 const dispatcher = new AcCmEventDispatcher();
@@ -86,7 +86,7 @@ dispatcher.dispatchEvent('fileLoaded', { fileName: 'drawing.dwg' });
 
 ### Logging
 ```typescript
-import { AcCmLogUtil } from '@mlightcad/common';
+import { AcCmLogUtil } from '@hy/common';
 
 // Configure logging
 AcCmLogUtil.setLevel('info');
@@ -99,7 +99,7 @@ AcCmLogUtil.error('Failed to load file', error);
 
 ### File Loading
 ```typescript
-import { AcCmFileLoader, AcCmLoadingManager } from '@mlightcad/common';
+import { AcCmFileLoader, AcCmLoadingManager } from '@hy/common';
 
 // Create a file loader
 const loader = new AcCmFileLoader();

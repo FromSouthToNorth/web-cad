@@ -1,5 +1,5 @@
-import { defaults } from '@mlightcad/common'
-import { AcGiTextStyle } from '@mlightcad/graphic-interface'
+import { defaults } from '@hy/common'
+import { AcGiTextStyle } from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
 import {

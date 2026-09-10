@@ -1,6 +1,6 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { AcEdBaseView, AcEdMouseEventArgs } from '@mlightcad/cad-simple-viewer'
-import { AcGePoint2d } from '@mlightcad/data-model'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
+import { AcEdBaseView, AcEdMouseEventArgs } from '@hy/cad-simple-viewer'
+import { AcGePoint2d } from '@hy/data-model'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 function formatCoordinatePair(x: number, y: number): string {

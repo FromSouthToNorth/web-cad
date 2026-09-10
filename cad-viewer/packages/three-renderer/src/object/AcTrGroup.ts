@@ -1,4 +1,4 @@
-import { AcDbObjectId, AcGeMatrix3d } from '@mlightcad/data-model'
+import { AcDbObjectId, AcGeMatrix3d } from '@hy/data-model'
 import { FontManager } from '@mlightcad/mtext-renderer'
 import * as THREE from 'three'
 

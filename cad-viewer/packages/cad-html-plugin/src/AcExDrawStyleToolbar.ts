@@ -1,12 +1,12 @@
 /**
  * Canvas-top drawing style overlay (color / line weight / font size).
- * Mirrors `@mlightcad/cad-simple-viewer` {@link AcApDrawStyleToolbar}.
+ * Mirrors `@hy/cad-simple-viewer` {@link AcApDrawStyleToolbar}.
  *
  * @module AcExDrawStyleToolbar
  * @packageDocumentation
  */
 
-import { AcCmColor, AcGiLineWeight } from '@mlightcad/data-model'
+import { AcCmColor, AcGiLineWeight } from '@hy/data-model'
 
 import type { AcExHtmlI18n } from './AcExHtmlI18n'
 

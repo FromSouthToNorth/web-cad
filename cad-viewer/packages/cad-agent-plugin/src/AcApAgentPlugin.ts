@@ -2,7 +2,7 @@ import {
   AcApContext,
   AcApPlugin,
   AcEdCommandStack
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 
 import packageJson from '../package.json'
 import { AcApAgentCmd } from './command/AcApAgentCmd'

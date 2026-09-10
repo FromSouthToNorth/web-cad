@@ -1,11 +1,11 @@
-import { defaults } from '@mlightcad/common'
-import { AcGePoint2d, AcGePoint3d } from '@mlightcad/geometry-engine'
+import { defaults } from '@hy/common'
+import { AcGePoint2d, AcGePoint3d } from '@hy/geometry-engine'
 import {
   AcGiDefaultLightingType,
   AcGiOrthographicType,
   AcGiRenderMode,
   AcGiView
-} from '@mlightcad/graphic-interface'
+} from '@hy/graphic-interface'
 
 import {
   AcDbSymbolTableRecord,

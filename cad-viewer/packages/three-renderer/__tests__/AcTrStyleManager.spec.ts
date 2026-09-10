@@ -1,4 +1,4 @@
-import { AcCmColor, AcGiLineWeight } from '@mlightcad/data-model'
+import { AcCmColor, AcGiLineWeight } from '@hy/data-model'
 import * as THREE from 'three'
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 

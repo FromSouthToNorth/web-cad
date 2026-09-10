@@ -1,4 +1,4 @@
-import { AcDbObjectId, AcGiSubEntityTraits } from '@mlightcad/data-model'
+import { AcDbObjectId, AcGiSubEntityTraits } from '@hy/data-model'
 import {
   AcTrBatchedGroup,
   AcTrBatchedGroupStats,
@@ -7,7 +7,7 @@ import {
   AcTrPreviewSubsetOptions,
   AcTrRenderer,
   AcTrStyleManager
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 import * as THREE from 'three'
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js'
 

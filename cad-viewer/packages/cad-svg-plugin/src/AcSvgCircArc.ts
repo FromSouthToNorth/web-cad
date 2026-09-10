@@ -1,4 +1,4 @@
-import { AcGeCircArc3d, AcGiSubEntityTraits } from '@mlightcad/data-model'
+import { AcGeCircArc3d, AcGiSubEntityTraits } from '@hy/data-model'
 
 import { AcSvgEntity } from './AcSvgEntity'
 import { AcSvgStyleContext, AcSvgStyleUtil } from './AcSvgStyleUtil'

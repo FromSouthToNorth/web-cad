@@ -1,4 +1,4 @@
-import { AcGeBox2d, AcGeVector2d } from '@mlightcad/data-model'
+import { AcGeBox2d, AcGeVector2d } from '@hy/data-model'
 
 /** Callback that applies a zoom-to-fit in the host view. */
 export type AcTrProgressiveOpenFitZoomFn = (

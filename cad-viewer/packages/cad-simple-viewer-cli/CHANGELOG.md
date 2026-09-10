@@ -1,4 +1,4 @@
-# @mlightcad/cad-simple-viewer-cli
+# @hy/cad-simple-viewer-cli
 
 ## 1.6.1
 
@@ -6,10 +6,10 @@
 
 - feat: extends Design Review markup and measurement to the HTML viewer with sidecar persistence, aligned review icons, and HTML-only measure overlays that avoid forcing WebGL redraws. Also preserves absolute hatch colours when only lineweight is ByLayer, and documents GitMCP servers in the README and Cursor config
 - Updated dependencies
-  - @mlightcad/cad-html-plugin@1.6.1
-  - @mlightcad/cad-pdf-plugin@1.6.1
-  - @mlightcad/cad-simple-viewer@1.6.1
-  - @mlightcad/cad-svg-plugin@1.6.1
+  - @hy/cad-html-plugin@1.6.1
+  - @hy/cad-pdf-plugin@1.6.1
+  - @hy/cad-simple-viewer@1.6.1
+  - @hy/cad-svg-plugin@1.6.1
 
 ## 1.6.0
 
@@ -20,10 +20,10 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @mlightcad/cad-html-plugin@1.6.0
-  - @mlightcad/cad-pdf-plugin@1.6.0
-  - @mlightcad/cad-simple-viewer@1.6.0
-  - @mlightcad/cad-svg-plugin@1.6.0
+  - @hy/cad-html-plugin@1.6.0
+  - @hy/cad-pdf-plugin@1.6.0
+  - @hy/cad-simple-viewer@1.6.0
+  - @hy/cad-svg-plugin@1.6.0
 
 ## 1.5.11
 
@@ -31,7 +31,7 @@
 
 - feat: adds headless .scr script support to the simple-viewer CLI and waits for the scene to become idle before export so rendered output is complete. Example app bundles are split so data-model and three stay cacheable, isolating example chunks, and HTML runtime plugin options are fixed for more reliable offline HTML export workflows.
 - Updated dependencies
-  - @mlightcad/cad-html-plugin@1.5.11
-  - @mlightcad/cad-pdf-plugin@1.5.11
-  - @mlightcad/cad-simple-viewer@1.5.11
-  - @mlightcad/cad-svg-plugin@1.5.11
+  - @hy/cad-html-plugin@1.5.11
+  - @hy/cad-pdf-plugin@1.5.11
+  - @hy/cad-simple-viewer@1.5.11
+  - @hy/cad-svg-plugin@1.5.11

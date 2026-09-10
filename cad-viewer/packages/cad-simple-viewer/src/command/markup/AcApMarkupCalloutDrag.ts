@@ -5,7 +5,7 @@
  * markup-facing names for existing call sites.
  */
 
-import type { AcTrHtmlElement, AcTrHtmlGroup } from '@mlightcad/three-renderer'
+import type { AcTrHtmlElement, AcTrHtmlGroup } from '@hy/three-renderer'
 
 import type { AcTrView2d } from '../../view'
 import {

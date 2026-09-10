@@ -8,7 +8,7 @@ import {
   AcDbLayerTableRecord,
   AcDbSysVarEventArgs,
   AcDbSysVarManager
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import type { AcApDocument } from '../app/AcApDocument'
 import { AcApLayerService } from './AcApLayerService'

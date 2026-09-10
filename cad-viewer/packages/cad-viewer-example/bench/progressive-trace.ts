@@ -11,7 +11,7 @@
  * Result is published on globalThis.__openTrace (array of stamped entries)
  * and globalThis.__mlViewDebug (the view, after open returns).
  */
-import { AcApDocManager, AcEdOpenMode } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager, AcEdOpenMode } from '@hy/cad-simple-viewer'
 
 const bar = document.getElementById('bar') as HTMLDivElement
 const params = new URLSearchParams(location.search)

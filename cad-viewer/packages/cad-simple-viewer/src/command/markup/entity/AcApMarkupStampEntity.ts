@@ -1,4 +1,4 @@
-import { AcTrHtmlStamp } from '@mlightcad/three-renderer'
+import { AcTrHtmlStamp } from '@hy/three-renderer'
 
 import type { AcTrView2d } from '../../../view'
 import type { AcApOverlayWorldDrawResult } from '../../overlay'

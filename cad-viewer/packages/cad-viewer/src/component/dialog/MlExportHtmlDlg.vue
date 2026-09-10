@@ -124,8 +124,8 @@ import type {
   AcApHtmlExportOptions,
   AcExInitialViewMode,
   AcExViewerMode
-} from '@mlightcad/cad-html-plugin'
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-html-plugin'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
 import {
   Radio as ARadio,
   RadioGroup as ARadioGroup,
@@ -219,7 +219,7 @@ function handleOpen() {
  * Confirms export: lazy-loads the HTML plugin, then converts and downloads the drawing.
  *
  * @remarks
- * Loads `@mlightcad/cad-html-plugin` on demand via the `-chtml` lazy trigger.
+ * Loads `@hy/cad-html-plugin` on demand via the `-chtml` lazy trigger.
  * Errors are shown in the command line message area; the dialog closes on OK
  * regardless of export outcome ({@link MlBaseDialog} `autoClose` default).
  */
@@ -238,12 +238,12 @@ async function handleOk() {
     const loaded = await docManager.pluginManager.loadByTrigger('-chtml')
     if (!loaded) {
       throw new Error(
-        'HTML export plugin is not available. Install @mlightcad/cad-html-plugin.'
+        'HTML export plugin is not available. Install @hy/cad-html-plugin.'
       )
     }
 
     const { AcApHtmlConvertor, getHtmlPluginOptions, resolveAcApHtmlExportOptions } =
-      await import('@mlightcad/cad-html-plugin')
+      await import('@hy/cad-html-plugin')
     const converter = new AcApHtmlConvertor(getHtmlPluginOptions())
     await converter.convert(
       document.fileName || document.docTitle,

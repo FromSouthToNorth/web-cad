@@ -1,4 +1,4 @@
-import type { AcApPluginManager } from '@mlightcad/cad-simple-viewer'
+import type { AcApPluginManager } from '@hy/cad-simple-viewer'
 
 /** Lazy plugin name for PDF export/import. */
 export const PDF_PLUGIN_NAME = 'PdfPlugin'
@@ -14,7 +14,7 @@ export const PDF_PLUGIN_TRIGGERS = ['cpdf', 'ipdf'] as const
 /**
  * Registers the PDF plugin for lazy loading.
  *
- * Import from `@mlightcad/cad-pdf-plugin/register` so the main plugin bundle
+ * Import from `@hy/cad-pdf-plugin/register` so the main plugin bundle
  * is not pulled into the application entry chunk.
  *
  * @param pluginManager - Plugin manager that receives the lazy registration
@@ -24,7 +24,7 @@ export function registerLazyPdfPlugin(pluginManager: AcApPluginManager): void {
     name: PDF_PLUGIN_NAME,
     triggers: [...PDF_PLUGIN_TRIGGERS],
     loader: async () => {
-      const { createPdfPlugin } = await import('@mlightcad/cad-pdf-plugin')
+      const { createPdfPlugin } = await import('@hy/cad-pdf-plugin')
       return createPdfPlugin()
     }
   })

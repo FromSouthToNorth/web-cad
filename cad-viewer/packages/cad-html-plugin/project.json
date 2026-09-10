@@ -1,5 +1,5 @@
 {
-  "name": "@mlightcad/cad-html-plugin",
+  "name": "@hy/cad-html-plugin",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/cad-html-plugin/src",
   "projectType": "library",

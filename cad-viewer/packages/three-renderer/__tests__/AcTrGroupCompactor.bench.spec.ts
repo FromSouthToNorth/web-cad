@@ -20,7 +20,7 @@ import {
   AcDbBlockTableRecord,
   AcGeMatrix3d,
   acdbHostApplicationServices
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import * as THREE from 'three'
 
 import { AcTrEntity } from '../src/object/AcTrEntity'

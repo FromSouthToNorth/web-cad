@@ -2,7 +2,7 @@ import {
   AcCmEventManager,
   AcDbOsnapMode,
   acdbOsnapModesToMask
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { defaults } from 'lodash-es'
 
 /**

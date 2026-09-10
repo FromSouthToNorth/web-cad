@@ -11,10 +11,10 @@ import { AcDbTable } from '../src/entity/AcDbTable'
 import { AcDbText } from '../src/entity/AcDbText'
 import { AcDbMLeaderStyle } from '../src/object'
 import { AcDbLayout } from '../src/object/layout/AcDbLayout'
-import { AcGePoint2d } from '@mlightcad/geometry-engine'
-import { AcGePoint3d } from '@mlightcad/geometry-engine'
-import { AcGeVector3d } from '@mlightcad/geometry-engine'
-import { AcGiMTextAttachmentPoint } from '@mlightcad/graphic-interface'
+import { AcGePoint2d } from '@hy/geometry-engine'
+import { AcGePoint3d } from '@hy/geometry-engine'
+import { AcGeVector3d } from '@hy/geometry-engine'
+import { AcGiMTextAttachmentPoint } from '@hy/graphic-interface'
 
 interface DxfPair {
   code: string

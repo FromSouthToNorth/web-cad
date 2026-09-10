@@ -1,11 +1,11 @@
-import { AcDbObjectId, AcGeBox2d, AcGeBox3d } from '@mlightcad/data-model'
+import { AcDbObjectId, AcGeBox2d, AcGeBox3d } from '@hy/data-model'
 import {
   AcTrDirectEntityMeta,
   AcTrEntity,
   AcTrEntityPreview,
   AcTrGroup,
   disposePreviewSubset
-} from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
 import * as THREE from 'three'
 
 import { AcEdLayerInfo, AcEdSpatialQueryResultItem } from '../editor'

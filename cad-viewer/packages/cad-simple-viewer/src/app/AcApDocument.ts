@@ -5,7 +5,7 @@ import {
   AcDbOpenDatabaseError,
   AcDbOpenDatabaseOptions,
   log
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 
 import { eventBus } from '../editor'
 import { AcEdOpenMode } from '../editor/view'

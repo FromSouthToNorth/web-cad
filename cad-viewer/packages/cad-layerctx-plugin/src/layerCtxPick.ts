@@ -1,5 +1,5 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { AcDbObjectId } from '@mlightcad/data-model'
+import { AcApDocManager } from '@hy/cad-simple-viewer'
+import { AcDbObjectId } from '@hy/data-model'
 
 /** Class of the host's grip-handle overlay (see `AcEdGripHandle`). */
 const GRIP_HANDLE_CLASS = 'ml-grip-handle'

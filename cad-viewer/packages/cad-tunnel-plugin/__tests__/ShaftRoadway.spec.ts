@@ -3,8 +3,8 @@ import {
   AcDbDxfFiler,
   acdbDxfInEntity,
   acdbHostApplicationServices
-} from '@mlightcad/data-model'
-import { AcGeMatrix3d, AcGePoint3d } from '@mlightcad/geometry-engine'
+} from '@hy/data-model'
+import { AcGeMatrix3d, AcGePoint3d } from '@hy/geometry-engine'
 
 import { CoalBunker } from '../src/entity/CoalBunker'
 import { ShaftRoadway } from '../src/entity/ShaftRoadway'

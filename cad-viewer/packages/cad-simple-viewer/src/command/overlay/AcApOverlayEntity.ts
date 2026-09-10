@@ -3,8 +3,8 @@ import type {
   AcGePoint3d,
   AcGePoint3dLike,
   AcGeVector3dLike
-} from '@mlightcad/data-model'
-import type { AcTrHtmlGroup } from '@mlightcad/three-renderer'
+} from '@hy/data-model'
+import type { AcTrHtmlGroup } from '@hy/three-renderer'
 
 import type { AcTrView2d } from '../../view'
 

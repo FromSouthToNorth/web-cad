@@ -9,12 +9,12 @@ import {
   acdbHostApplicationServices,
   AcGePoint2d,
   AcGePoint3d
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import {
   defaultBatchDrawPolicy,
   RTE_REBASE_THRESHOLD
-} from '@mlightcad/three-renderer'
-import { AcTrRenderer } from '@mlightcad/three-renderer'
+} from '@hy/three-renderer'
+import { AcTrRenderer } from '@hy/three-renderer'
 import * as THREE from 'three'
 
 import {

@@ -8,18 +8,18 @@ import {
   AcEdOpenMode,
   acedApplyUiTheme,
   eventBus
-} from '@mlightcad/cad-simple-viewer'
+} from '@hy/cad-simple-viewer'
 import {
   ensureColorThemeSync,
   initializeCadViewer,
   setColorTheme,
   store
-} from '@mlightcad/cad-viewer'
+} from '@hy/cad-viewer'
 import {
   AcDbSystemVariables,
   AcDbSysVarManager,
   log
-} from '@mlightcad/data-model'
+} from '@hy/data-model'
 import { App as AntdApp } from 'ant-design-vue'
 import {
   computed,

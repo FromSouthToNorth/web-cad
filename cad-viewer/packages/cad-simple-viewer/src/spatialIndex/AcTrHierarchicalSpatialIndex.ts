@@ -1,5 +1,5 @@
-import { AcDbObjectId } from '@mlightcad/data-model'
-import { AcTrGroup } from '@mlightcad/three-renderer'
+import { AcDbObjectId } from '@hy/data-model'
+import { AcTrGroup } from '@hy/three-renderer'
 
 import {
   AcEdSpatialQueryResultItem,

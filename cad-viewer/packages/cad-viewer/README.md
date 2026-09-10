@@ -1,9 +1,9 @@
 # CAD Viewer Component
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://img.shields.io/npm/v/@mlightcad/cad-viewer.svg)](https://www.npmjs.com/package/@mlightcad/cad-viewer)
+[![npm version](https://img.shields.io/npm/v/@hy/cad-viewer.svg)](https://www.npmjs.com/package/@hy/cad-viewer)
 
-`@mlightcad/cad-viewer` is the UI layer of the mlightcad web CAD stack. It provides **Vue 3 components, dialogs, commands, composables, and i18n** for viewing and editing CAD files (DXF, DWG) **entirely in the browser without requiring any backend server**, on top of the `@mlightcad/cad-simple-viewer` engine and the `@mlightcad/three-renderer` renderer.
+`@hy/cad-viewer` is the UI layer of the mlightcad web CAD stack. It provides **Vue 3 components, dialogs, commands, composables, and i18n** for viewing and editing CAD files (DXF, DWG) **entirely in the browser without requiring any backend server**, on top of the `@hy/cad-simple-viewer` engine and the `@hy/three-renderer` renderer.
 
 ## Key Features
 
@@ -57,7 +57,7 @@ This package operates entirely in the browser with **no backend dependencies**. 
 ## Installation
 
 ```bash
-npm install @mlightcad/cad-viewer
+npm install @hy/cad-viewer
 ```
 
 ## Usage
@@ -68,10 +68,10 @@ Please refer to sub-package `cad-viewer-example` as one example.
 
 Add the following peer dependencies into your package.json.
 
-- @mlightcad/cad-simple-viewer
-- @mlightcad/cad-viewer
-- @mlightcad/data-model
-- @mlightcad/three-renderer
+- @hy/cad-simple-viewer
+- @hy/cad-viewer
+- @hy/data-model
+- @hy/three-renderer
 - @vueuse/core
 - ant-design-vue
 - lodash-es
@@ -88,7 +88,7 @@ import {
   registerDialogs,
   registerLazyPlugins,
   i18n
-} from '@mlightcad/cad-viewer'
+} from '@hy/cad-viewer'
 import Antd from 'ant-design-vue'
 import 'ant-design-vue/dist/reset.css'
 import { createApp } from 'vue'

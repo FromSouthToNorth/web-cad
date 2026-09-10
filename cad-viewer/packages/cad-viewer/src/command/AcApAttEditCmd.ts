@@ -2,8 +2,8 @@ import {
   AcApContext,
   AcEdCommand,
   AcEdOpenMode
-} from '@mlightcad/cad-simple-viewer'
-import { AcDbBlockReference } from '@mlightcad/data-model'
+} from '@hy/cad-simple-viewer'
+import { AcDbBlockReference } from '@hy/data-model'
 import { nextTick } from 'vue'
 
 import {

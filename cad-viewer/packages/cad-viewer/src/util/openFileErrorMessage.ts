@@ -1,5 +1,5 @@
-import type { AcEdEvents } from '@mlightcad/cad-simple-viewer'
-import type { AcDbOpenDatabaseErrorCode } from '@mlightcad/data-model'
+import type { AcEdEvents } from '@hy/cad-simple-viewer'
+import type { AcDbOpenDatabaseErrorCode } from '@hy/data-model'
 
 export type OpenFileErrorParams = AcEdEvents['failed-to-open-file']
 

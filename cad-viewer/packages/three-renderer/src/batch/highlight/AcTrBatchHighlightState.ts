@@ -355,6 +355,17 @@ export class AcTrBatchHighlightState {
   }
 
   /**
+   * Returns whether a deferred partial mask upload still needs a GL context.
+   *
+   * Clears that fall back to the single-row `texSubImage2D` path leave the
+   * upload pending until the next draw; callers must flush it even when the
+   * last highlight was removed, otherwise the GPU mask keeps stale hover bits.
+   */
+  hasPendingMaskUpload() {
+    return this._pendingUploadRegion != null
+  }
+
+  /**
    * Uploads the pending dirty window with a raw `gl.texSubImage2D` call.
    * Invoked from the per-object `onBeforeRender` hook, which receives the
    * renderer. Falls back to the three.js full-texture path when the texture

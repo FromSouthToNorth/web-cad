@@ -12,6 +12,7 @@
         :items="qatItems"
         :file-items="fileItems"
         :disabled="disabled"
+        @execute="run"
       />
       <div
         class="antd-ribbon-tabs"
@@ -160,7 +161,7 @@ import {
   FullscreenOutlined,
   UpOutlined
 } from '@ant-design/icons-vue'
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
+import { AcApDocManager, eventBus } from '@mlightcad/cad-simple-viewer'
 import {
   LOCALE_OPTIONS,
   useDocument,
@@ -173,6 +174,7 @@ import AntdLayerSelect from './AntdLayerSelect.vue'
 import AntdPropertyBar from './AntdPropertyBar.vue'
 import AntdQat from './AntdQat.vue'
 import AntdRibbonPanel from './AntdRibbonPanel.vue'
+import { CommandQueue } from './commandQueue'
 import { fileItems, qatItems, ribbonTabs } from './ribbonModel'
 import type { RibbonItemDef } from './ribbonTypes'
 
@@ -442,6 +444,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onGlobalKeydown, true)
   window.removeEventListener('pointerdown', onPointerDown, true)
+  commandQueue.dispose()
 })
 
 // ── document state ───────────────────────────────────────────────────
@@ -470,9 +473,52 @@ function onLocaleChange(value: string) {
 }
 
 // ── command execution ────────────────────────────────────────────────
+//
+// Buttons are clickable even while `disabled` is active (the panels render
+// the disabled look through `is-disabled`/`aria-disabled` instead of the
+// native attribute, which would swallow the first click during a long
+// document open). Clicks that arrive while blocked are queued and replayed
+// once the document activates; a failed open drops the queue.
+
+function onDocumentActivated(): void {
+  commandQueue.scheduleFlush()
+}
+
+function onFailedToOpenFile(): void {
+  commandQueue.dropPending()
+}
+
+const commandQueue = new CommandQueue({
+  isBlocked: () => disabled.value,
+  execute: command => AcApDocManager.instance.sendStringToExecute(command),
+  bindListeners: () => {
+    AcApDocManager.instance.events.documentActivated.addEventListener(
+      onDocumentActivated
+    )
+    eventBus.on('failed-to-open-file', onFailedToOpenFile)
+  },
+  unbindListeners: () => {
+    AcApDocManager.instance.events.documentActivated.removeEventListener(
+      onDocumentActivated
+    )
+    eventBus.off('failed-to-open-file', onFailedToOpenFile)
+  }
+})
+
+// `documentActivated` flips `isDocumentOpening` → `disabled`, but the
+// `props.disabled` gate (editor boot) has no document event: flush whenever
+// the block lifts while something is pending.
+watch(disabled, value => {
+  if (!value && commandQueue.size > 0) commandQueue.scheduleFlush()
+})
 
 function run(command: string) {
-  if (disabled.value) return
-  AcApDocManager.instance.sendStringToExecute(command)
+  const queued = commandQueue.enqueue(command)
+  if (queued) {
+    eventBus.emit('message', {
+      message: t('shell.ribbon.commandQueued'),
+      type: 'info'
+    })
+  }
 }
 </script>

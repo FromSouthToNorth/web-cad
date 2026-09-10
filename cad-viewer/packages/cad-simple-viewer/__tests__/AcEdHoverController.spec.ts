@@ -1,10 +1,10 @@
 import { AcCmEventManager, AcGePoint2d } from '@mlightcad/data-model'
 
+import type { AcEdViewHoverEventArgs } from '../src/editor/view/AcEdBaseView'
 import {
   AcEdHoverController,
   AcEdHoverHost
 } from '../src/editor/view/AcEdHoverController'
-import type { AcEdViewHoverEventArgs } from '../src/editor/view/AcEdBaseView'
 
 class MockHoverHost implements AcEdHoverHost {
   pick = jest.fn<
@@ -107,5 +107,23 @@ describe('AcEdHoverController', () => {
     jest.advanceTimersByTime(500)
 
     expect(host.pick).not.toHaveBeenCalled()
+  })
+
+  it('clears the current hover state when the pointer leaves the canvas', () => {
+    host.pick.mockReturnValueOnce([{ id: 'entity-1' }])
+
+    controller.handleMouseMove(1, 2)
+    jest.advanceTimersByTime(500)
+    expect(controller.currentHoveredId).toBe('entity-1')
+
+    controller.handleMouseLeave()
+
+    expect(controller.currentHoveredId).toBeNull()
+    expect(host.onUnhover).toHaveBeenCalledWith('entity-1')
+    expect(unhoverListener).toHaveBeenCalledWith({
+      id: 'entity-1',
+      x: 20,
+      y: 30
+    })
   })
 })

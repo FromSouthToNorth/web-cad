@@ -1,6 +1,5 @@
 import {
   AcApContext,
-  AcApDocManager,
   acapRunDatabaseEdit,
   AcEdCommand,
   AcEdOpenMode} from '@mlightcad/cad-simple-viewer'
@@ -11,6 +10,7 @@ import {
   resolveTunnelDrawOptions
 } from '../config'
 import { tunnelT } from '../i18n'
+import { waitForCurrentDocument } from './waitForDocument'
 
 /**
  * tunnelclear command:
@@ -25,7 +25,7 @@ export class AcApTunnelClearCmd extends AcEdCommand {
   }
 
   async execute(_context: AcApContext): Promise<void> {
-    const doc = AcApDocManager.instance.curDocument
+    const doc = await waitForCurrentDocument()
     if (!doc) {
       log.error(`[cad-tunnel] ${tunnelT('draw.noDocument')}`)
       return

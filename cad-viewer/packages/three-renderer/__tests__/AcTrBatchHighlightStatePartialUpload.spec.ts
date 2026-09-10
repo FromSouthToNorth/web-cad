@@ -1,3 +1,4 @@
+import { installBatchHighlightRenderer } from '../src/batch/highlight/AcTrBatchHighlightShaders'
 import {
   AcTrBatchHighlightState,
   acTrSetBatchMaskPartialUploadEnabled
@@ -66,6 +67,50 @@ describe('AcTrBatchHighlightState partial upload', () => {
     expect(second[2]).toBe(20)
     expect(second[4]).toBe(1)
     expect((second[8] as Uint8Array).length).toBe(4)
+  })
+
+  it('keeps a pending clear upload after the last hover is removed', () => {
+    const state = new AcTrBatchHighlightState()
+    state.setAddressableSlotCount(100)
+    state.setHighlight(5, 'hover', true)
+    state.uploadMaskTexture() // create the texture with a full upload
+
+    // Unhover clears the CPU mask but the GPU clear is deferred until the
+    // next onBeforeRender flush; the state must report it as pending.
+    state.setHighlight(5, 'hover', false)
+    state.uploadMaskTexture()
+    expect(state.hasPendingMaskUpload()).toBe(true)
+
+    const fake = createFakeRenderer(true)
+    state.uploadPendingMaskRegion(fake.renderer as never)
+    expect(fake.gl.texSubImage2D).toHaveBeenCalledTimes(1)
+    const call = fake.gl.texSubImage2D.mock.calls[0]
+    expect(call[2]).toBe(5) // x
+    expect(call[4]).toBe(1) // width
+    const data = call[8] as Uint8Array
+    expect(data[0]).toBe(0)
+    expect(data[1]).toBe(0) // hovered channel cleared
+    expect(state.hasPendingMaskUpload()).toBe(false)
+  })
+
+  it('flushes a pending clear on the next draw after the last highlight', () => {
+    const object = { userData: {}, onBeforeRender: undefined } as never
+    const state = {
+      hasAnyHighlight: () => false,
+      hasPendingMaskUpload: () => true,
+      uploadPendingMaskRegion: jest.fn()
+    }
+    installBatchHighlightRenderer(object, state as never)
+
+    ;(object as unknown as { onBeforeRender: (...args: unknown[]) => void }).onBeforeRender(
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    )
+    expect(state.uploadPendingMaskRegion).toHaveBeenCalledTimes(1)
   })
 
   it('falls back to a full upload when the texture was never uploaded', () => {

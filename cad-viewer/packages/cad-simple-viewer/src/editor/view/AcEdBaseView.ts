@@ -314,6 +314,7 @@ export abstract class AcEdBaseView {
     this._editor = new AcEditor(this)
     this._osnapResolver = new AcEdOsnapResolver(this)
     this._canvas.addEventListener('mousemove', event => this.onMouseMove(event))
+    this._canvas.addEventListener('mouseleave', () => this.onMouseLeave())
     this._canvas.addEventListener('mousedown', event => {
       if (event.button === 1) {
         // Middle mouse button (button === 1)
@@ -345,6 +346,12 @@ export abstract class AcEdBaseView {
       this,
       this.events.hover,
       this.events.unhover
+    )
+    // A command can start while the pointer is stationary over an entity.
+    // Clear hover immediately so the tooltip/cursor never survives into
+    // input-acquisition mode (hover is intentionally disabled there).
+    this._editor.events.commandWillStart.addEventListener(() =>
+      this.clearHover()
     )
   }
 
@@ -1093,6 +1100,17 @@ export abstract class AcEdBaseView {
   }
 
   /**
+   * Mouse leave event handler.
+   *
+   * When the pointer leaves the canvas no further mousemove events are
+   * received, so clear hover explicitly to remove highlight and any
+   * tooltip/cursor feedback driven by hover/unhover events.
+   */
+  private onMouseLeave() {
+    this._hoverController.handleMouseLeave()
+  }
+
+  /**
    * Mouse move event handler.
    * @param event Input mouse event argument
    */
@@ -1106,12 +1124,13 @@ export abstract class AcEdBaseView {
     this._curPos.copy(wcsPos)
     this.events.mouseMove.dispatch({ x: wcsPos.x, y: wcsPos.y })
 
-    // Hover handler
-    if (this.mode == AcEdViewMode.SELECTION) {
-      // If it is in “input acquisition” mode, disable hover behavior
-      if (!this._editor.isActive) {
-        this._hoverController.handleMouseMove(wcsPos.x, wcsPos.y)
-      }
+    // Hover handler. Outside plain selection mode (e.g. PAN or a command
+    // prompt) clear any previously applied hover state so stale feedback
+    // never remains on screen.
+    if (this.mode == AcEdViewMode.SELECTION && !this._editor.isActive) {
+      this._hoverController.handleMouseMove(wcsPos.x, wcsPos.y)
+    } else {
+      this._hoverController.clear()
     }
   }
 }

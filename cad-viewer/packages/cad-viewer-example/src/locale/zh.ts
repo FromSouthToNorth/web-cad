@@ -65,6 +65,7 @@ export default {
       tablist: '功能区选项卡',
       locale: '语言',
       command: '命令：{command}',
+      commandQueued: '图纸正在打开，命令已排队，打开完成后自动执行。',
       collapse: '折叠功能区',
       expand: '展开功能区',
       undo: '撤销',
@@ -206,6 +207,11 @@ export default {
       properties: '属性',
       agent: 'AI 助手',
       search: '搜索'
+    },
+    hover: {
+      layer: '图层',
+      color: '颜色',
+      linetype: '线型'
     },
     status: {
       ortho: '正交模式',

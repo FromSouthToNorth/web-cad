@@ -45,6 +45,17 @@ export class AcCmEventManager<T = unknown> {
   private listeners: ((payload: T) => void)[] = []
 
   /**
+   * Number of listeners currently registered.
+   *
+   * Read-only and allocation-free, so hot paths can cheaply check whether
+   * anybody observes this event before paying for bookkeeping or payload
+   * allocation (`listenerCount === 0` means "nobody is listening").
+   */
+  public get listenerCount(): number {
+    return this.listeners.length
+  }
+
+  /**
    * Add the event listener
    * @param listener Input listener to be added
    */

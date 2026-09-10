@@ -47,7 +47,7 @@ const _anchorVector3 = /*@__PURE__*/ new THREE.Vector3()
  * precision. The center is used as the local triangulation origin so
  * ShapeGeometry float32 vertices stay small even for far-from-origin drawings.
  */
-function resolveBoundaryAnchor(
+export function resolveBoundaryAnchor(
   pointBoundaries: AcGePoint2dLike[][]
 ): THREE.Vector2 {
   _anchorBox.makeEmpty()

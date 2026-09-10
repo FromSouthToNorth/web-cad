@@ -74,17 +74,6 @@ function acdbIsTrimWhitespace(c: number): boolean {
   )
 }
 
-function acdbHasNonAscii(
-  bytes: Uint8Array,
-  start: number,
-  end: number
-): boolean {
-  for (let i = start; i < end; i++) {
-    if (bytes[i] >= 0x80) return true
-  }
-  return false
-}
-
 /**
  * Decodes a pure-ASCII byte span without constructing a `TextDecoder` call or
  * an intermediate `Uint8Array` copy. DXF keywords, handles and numeric text
@@ -116,13 +105,20 @@ function acdbDecodeAsciiSpan(
   return text
 }
 
-/** Decodes a UTF-8 byte span, taking the ASCII fast path when possible. */
+/**
+ * Decodes a UTF-8 byte span, taking the ASCII fast path when possible.
+ *
+ * `nonAscii` must be true exactly when the span holds a byte `>= 0x80`. It is
+ * produced by the line scanner, so this function never re-scans the span (the
+ * previous implementation walked every value line a second time here).
+ */
 function acdbDecodeUtf8Span(
   bytes: Uint8Array,
   start: number,
-  end: number
+  end: number,
+  nonAscii: boolean
 ): string {
-  if (!acdbHasNonAscii(bytes, start, end)) {
+  if (!nonAscii) {
     return acdbDecodeAsciiSpan(bytes, start, end)
   }
   return UTF8_DECODER.decode(bytes.subarray(start, end))
@@ -139,10 +135,11 @@ function acdbDecodeUtf8Span(
 function acdbReadDxfCodeFromBytes(
   bytes: Uint8Array,
   start: number,
-  end: number
+  end: number,
+  nonAscii: boolean
 ): number {
-  if (acdbHasNonAscii(bytes, start, end)) {
-    const n = Number(acdbDecodeUtf8Span(bytes, start, end).trim())
+  if (nonAscii) {
+    const n = Number(acdbDecodeUtf8Span(bytes, start, end, true).trim())
     return Number.isFinite(n) ? n : NaN
   }
 
@@ -181,9 +178,32 @@ function acdbReadDxfCodeFromBytes(
 }
 
 /**
+ * Largest integer `mantissa` for which one more accumulation step
+ * `mantissa * 10 + digit` is still an exact integer: `mantissa` below
+ * `(2^53 - 9) / 10` guarantees `mantissa * 10 + digit <= 2^53 - 9 + 9 < 2^53`,
+ * and every integer below `2^53` is exactly representable as a double.
+ *
+ * The previous criterion (give up after 15 significant digits) rejected almost
+ * every real-world coordinate: this file's coordinates are 7-8 integer digits
+ * plus 8-9 fractional digits, i.e. 15-17 significant digits, so 82.7% of all
+ * `double` spans fell back to "build a string + `Number()`". The 2^53 bound
+ * only rejects what actually cannot be exact.
+ */
+const MAX_EXACT_DOUBLE_MANTISSA = (Number.MAX_SAFE_INTEGER - 9) / 10
+
+/**
  * Fast path for `double` value lines: parses
  * `[+-]?digits[.digits][eE[+-]digits]` straight from the byte span, without
  * slicing the line or calling `Number()`.
+ *
+ * Exactness (bit-for-bit identical to `Number()` on the accepted domain):
+ * the significant digits are accumulated as the integer `mantissa` and accepted
+ * only while every step stays below `2^53` (see
+ * {@link MAX_EXACT_DOUBLE_MANTISSA}), so `mantissa` is the *exact* integer
+ * formed by those digits. `10^|k|` is exact for `|k| <= 22`, so the final
+ * `mantissa / 10^k` or `mantissa * 10^k` is the exact decimal value rounded
+ * exactly once by IEEE-754 - the same single correct rounding `Number()`
+ * performs (the result normalizes non-finite values to 0 in both paths).
  *
  * Returns `undefined` outside its exact domain; the caller decodes the line
  * and falls back to `Number()`.
@@ -207,7 +227,6 @@ function acdbParseDoubleSpan(
   }
 
   let mantissa = 0
-  let digits = 0
   let exp10 = 0
   let anyDigit = false
   let tooLong = false
@@ -218,12 +237,11 @@ function acdbParseDoubleSpan(
     anyDigit = true
     i++
     if (mantissa === 0 && c === 0x30) continue
-    if (digits >= 15) {
+    if (mantissa > MAX_EXACT_DOUBLE_MANTISSA) {
       tooLong = true
       continue
     }
     mantissa = mantissa * 10 + (c - 0x30)
-    digits++
   }
 
   if (i < end && bytes[i] === 0x2e) {
@@ -237,12 +255,11 @@ function acdbParseDoubleSpan(
         exp10--
         continue
       }
-      if (digits >= 15) {
+      if (mantissa > MAX_EXACT_DOUBLE_MANTISSA) {
         tooLong = true
         continue
       }
       mantissa = mantissa * 10 + (c - 0x30)
-      digits++
       exp10--
     }
   }
@@ -379,13 +396,19 @@ function acdbParseLongSpan(
   return anyDigit ? sign * value : 0
 }
 
-/** Equivalent to `trimmed !== '' && trimmed !== '0'` without allocating. */
+/**
+ * Equivalent to `trimmed !== '' && trimmed !== '0'` without allocating.
+ *
+ * `nonAscii` comes from the line scanner; non-ASCII spans bail out so the
+ * caller can use the exact `String.prototype.trim` semantics.
+ */
 function acdbDxfRawBoolIsTrue(
   bytes: Uint8Array,
   start: number,
-  end: number
+  end: number,
+  nonAscii: boolean
 ): boolean | undefined {
-  if (acdbHasNonAscii(bytes, start, end)) return undefined
+  if (nonAscii) return undefined
 
   while (start < end && acdbIsAsciiWhitespace(bytes[start])) start++
   while (end > start && acdbIsAsciiWhitespace(bytes[end - 1])) end--
@@ -414,17 +437,23 @@ function acdbDecodeHexBinaryText(
   return bytes
 }
 
-/** Decodes a code-310 hex line from bytes, trimming ASCII whitespace. */
+/**
+ * Decodes a code-310 hex line from bytes, trimming ASCII whitespace.
+ *
+ * `nonAscii` comes from the line scanner. Trimming only removes ASCII
+ * whitespace, so it cannot change whether the span holds a non-ASCII byte.
+ */
 function acdbDecodeHexBinarySpan(
   bytes: Uint8Array,
   start: number,
-  end: number
+  end: number,
+  nonAscii: boolean
 ): Uint8Array {
   while (start < end && acdbIsAsciiWhitespace(bytes[start])) start++
   while (end > start && acdbIsAsciiWhitespace(bytes[end - 1])) end--
 
-  if (acdbHasNonAscii(bytes, start, end)) {
-    const text = acdbDecodeUtf8Span(bytes, start, end)
+  if (nonAscii) {
+    const text = acdbDecodeUtf8Span(bytes, start, end, true)
     return acdbDecodeHexBinaryText(text, 0, text.length)
   }
 
@@ -438,30 +467,41 @@ function acdbDecodeHexBinarySpan(
   return out
 }
 
+/**
+ * Parses one ASCII value line.
+ *
+ * `nonAscii` is the flag produced by the line scanner for this exact span; it
+ * is forwarded to every decode helper so no helper has to re-scan the bytes.
+ */
 function parseAsciiValueSpan(
   code: number,
   bytes: Uint8Array,
   start: number,
-  end: number
+  end: number,
+  nonAscii: boolean
 ): AcDbDxfPair | null {
   const type = acdbDxfValueType(code)
   if (type === 'comment') return null
 
   switch (type) {
     case 'string':
-      return { code, type, value: acdbDecodeUtf8Span(bytes, start, end) }
+      return {
+        code,
+        type,
+        value: acdbDecodeUtf8Span(bytes, start, end, nonAscii)
+      }
     case 'int': {
       const fast = acdbParseIntSpan(bytes, start, end)
       const n =
         fast === undefined
-          ? parseInt(acdbDecodeUtf8Span(bytes, start, end), 10)
+          ? parseInt(acdbDecodeUtf8Span(bytes, start, end, nonAscii), 10)
           : fast
       return { code, type, value: Number.isFinite(n) ? n : 0 }
     }
     case 'long': {
       const fast = acdbParseLongSpan(bytes, start, end)
       if (fast !== undefined) return { code, type, value: fast }
-      const raw = acdbDecodeUtf8Span(bytes, start, end)
+      const raw = acdbDecodeUtf8Span(bytes, start, end, nonAscii)
       const n = Number(raw)
       if (Number.isSafeInteger(n)) return { code, type, value: n }
       try {
@@ -474,18 +514,18 @@ function parseAsciiValueSpan(
       const fast = acdbParseDoubleSpan(bytes, start, end)
       const n =
         fast === undefined
-          ? Number(acdbDecodeUtf8Span(bytes, start, end))
+          ? Number(acdbDecodeUtf8Span(bytes, start, end, nonAscii))
           : fast
       return { code, type, value: Number.isFinite(n) ? n : 0 }
     }
     case 'bool': {
-      const fast = acdbDxfRawBoolIsTrue(bytes, start, end)
+      const fast = acdbDxfRawBoolIsTrue(bytes, start, end, nonAscii)
       if (fast !== undefined) return { code, type, value: fast }
-      const trimmed = acdbDecodeUtf8Span(bytes, start, end).trim()
+      const trimmed = acdbDecodeUtf8Span(bytes, start, end, nonAscii).trim()
       return { code, type, value: trimmed !== '' && trimmed !== '0' }
     }
     case 'handle': {
-      const value = acdbDecodeUtf8Span(bytes, start, end)
+      const value = acdbDecodeUtf8Span(bytes, start, end, nonAscii)
       if (value.length === 0) return { code, type, value }
       const first = value.charCodeAt(0)
       const last = value.charCodeAt(value.length - 1)
@@ -495,7 +535,11 @@ function parseAsciiValueSpan(
       return { code, type, value: value.trim() }
     }
     case 'binary':
-      return { code, type, value: acdbDecodeHexBinarySpan(bytes, start, end) }
+      return {
+        code,
+        type,
+        value: acdbDecodeHexBinarySpan(bytes, start, end, nonAscii)
+      }
     default:
       return null
   }
@@ -519,16 +563,24 @@ function acdbMakeUtf8DxfPairReader(bytes: Uint8Array): AcDbDxfPairReader {
   let lookahead: AcDbDxfPair | undefined
   let lookaheadValid = false
 
-  /** Advances past one line and returns its content byte range. */
-  function readLineSpan(): { start: number; end: number } | undefined {
+  /**
+   * Advances past one line and returns its content byte range.
+   *
+   * The scan also ORs every content byte, so `nonAscii` ("this line holds a
+   * byte >= 0x80") comes for free and the value/code parsers never have to walk
+   * the line a second time.
+   */
+  function readLineSpan():
+    | { start: number; end: number; nonAscii: boolean }
+    | undefined {
     if (pos >= bytes.length) return undefined
     const start = pos
     let contentEnd = pos
-    while (
-      contentEnd < bytes.length &&
-      bytes[contentEnd] !== 0x0a &&
-      bytes[contentEnd] !== 0x0d
-    ) {
+    let flags = 0
+    while (contentEnd < bytes.length) {
+      const c = bytes[contentEnd]
+      if (c === 0x0a || c === 0x0d) break
+      flags |= c
       contentEnd++
     }
     let end = contentEnd
@@ -536,14 +588,19 @@ function acdbMakeUtf8DxfPairReader(bytes: Uint8Array): AcDbDxfPairReader {
     if (end < bytes.length && bytes[end] === 0x0a) end++
     pos = end
     lineNumber++
-    return { start, end: contentEnd }
+    return { start, end: contentEnd, nonAscii: flags >= 0x80 }
   }
 
   function readRaw(): AcDbDxfPair | undefined {
     for (;;) {
       const codeSpan = readLineSpan()
       if (codeSpan === undefined) return undefined
-      const code = acdbReadDxfCodeFromBytes(bytes, codeSpan.start, codeSpan.end)
+      const code = acdbReadDxfCodeFromBytes(
+        bytes,
+        codeSpan.start,
+        codeSpan.end,
+        codeSpan.nonAscii
+      )
       if (Number.isNaN(code)) continue
       if (code === 999) {
         if (readLineSpan() === undefined) return undefined
@@ -557,7 +614,8 @@ function acdbMakeUtf8DxfPairReader(bytes: Uint8Array): AcDbDxfPairReader {
         code,
         bytes,
         valueSpan.start,
-        valueSpan.end
+        valueSpan.end,
+        valueSpan.nonAscii
       )
       if (pair) return pair
     }

@@ -20,12 +20,14 @@ import {
   resolveReservedCount,
   validateGeometry
 } from './AcTrBatchedMixin'
-import { resolveDashMode } from './highlight/AcTrBatchHighlightShaders'
-import type { AcTrBatchHighlightKind } from './highlight'
 import { syncBatchDrawVisibilityAfterOptimize } from './drawVisibility'
+import type { AcTrBatchHighlightKind } from './highlight'
+import { resolveDashMode } from './highlight/AcTrBatchHighlightShaders'
 
 /** Reusable scratch box for bounds queries. */
 const _box = /*@__PURE__*/ new THREE.Box3()
+/** Reusable scratch box holding a slot's pre-rewrite extents. */
+const _previousBounds = /*@__PURE__*/ new THREE.Box3()
 /** Reusable scratch vector for bounds expansion. */
 const _vector = /*@__PURE__*/ new THREE.Vector3()
 
@@ -481,22 +483,25 @@ export class AcTrBatchedLine extends AcTrBatchedLineBase {
       throw new Error('AcTrBatchedLine: Maximum geometry count reached.')
     }
 
-    if (
-      !this._lineDistanceDeferred &&
-      !geometry.hasAttribute('lineDistance')
-    ) {
+    if (!this._lineDistanceDeferred && !geometry.hasAttribute('lineDistance')) {
       AcTrBufferGeometryUtil.computeSegmentLineDistances(geometry)
     }
     this._validateGeometry(geometry)
 
     const batchGeometry = this.geometry
     const geometryInfo = this._geometryInfo[geometryId]
+    // The slot's extents *before* the rewrite. Reading them from the packed
+    // buffer (instead of a retained per-slot `Box3`) keeps the "same extents →
+    // keep the aggregate bounds" fast path alive without the ~100MB of cached
+    // boxes. Must be read before `applyGeometryAt` overwrites the range.
+    const previousBounds = this._localBoundsAt(geometryId, _previousBounds)
     const boundsChanged = applyGeometryAt(
       geometryInfo,
       batchGeometry,
       geometry,
       'AcTrBatchedLine',
-      geometryId
+      geometryId,
+      previousBounds
     )
     if (boundsChanged) {
       this.invalidateFrustumBounds()
@@ -698,7 +703,10 @@ export class AcTrBatchedLine extends AcTrBatchedLineBase {
       for (let i = nextIndexStart; i < indexArray.length; i++) {
         indexArray[i] = 0
       }
-      indexAttr.addUpdateRange(nextIndexStart, indexArray.length - nextIndexStart)
+      indexAttr.addUpdateRange(
+        nextIndexStart,
+        indexArray.length - nextIndexStart
+      )
       indexAttr.needsUpdate = true
     }
 
@@ -776,6 +784,156 @@ export class AcTrBatchedLine extends AcTrBatchedLineBase {
     this.getBoundingBoxAt(geometryId, _box)
     _box.getBoundingSphere(target)
     return target
+  }
+
+  /**
+   * Fills `target` with the batch-local bounds of one packed slot by scanning
+   * the packed `position` buffer (through `index` when the batch is indexed).
+   *
+   * Overrides the mixin default so aggregate bounds queries (frustum culling,
+   * layout extents, picking) never go through the lazily cached slot `Box3`:
+   * one cached box per slot would stay resident for the whole session
+   * (~234B × slot count, i.e. ~100MB on a 434k-slot drawing).
+   *
+   * Numerically identical to {@link getBoundingBoxAt}: the fast path only
+   * replaces `getX/getY/getZ` indirection with the same typed-array reads, and
+   * iterates the same index/vertex range in the same order.
+   *
+   * @param geometryId - Slot index to query.
+   * @param target - Reusable {@link THREE.Box3} that receives the result.
+   * @returns `target` when the id is valid, otherwise `null`.
+   */
+  _localBoundsAt(geometryId: number, target: THREE.Box3) {
+    if (geometryId >= this._geometryCount) {
+      return null
+    }
+
+    const geometry = this.geometry
+    const geometryInfo = this._geometryInfo[geometryId]
+    const index = geometry.index
+    const position = geometry.attributes.position
+    const { start, count } =
+      index != null
+        ? { start: geometryInfo.indexStart, count: geometryInfo.indexCount }
+        : { start: geometryInfo.vertexStart, count: geometryInfo.vertexCount }
+    target.makeEmpty()
+
+    if (
+      position.itemSize === 3 &&
+      !position.normalized &&
+      (index == null || (index.itemSize === 1 && !index.normalized))
+    ) {
+      const positionArray = position.array
+      const indexArray = index?.array
+      for (let i = start, l = start + count; i < l; i++) {
+        const vertexIndex = indexArray == null ? i : indexArray[i]
+        const offset = vertexIndex * 3
+        target.expandByPoint(
+          _vector.set(
+            positionArray[offset],
+            positionArray[offset + 1],
+            positionArray[offset + 2]
+          )
+        )
+      }
+      return target
+    }
+
+    for (let i = start, l = start + count; i < l; i++) {
+      let iv = i
+      if (index) {
+        iv = index.getX(iv)
+      }
+
+      target.expandByPoint(_vector.fromBufferAttribute(position, iv))
+    }
+
+    return target
+  }
+
+  /**
+   * Aggregate batch-local bounding sphere from one pass over the packed vertex
+   * ranges of every active slot.
+   *
+   * Replaces the mixin's per-slot `Box3` + `Sphere.union` with plain min/max
+   * comparisons on the packed buffer: no per-slot object is allocated and the
+   * packed data is touched once. The resulting sphere is the circumsphere of
+   * the aggregate bounds of the same active slot set, so it still encloses
+   * every active vertex — frustum culling can only ever drop a batch whose
+   * geometry is entirely outside the frustum, exactly as before.
+   *
+   * @param target - Sphere that receives the aggregate result.
+   * @returns `target`, or `null` when no bounds could be derived.
+   */
+  _computeAggregateLocalSphere(target: THREE.Sphere) {
+    const geometry = this.geometry
+    const index = geometry.index
+    const position = geometry.attributes.position
+    if (!position) {
+      return null
+    }
+
+    let minX = Infinity
+    let minY = Infinity
+    let minZ = Infinity
+    let maxX = -Infinity
+    let maxY = -Infinity
+    let maxZ = -Infinity
+
+    const fast =
+      position.itemSize === 3 &&
+      !position.normalized &&
+      (index == null || (index.itemSize === 1 && !index.normalized))
+    const positionArray = position.array
+    const indexArray = index?.array
+
+    for (let slot = 0; slot < this._geometryCount; slot++) {
+      const info = this._geometryInfo[slot]
+      if (!isBatchGeometryActive(info.flags)) continue
+      const vertexStart = info.vertexStart
+      const { start, count } =
+        index != null
+          ? { start: info.indexStart, count: info.indexCount }
+          : { start: vertexStart, count: info.vertexCount }
+
+      if (fast) {
+        for (let i = start, l = start + count; i < l; i++) {
+          const offset = (indexArray == null ? i : indexArray[i]) * 3
+          const x = positionArray[offset]
+          const y = positionArray[offset + 1]
+          const z = positionArray[offset + 2]
+          if (x < minX) minX = x
+          if (y < minY) minY = y
+          if (z < minZ) minZ = z
+          if (x > maxX) maxX = x
+          if (y > maxY) maxY = y
+          if (z > maxZ) maxZ = z
+        }
+      } else {
+        for (let i = start, l = start + count; i < l; i++) {
+          let iv = i
+          if (index) {
+            iv = index.getX(iv)
+          }
+          _vector.fromBufferAttribute(position, iv)
+          if (_vector.x < minX) minX = _vector.x
+          if (_vector.y < minY) minY = _vector.y
+          if (_vector.z < minZ) minZ = _vector.z
+          if (_vector.x > maxX) maxX = _vector.x
+          if (_vector.y > maxY) maxY = _vector.y
+          if (_vector.z > maxZ) maxZ = _vector.z
+        }
+      }
+    }
+
+    if (minX > maxX) {
+      target.makeEmpty()
+      return target
+    }
+
+    _box.min.set(minX, minY, minZ)
+    _box.max.set(maxX, maxY, maxZ)
+    return _box.getBoundingSphere(target)
   }
 
   /**

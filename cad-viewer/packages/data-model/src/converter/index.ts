@@ -7,6 +7,7 @@ export {
   acdbCreateWorkerApi
 } from './worker'
 export type {
+  AcDbWorkerChunkSession,
   AcDbWorkerConfig,
   AcDbWorkerInstance,
   AcDbWorkerMessage,

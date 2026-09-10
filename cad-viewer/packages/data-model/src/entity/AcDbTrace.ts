@@ -7,10 +7,11 @@ import {
   AcGePoint3dLike,
   AcGePointLike,
   AcGePolyline2d,
-  acgeTransformOcsPointToWcs,
+  acgeTransformOcsPointToWcsInto,
   acgeTransformWcsPointToOcs,
   AcGeVector3d,
-  AcGeVector3dLike} from '@hy/geometry-engine'
+  AcGeVector3dLike
+} from '@hy/geometry-engine'
 import { AcGiRenderer } from '@hy/graphic-interface'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
@@ -18,7 +19,11 @@ import { AcDbOsnapMode } from '../misc/AcDbOsnapMode'
 import { AcDbCurve } from './AcDbCurve'
 import { acdbMovePointArrayGripAt } from './AcDbGripHelpers'
 import { acdbCollectVertexPathOsnapPoints } from './AcDbOsnapHelpers'
-import { acdbOffsetVertexPathAsPolyline,AcDbPolyline } from './AcDbPolyline'
+import { acdbOffsetVertexPathAsPolyline, AcDbPolyline } from './AcDbPolyline'
+
+/** Reused across dxfIn to avoid per-entity temporaries (parse is sequential). */
+const _dxfInNormal = /*@__PURE__*/ new AcGeVector3d()
+const _dxfInOcsPoint = /*@__PURE__*/ new AcGePoint3d()
 
 /**
  * Represents a trace entity in AutoCAD.
@@ -59,8 +64,12 @@ export class AcDbTrace extends AcDbCurve {
   private _vertices: [AcGePoint3d, AcGePoint3d, AcGePoint3d, AcGePoint3d]
   /** The thickness (extrusion) of the trace */
   private _thickness: number
-  /** Extrusion / plane normal (DXF group 210) */
-  private _normal = new AcGeVector3d(0, 0, 1)
+  /**
+   * Backing for the lazily materialized extrusion / plane normal (DXF group
+   * 210). `null` means "not yet materialized"; the default `+Z` vector is
+   * created on first access.
+   */
+  private _normal: AcGeVector3d | null = null
 
   /**
    * Creates a new trace entity.
@@ -176,12 +185,22 @@ export class AcDbTrace extends AcDbCurve {
 
   /**
    * Extrusion direction / plane normal (DXF group 210).
+   *
+   * The default `+Z` vector is materialized on first access. A DXF import only
+   * assigns a normal for records that carry a 210/220/230 group (none of the
+   * SOLID/TRACE records in the reference drawing do), so most entities never
+   * allocate the default vector.
    */
   get normal(): AcGeVector3d {
-    return this._normal
+    let normal = this._normal
+    if (normal == null) {
+      normal = new AcGeVector3d(0, 0, 1)
+      this._normal = normal
+    }
+    return normal
   }
   set normal(value: AcGeVector3dLike) {
-    this._normal.copy(value)
+    this.normal.copy(value)
   }
 
   /**
@@ -362,10 +381,22 @@ export class AcDbTrace extends AcDbCurve {
     if (this.thickness !== 0) {
       filer.writeDouble(39, this.thickness)
     }
-    filer.writePoint3d(10, acgeTransformWcsPointToOcs(this.getPointAt(0), this.normal))
-    filer.writePoint3d(11, acgeTransformWcsPointToOcs(this.getPointAt(1), this.normal))
-    filer.writePoint3d(12, acgeTransformWcsPointToOcs(this.getPointAt(2), this.normal))
-    filer.writePoint3d(13, acgeTransformWcsPointToOcs(this.getPointAt(3), this.normal))
+    filer.writePoint3d(
+      10,
+      acgeTransformWcsPointToOcs(this.getPointAt(0), this.normal)
+    )
+    filer.writePoint3d(
+      11,
+      acgeTransformWcsPointToOcs(this.getPointAt(1), this.normal)
+    )
+    filer.writePoint3d(
+      12,
+      acgeTransformWcsPointToOcs(this.getPointAt(2), this.normal)
+    )
+    filer.writePoint3d(
+      13,
+      acgeTransformWcsPointToOcs(this.getPointAt(3), this.normal)
+    )
     filer.writeVector3d(210, this.normal)
     return this
   }
@@ -374,15 +405,16 @@ export class AcDbTrace extends AcDbCurve {
     super.dxfInFields(filer)
     filer.atSubclassData('AcDbTrace')
 
-    const pts = [
-      { x: this.getPointAt(0).x, y: this.getPointAt(0).y, z: this.getPointAt(0).z },
-      { x: this.getPointAt(1).x, y: this.getPointAt(1).y, z: this.getPointAt(1).z },
-      { x: this.getPointAt(2).x, y: this.getPointAt(2).y, z: this.getPointAt(2).z },
-      { x: this.getPointAt(3).x, y: this.getPointAt(3).y, z: this.getPointAt(3).z }
-    ]
-    let nx = this.normal.x
-    let ny = this.normal.y
-    let nz = this.normal.z
+    // Corners accumulate straight into the (eagerly allocated) vertex points
+    // and are transformed to WCS in place at the end, so dxfIn allocates no
+    // temporary point/vector/array per SOLID|TRACE. Vertices the record does
+    // not mention keep their current value, as before. The literal `+Z`
+    // defaults keep the lazily materialized `_normal` untouched unless the
+    // record really carries a non-identity extrusion (DXF group 210).
+    const vertices = this._vertices
+    let nx = 0
+    let ny = 0
+    let nz = 1
 
     while (!filer.atEndOfObject && !filer.atEof && !filer.atExtendedData) {
       const item = filer.readItem()
@@ -394,19 +426,19 @@ export class AcDbTrace extends AcDbCurve {
         case 11:
         case 12:
         case 13:
-          pts[code - 10].x = n
+          vertices[code - 10].x = n
           break
         case 20:
         case 21:
         case 22:
         case 23:
-          pts[code - 20].y = n
+          vertices[code - 20].y = n
           break
         case 30:
         case 31:
         case 32:
         case 33:
-          pts[code - 30].z = n
+          vertices[code - 30].z = n
           break
         case 39:
           this.thickness = n
@@ -425,13 +457,20 @@ export class AcDbTrace extends AcDbCurve {
       }
     }
 
-    const normal = new AcGeVector3d(nx, ny, nz)
-    if (normal.lengthSq() > 0) {
-      this.normal.copy(normal.normalize())
+    // Only a usable, non-identity extrusion materializes `_normal`; the
+    // identity case feeds the frozen `Z_AXIS` to the read-only OCS transform
+    // below so no vector is allocated per entity.
+    let normal: AcGeVector3dLike = AcGeVector3d.Z_AXIS
+    if (nx !== 0 || ny !== 0 || nz !== 1) {
+      if (nx * nx + ny * ny + nz * nz > 0) {
+        normal = this.normal.copy(_dxfInNormal.set(nx, ny, nz).normalize())
+      }
     }
-    pts.forEach((p, i) =>
-      this.setPointAt(i, acgeTransformOcsPointToWcs(p, this.normal))
-    )
+    for (let i = 0; i < 4; i++) {
+      const vertex = vertices[i]
+      _dxfInOcsPoint.set(vertex.x, vertex.y, vertex.z)
+      acgeTransformOcsPointToWcsInto(vertex, _dxfInOcsPoint, normal)
+    }
     return this
   }
 
@@ -499,4 +538,3 @@ export class AcDbTrace extends AcDbCurve {
     ]
   }
 }
-

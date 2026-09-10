@@ -52,20 +52,81 @@ export interface AcCmObjectAttributeChangedEventArgs<T extends AcCmAttributes>
  * Actually implementation of this class is based on class Model in Backbone.js. However, Model class in Backbone
  * is too heavy. So we implement it again based on source code of class Model in Backbone.js. Morever, we want to
  * keep our library with less external dependencies and don't want to introduce depenedency on Backbone.js.
+ *
+ * ## Lazy containers
+ *
+ * The per-instance bookkeeping containers are allocated on first use instead of
+ * in the constructor:
+ * - {@link events} materializes its two {@link AcCmEventManager} instances when
+ *   the property is read (i.e. when somebody subscribes);
+ * - {@link changed} materializes an empty object when it is read;
+ * - the previous-attribute snapshot is only created by a tracked write.
+ *
+ * Objects that are built and never observed - the DXF/DWG import path allocates
+ * hundreds of thousands of them - therefore keep every one of these containers
+ * `undefined`. {@link set} and both of its dispatch sites read the private
+ * `_events` / `_changed` fields directly, so a zero-listener write never
+ * materializes any of them.
+ *
+ * ## Narrowed change tracking for unobserved writes
+ *
+ * {@link set} skips change tracking entirely when a write cannot be observed:
+ * no listener is registered on `events.attrChanged` nor `events.modelChanged`,
+ * the object is not inside a change session (`_changing`), and the write is not
+ * an `unset`. In that case the value is assigned to {@link attributes} directly
+ * and the `clone`/`changed` rebuild, the per-attribute `isEqual` walks and the
+ * event payload allocations are all skipped.
+ *
+ * Contract consequence: while an object has **zero** listeners,
+ * {@link hasChanged}, {@link changedAttributes}, {@link previous} and
+ * {@link previousAttributes} do **not** reflect those writes - they keep
+ * reporting the state of the last tracked write (an empty state for an object
+ * that was never observed). Values are always readable through {@link get} /
+ * {@link attributes}, and `unset` writes remain tracked. Register a listener
+ * (even a no-op one) before writing if `changed` bookkeeping is required;
+ * removing every listener restores the untracked fast path for later writes
+ * while the last tracked state stays visible.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class AcCmObject<T extends AcCmAttributes = any> {
   attributes: Partial<T>
-  changed: Partial<T>
 
-  public readonly events = {
-    attrChanged: new AcCmEventManager<AcCmObjectAttributeChangedEventArgs<T>>(),
-    modelChanged: new AcCmEventManager<AcCmObjectChangedEventArgs<T>>()
+  private _events?: {
+    attrChanged: AcCmEventManager<AcCmObjectAttributeChangedEventArgs<T>>
+    modelChanged: AcCmEventManager<AcCmObjectChangedEventArgs<T>>
+  }
+  private _changed?: Partial<T>
+  private _changing: boolean = false
+  private _previousAttributes?: Partial<T>
+  private _pending: boolean = false
+
+  /**
+   * Change-event managers of this object, materialized on first read.
+   *
+   * Reading this property is what "somebody observes this object" means for the
+   * {@link set} fast path: until a listener is registered the underlying
+   * managers (and their listener arrays) are never allocated.
+   */
+  get events(): {
+    attrChanged: AcCmEventManager<AcCmObjectAttributeChangedEventArgs<T>>
+    modelChanged: AcCmEventManager<AcCmObjectChangedEventArgs<T>>
+  } {
+    return (this._events ??= {
+      attrChanged: new AcCmEventManager<
+        AcCmObjectAttributeChangedEventArgs<T>
+      >(),
+      modelChanged: new AcCmEventManager<AcCmObjectChangedEventArgs<T>>()
+    })
   }
 
-  private _changing: boolean = false
-  private _previousAttributes: Partial<T> = {}
-  private _pending: boolean = false
+  /**
+   * Attributes changed during the current change session, materialized on first
+   * read. Stays `undefined` while no tracked write happened, so importing code
+   * that never looks at it pays nothing.
+   */
+  get changed(): Partial<T> {
+    return (this._changed ??= {})
+  }
 
   /**
    * Create one object to store attributes. For performance reason, values of attributes passed to constructor
@@ -79,7 +140,6 @@ export class AcCmObject<T extends AcCmAttributes = any> {
       defaults(attrs, defaultAttrs)
     }
     this.attributes = attrs
-    this.changed = {}
   }
 
   /**
@@ -143,6 +203,12 @@ export class AcCmObject<T extends AcCmAttributes = any> {
    *   super.set("name", value)
    * }
    * ```
+   *
+   * When no listener is registered on `events.attrChanged` /
+   * `events.modelChanged` this method takes an untracked fast path and writes
+   * the value directly, without materializing the event managers and without
+   * updating `changed` / `previous()`. See the class documentation for the
+   * exact contract.
    */
   set<A extends AcCmStringKey<T>>(
     key: A,
@@ -156,6 +222,34 @@ export class AcCmObject<T extends AcCmAttributes = any> {
     options?: AcCmObjectOptions
   ): this {
     if (key == null) return this
+
+    // Untracked fast path: nobody observes this object's change events, so the
+    // session snapshot (`_previousAttributes` / `changed`), the per-attribute
+    // deep comparisons and the event payloads would all be invisible work.
+    // Write straight to `attributes` instead (see the class doc for the
+    // `hasChanged()` / `previous()` contract narrowing this implies). This
+    // reads the private `_events` field instead of the `events` getter so the
+    // check itself never materializes the managers.
+    const untrackedOptions =
+      typeof key === 'object' ? (val as AcCmObjectOptions) : options
+    const events = this._events
+    if (
+      !untrackedOptions?.unset &&
+      !this._changing &&
+      (events === undefined ||
+        (events.attrChanged.listenerCount === 0 &&
+          events.modelChanged.listenerCount === 0))
+    ) {
+      if (typeof key === 'object') {
+        const directAttrs = key as Partial<T>
+        for (const attr in directAttrs) {
+          this.attributes[attr] = directAttrs[attr]
+        }
+      } else {
+        this.attributes[key] = val as T[A]
+      }
+      return this
+    }
 
     // Handle both `"key", value` and `{key: value}` -style arguments.
     let attrs: Partial<T>
@@ -188,7 +282,7 @@ export class AcCmObject<T extends AcCmAttributes = any> {
       if (allUnchanged) {
         if (!this._changing) {
           this._previousAttributes = clone(this.attributes)
-          this.changed = {}
+          this._changed = {}
         }
         return this
       }
@@ -201,12 +295,17 @@ export class AcCmObject<T extends AcCmAttributes = any> {
 
     if (!changing) {
       this._previousAttributes = clone(this.attributes)
-      this.changed = {}
+      this._changed = {}
     }
 
     const current = this.attributes
-    const changed = this.changed
-    const prev = this._previousAttributes
+    // Annotated: `this._changed ??= {}` is typed as `Partial<T> | {}` by
+    // control-flow analysis, and indexing that union is an error.
+    const changed: Partial<T> = (this._changed ??= {})
+    // The snapshot is always present on this path: it is either built just
+    // above (``!changing``) or by the enclosing tracked write. Fall back to an
+    // empty object only to keep the type non-optional.
+    const prev: Partial<T> = this._previousAttributes ?? ({} as Partial<T>)
 
     // For each `set` attribute, update or delete the current value.
     for (const attr in attrs) {
@@ -237,7 +336,7 @@ export class AcCmObject<T extends AcCmAttributes = any> {
       if (changes) this._pending = options
       if (changes) {
         for (let i = 0; i < changes.length; i++) {
-          this.events.attrChanged.dispatch({
+          this._events?.attrChanged.dispatch({
             object: this,
             attrName: changes[i],
             attrValue: current[changes[i]],
@@ -255,7 +354,7 @@ export class AcCmObject<T extends AcCmAttributes = any> {
         // @ts-expect-error just keep backbone implementation as is
         options = this._pending
         this._pending = false
-        this.events.modelChanged.dispatch({
+        this._events?.modelChanged.dispatch({
           object: this,
           options: options
         })
@@ -275,8 +374,8 @@ export class AcCmObject<T extends AcCmAttributes = any> {
    * If you specify an attribute name, determine if that attribute has changed.
    */
   hasChanged(key?: AcCmStringKey<T>) {
-    if (key == null) return !isEmpty(this.changed)
-    return has(this.changed, key)
+    if (key == null) return !isEmpty(this._changed)
+    return this._changed ? has(this._changed, key) : false
   }
 
   /**
@@ -287,12 +386,14 @@ export class AcCmObject<T extends AcCmAttributes = any> {
    * the model, determining if there *would be* a change.
    */
   changedAttributes(diff?: Partial<T>): Partial<T> {
-    if (!diff) return this.hasChanged() ? clone(this.changed) : {}
+    if (!diff) {
+      return this.hasChanged() ? clone(this._changed ?? ({} as Partial<T>)) : {}
+    }
     const old = this._changing ? this._previousAttributes : this.attributes
     const changed: Partial<T> = {}
     for (const attr in diff) {
       const val = diff[attr]
-      if (isEqual(old[attr], val)) continue
+      if (isEqual(old?.[attr], val)) continue
       changed[attr] = val
     }
     return changed
@@ -302,15 +403,15 @@ export class AcCmObject<T extends AcCmAttributes = any> {
    * Get the previous value of an attribute, recorded at the time the last `"change"` event was fired.
    */
   previous<A extends AcCmStringKey<T>>(key: A): T[A] | null | undefined {
-    if (key == null || !this._previousAttributes) return null
-    return this._previousAttributes[key]
+    if (key == null) return null
+    return this._previousAttributes?.[key]
   }
 
   /**
    * Get all of the attributes of the model at the time of the previous `"change"` event.
    */
   previousAttributes(): Partial<T> {
-    return clone(this._previousAttributes)
+    return clone(this._previousAttributes ?? ({} as Partial<T>))
   }
 
   /**

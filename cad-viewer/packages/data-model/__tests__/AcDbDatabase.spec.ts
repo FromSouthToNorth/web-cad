@@ -6,6 +6,8 @@ import { AcDbDatabase } from '../src/database/AcDbDatabase'
 import { AcDbDatabaseConverterManager } from '../src/database/AcDbDatabaseConverterManager'
 import { AcDbLayerTableRecord } from '../src/database/AcDbLayerTableRecord'
 import { AcDbTextStyleTableRecord } from '../src/database/AcDbTextStyleTableRecord'
+import { AcDbEntity } from '../src/entity/AcDbEntity'
+import { AcDbLine } from '../src/entity/AcDbLine'
 import { DEFAULT_TEXT_STYLE } from '../src/misc/AcDbConstants'
 import { AcDbSystemVariables } from '../src/database/AcDbSystemVariables'
 import { AcDbSysVarManager } from '../src/database/AcDbSysVarManager'
@@ -178,5 +180,101 @@ describe('AcDbDatabase', () => {
     } finally {
       manager.unregister(fileType)
     }
+  })
+
+  it('does not record a read into an active transaction', async () => {
+    const db = new AcDbDatabase()
+    acdbHostApplicationServices().workingDatabase = db
+    const fileType = 'test-read-in-transaction'
+    let recordingDuringRead: boolean | undefined
+    let strictModeDuringRead: boolean | undefined
+    const converter = {
+      read: jest.fn(async (_data: ArrayBuffer, target: AcDbDatabase) => {
+        recordingDuringRead = target.transactionManager.isRecording()
+        strictModeDuringRead = target.transactionManager.strictMode
+        target.tables.blockTable.modelSpace.appendEntity(new AcDbLine())
+        target.tables.blockTable.modelSpace.appendEntity(new AcDbLine())
+      })
+    }
+    const manager = AcDbDatabaseConverterManager.instance
+    manager.register(fileType, converter as never)
+
+    const transactionManager = db.transactionManager
+    transactionManager.strictMode = true
+    transactionManager.startTransaction()
+    const recordAppend = jest.spyOn(transactionManager, 'recordAppend')
+
+    try {
+      await db.read(new ArrayBuffer(0), { readOnly: true }, fileType)
+
+      // The import ran with recording suspended and the strict-mode gate
+      // relaxed, so no change record was produced for the imported entities.
+      expect(recordingDuringRead).toBe(false)
+      expect(strictModeDuringRead).toBe(false)
+      expect(recordAppend).not.toHaveBeenCalled()
+      // The caller's transaction is untouched: still active, still recording,
+      // with the caller's strict mode restored.
+      expect(transactionManager.hasTransaction()).toBe(true)
+      expect(transactionManager.isRecording()).toBe(true)
+      expect(transactionManager.strictMode).toBe(true)
+      expect(
+        db.tables.blockTable.modelSpace.newIterator().count
+      ).toBeGreaterThan(0)
+    } finally {
+      recordAppend.mockRestore()
+      transactionManager.abortTransaction()
+      manager.unregister(fileType)
+    }
+  })
+
+  it('queues single entities and entity arrays in batch order', () => {
+    const db = new AcDbDatabase()
+    db.createDefaultData()
+    acdbHostApplicationServices().workingDatabase = db
+
+    const modelSpace = db.tables.blockTable.modelSpace
+    const direct = new AcDbLine()
+    const first = new AcDbLine()
+    const second = new AcDbLine()
+    const dispatched: AcDbEntity[][] = []
+    db.events.entityAppended.addEventListener(args => {
+      dispatched.push(
+        (Array.isArray(args.entity) ? args.entity : [args.entity]).slice()
+      )
+    })
+
+    db.beginEventBatch()
+    // One single entity followed by one entity array: both must land in the
+    // pending queue in call order.
+    modelSpace.appendEntity(direct)
+    modelSpace.appendEntity([first, second])
+
+    const pending = (db as unknown as { _pendingEntityAppended: AcDbEntity[] })
+      ._pendingEntityAppended
+    expect(pending).toEqual([direct, first, second])
+
+    db.endEventBatch()
+    expect(dispatched).toEqual([[direct, first, second]])
+    expect([...modelSpace.newIterator()]).toEqual([direct, first, second])
+  })
+
+  it('dispatches single entity notifications immediately without a batch', () => {
+    const db = new AcDbDatabase()
+    db.createDefaultData()
+    acdbHostApplicationServices().workingDatabase = db
+
+    const dispatched: AcDbEntity[] = []
+    db.events.entityAppended.addEventListener(args => {
+      dispatched.push(args.entity as AcDbEntity)
+    })
+
+    const line = new AcDbLine()
+    db.tables.blockTable.modelSpace.appendEntity(line)
+
+    expect(dispatched).toEqual([line])
+    expect(
+      (db as unknown as { _pendingEntityAppended: AcDbEntity[] })
+        ._pendingEntityAppended
+    ).toEqual([])
   })
 })

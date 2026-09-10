@@ -1,4 +1,7 @@
-import { AcDbBlockTableRecord, AcDbBlockTableRecordFlag } from '../src/database/AcDbBlockTableRecord'
+import {
+  AcDbBlockTableRecord,
+  AcDbBlockTableRecordFlag
+} from '../src/database/AcDbBlockTableRecord'
 import { expectDetachedClone } from '../test-utils/cloneTestUtils'
 
 describe('AcDbBlockTableRecord', () => {
@@ -43,5 +46,72 @@ describe('AcDbBlockTableRecord', () => {
           AcDbBlockTableRecordFlag.Referenced
       )
     ).toBe(AcDbBlockTableRecordFlag.Xref)
+  })
+
+  it('recognizes model and paper space names case-insensitively', () => {
+    expect(AcDbBlockTableRecord.isModelSapceName('*Model_Space')).toBe(true)
+    expect(AcDbBlockTableRecord.isModelSapceName('*MODEL_SPACE')).toBe(true)
+    expect(AcDbBlockTableRecord.isModelSapceName('*model_space')).toBe(true)
+    expect(AcDbBlockTableRecord.isModelSapceName('*Model_Space1')).toBe(false)
+    expect(AcDbBlockTableRecord.isModelSapceName('')).toBe(false)
+    expect(AcDbBlockTableRecord.isModelSapceName('MyBlock')).toBe(false)
+
+    expect(AcDbBlockTableRecord.isPaperSapceName('*Paper_Space')).toBe(true)
+    expect(AcDbBlockTableRecord.isPaperSapceName('*PAPER_SPACE1')).toBe(true)
+    expect(AcDbBlockTableRecord.isPaperSapceName('*paper_space0')).toBe(true)
+    expect(AcDbBlockTableRecord.isPaperSapceName('*Paper')).toBe(false)
+    expect(AcDbBlockTableRecord.isPaperSapceName('')).toBe(false)
+
+    // A model space name is never a paper space name and the other way round.
+    expect(
+      AcDbBlockTableRecord.isPaperSapceName(
+        AcDbBlockTableRecord.MODEL_SPACE_NAME
+      )
+    ).toBe(false)
+    expect(
+      AcDbBlockTableRecord.isModelSapceName(
+        AcDbBlockTableRecord.PAPER_SPACE_NAME_PREFIX
+      )
+    ).toBe(false)
+  })
+
+  it('refreshes the cached space flags whenever the name changes', () => {
+    const btr = new AcDbBlockTableRecord()
+    expect(btr.isModelSapce).toBe(false)
+    expect(btr.isPaperSapce).toBe(false)
+
+    btr.name = '*Model_Space'
+    expect(btr.isModelSapce).toBe(true)
+    expect(btr.isPaperSapce).toBe(false)
+
+    // Paper space name replaces the cached model space result.
+    btr.name = '*Paper_Space1'
+    expect(btr.isModelSapce).toBe(false)
+    expect(btr.isPaperSapce).toBe(true)
+
+    // Ordinary block name clears both cached flags.
+    btr.name = 'MyBlock'
+    expect(btr.isModelSapce).toBe(false)
+    expect(btr.isPaperSapce).toBe(false)
+
+    // Case variants must be cached too.
+    btr.name = '*MODEL_SPACE'
+    expect(btr.isModelSapce).toBe(true)
+    expect(btr.isPaperSapce).toBe(false)
+  })
+
+  it('initializes and clones the cached space flags with attrs', () => {
+    const paper = new AcDbBlockTableRecord({ name: '*Paper_Space2' })
+    expect(paper.isModelSapce).toBe(false)
+    expect(paper.isPaperSapce).toBe(true)
+
+    const clone = paper.clone()
+    expect(clone.name).toBe('*Paper_Space2')
+    expect(clone.isModelSapce).toBe(false)
+    expect(clone.isPaperSapce).toBe(true)
+
+    clone.name = '*Model_Space'
+    expect(clone.isModelSapce).toBe(true)
+    expect(paper.isPaperSapce).toBe(true)
   })
 })

@@ -23,7 +23,9 @@ import type { AcDbDxfPair } from './AcDbDxfPair'
 import {
   acdbCreateDxfPairReader,
   type AcDbDxfPairReader,
-  acdbMakeAsciiDxfPairReader} from './AcDbDxfPairReader'
+  acdbMakeAsciiDxfPairReader
+} from './AcDbDxfPairReader'
+import type { AcDbDxfPairChunkReader } from './AcDbDxfPairWire'
 import {
   ACDB_DXF_XDATA_BINARY_MAX_BYTES,
   ACDB_DXF_XDATA_STRING_MAX_BYTES,
@@ -95,6 +97,12 @@ export class AcDbDxfFiler {
 
   private _reader?: AcDbDxfPairReader
   /**
+   * Set when {@link _reader} is a chunked wire reader
+   * ({@link AcDbDxfPairChunkReader}). Kept as a separate, typed reference so
+   * the read API does not have to duck-type the reader on every pair.
+   */
+  private readonly _chunkedReader?: AcDbDxfPairChunkReader
+  /**
    * Pushback stack for read mode (ObjectARX `pushBackItem`).
    * LIFO: nested pushBacks are supported so a second push does not clobber
    * the first.
@@ -103,6 +111,16 @@ export class AcDbDxfFiler {
   private _status: AcDbDxfFilerStatus = AcDbDxfFilerStatus.Ok
   private _errorMessage = ''
   private _lastRead: AcDbDxfPair | undefined
+  /**
+   * Cached "next readable pair" (peek of the pushback stack top, else of the
+   * reader). Refreshed by every path that changes what {@link readPair} /
+   * {@link peekPair} would return, so the per-pair predicates only compare
+   * fields instead of re-running `assertReadMode()` + stack lookup +
+   * `reader.peek()` for each of `atEof` / `atEndOfObject` / `atExtendedData`.
+   */
+  private _nextPair: AcDbDxfPair | undefined
+  /** Group code of {@link _nextPair}; `-1` marks EOF (no pair available). */
+  private _nextCode = -1
 
   constructor(options: AcDbDxfFilerOptions = {}) {
     this._database = options.database
@@ -120,9 +138,14 @@ export class AcDbDxfFiler {
     this._nextHandle = 1
     this._mode = options.reader ? 'read' : 'write'
     this._reader = options.reader
+    this._chunkedReader =
+      options.reader && 'atChunkBoundary' in options.reader
+        ? (options.reader as AcDbDxfPairChunkReader)
+        : undefined
     if (this._mode === 'write' && this._outputFormat === 'binary') {
       this.appendBinary(BINARY_DXF_MAGIC)
     }
+    this.refreshNextPair()
   }
 
   /** Create a read-mode filer from an existing pair reader. */
@@ -201,6 +224,7 @@ export class AcDbDxfFiler {
   resetStatus() {
     this._status = AcDbDxfFilerStatus.Ok
     this._errorMessage = ''
+    this.refreshNextPair()
     return this
   }
 
@@ -256,7 +280,7 @@ export class AcDbDxfFiler {
   get atEof(): boolean {
     if (this._mode !== 'read') return false
     if (this._pushed.length > 0) return false
-    return this._reader?.peek() === undefined
+    return this._nextCode === -1
   }
 
   /**
@@ -276,16 +300,53 @@ export class AcDbDxfFiler {
    */
   get atEndOfObject(): boolean {
     if (this._mode !== 'read') return true
-    const next = this.peekPair()
-    return next === undefined || next.code === 0
+    return this._nextCode === -1 || this._nextCode === 0
+  }
+
+  /**
+   * `true` when the next pair is not available *right now* but the chunked
+   * stream has not ended, so {@link ensurePairs} can produce more.
+   *
+   * A pushed-back pair counts as available data, so the pushback stack is
+   * consulted first: otherwise `ensurePairs` would wait for a chunk while a
+   * pair the caller already owns is sitting on the stack.
+   */
+  get atChunkBoundary(): boolean {
+    if (this._mode !== 'read' || !this._chunkedReader) return false
+    if (this._pushed.length > 0) return false
+    return this._chunkedReader.atChunkBoundary()
+  }
+
+  /**
+   * Blocks (asynchronously) until the next pair is available or the pair
+   * stream has really ended.
+   *
+   * This is the only place a chunked wire is refilled. It must be called at
+   * every point where the reader may be *between* chunks — i.e. at the record
+   * boundaries owned by an `async` caller (`AcDbDxfDocumentReader`'s section
+   * and entity loops). Synchronous readers (entity `dxfIn`, the tables /
+   * classes / objects sections) rely on the drain's split policy never
+   * placing a boundary inside a synchronous region; see
+   * {@link acdbDrainDxfPairsChunked}.
+   */
+  async ensurePairs(): Promise<void> {
+    const reader = this._chunkedReader
+    if (!reader) return
+    this.refreshNextPair()
+    while (this._pushed.length === 0 && reader.atChunkBoundary()) {
+      await reader.waitForData()
+      this.refreshNextPair()
+    }
   }
 
   /** True if the next pair is XDATA start (1001) or similar extended data. */
   get atExtendedData(): boolean {
     if (this._mode !== 'read') return false
-    const next = this.peekPair()
-    if (!next) return false
-    return next.code === 1001 || next.code === 1000 || next.code === 1002
+    return (
+      this._nextCode === 1001 ||
+      this._nextCode === 1000 ||
+      this._nextCode === 1002
+    )
   }
 
   /**
@@ -294,7 +355,7 @@ export class AcDbDxfFiler {
    */
   atSubclassData(name: string): boolean {
     if (this._mode !== 'read') return false
-    const next = this.peekPair()
+    const next = this._nextPair
     if (!next || next.code !== 100) return false
     if (typeof next.value !== 'string' || next.value !== name) return false
     this.readPair()
@@ -333,15 +394,18 @@ export class AcDbDxfFiler {
   pushBackItem(item?: AcDbTypedValue | AcDbDxfPair): void {
     if (item && 'type' in item) {
       this._pushed.push(item)
+      this.refreshNextPair()
       return
     }
     if (item) {
       this._pushed.push(this.typedValueToPair(item))
+      this.refreshNextPair()
       return
     }
     // No-arg form: re-push the last consumed pair.
     if (this._lastRead) {
       this._pushed.push(this._lastRead)
+      this.refreshNextPair()
     }
   }
 
@@ -858,26 +922,39 @@ export class AcDbDxfFiler {
 
   private peekPair(): AcDbDxfPair | undefined {
     this.assertReadMode()
-    if (this._pushed.length > 0) {
-      return this._pushed[this._pushed.length - 1]
-    }
-    return this._reader!.peek()
+    return this._nextPair
   }
 
   private readPair(): AcDbDxfPair | undefined {
     this.assertReadMode()
-    if (this._pushed.length > 0) {
-      const p = this._pushed.pop()!
-      this._lastRead = p
-      return p
-    }
-    const p = this._reader!.next()
+    const p =
+      this._pushed.length > 0 ? this._pushed.pop()! : this._reader!.next()
     this._lastRead = p
+    this.refreshNextPair()
     return p
   }
 
   private pushBackPair(pair: AcDbDxfPair) {
     this._pushed.push(pair)
+    this.refreshNextPair()
+  }
+
+  /**
+   * Recompute {@link _nextPair} / {@link _nextCode} from the pushback stack and
+   * the underlying reader. Must be called on every path that changes either.
+   */
+  private refreshNextPair(): void {
+    if (this._mode !== 'read' || !this._reader) {
+      this._nextPair = undefined
+      this._nextCode = -1
+      return
+    }
+    const next =
+      this._pushed.length > 0
+        ? this._pushed[this._pushed.length - 1]
+        : this._reader.peek()
+    this._nextPair = next
+    this._nextCode = next ? next.code : -1
   }
 
   private readNumber(expectedCode?: number): number | undefined {

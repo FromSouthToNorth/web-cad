@@ -90,7 +90,6 @@ export class AcApDocument {
   async openUri(uri: string, options: AcApOpenDatabaseOptions) {
     this._uri = uri
     this._openMode = options?.mode ?? AcEdOpenMode.Read
-    this._fileName = this.getFileNameFromUri(uri)
     const openErrorBefore = this._database.lastOpenError
     let isSuccess = true
     try {
@@ -100,9 +99,11 @@ export class AcApDocument {
         readOnly: this._openMode === AcEdOpenMode.Read
       }
       await this._database.openUri(uri, baseOptions)
-      this.docTitle = this._fileName
     } catch {
       isSuccess = false
+    }
+    this.adoptFileIdentity(this.getFileNameFromUri(uri), isSuccess)
+    if (!isSuccess) {
       this.emitOpenFileFailed(uri, openErrorBefore)
     }
     return isSuccess
@@ -130,7 +131,6 @@ export class AcApDocument {
     options: AcApOpenDatabaseOptions
   ) {
     let isSuccess = true
-    this._fileName = fileName
     this._openMode = options?.mode ?? AcEdOpenMode.Read
     const openErrorBefore = this._database.lastOpenError
     try {
@@ -145,12 +145,39 @@ export class AcApDocument {
         baseOptions,
         fileExtension == 'dwg' ? AcDbFileType.DWG : AcDbFileType.DXF
       )
-      this.docTitle = this._fileName
     } catch {
       isSuccess = false
+    }
+    this.adoptFileIdentity(fileName, isSuccess)
+    if (!isSuccess) {
       this.emitOpenFileFailed(fileName, openErrorBefore)
     }
     return isSuccess
+  }
+
+  /**
+   * Adopts `fileName` as this document's file name and title when the database
+   * content belongs to that file.
+   *
+   * The identity is adopted on a successful open, and also when a failed open
+   * still reset the database (see
+   * {@link AcDbDatabase.wasResetForLatestOpenAttempt}): `onAfterOpenDocument`
+   * recovers that partial content, so the document must name the file it came
+   * from. A failure that happens *before* the reset — a `.dwg` with no registered
+   * converter, or a URI that could not be fetched — leaves the previous drawing
+   * loaded and untouched, so its identity is kept instead of pointing the title
+   * at a file that never made it into the database.
+   *
+   * @param fileName - File name produced by the open attempt
+   * @param isSuccess - Whether the open attempt reported success
+   * @private
+   */
+  private adoptFileIdentity(fileName: string, isSuccess: boolean) {
+    if (!isSuccess && !this._database.wasResetForLatestOpenAttempt) {
+      return
+    }
+    this._fileName = fileName
+    this.docTitle = fileName
   }
 
   /**

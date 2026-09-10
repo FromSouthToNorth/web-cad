@@ -34,6 +34,7 @@ export class AcDbDatabaseTransactionManager {
   private readonly changeApplier: AcDbChangeApplier
   private readonly undoMarkStack: AcDbUndoMarkState[] = []
   private _applyingUndoRedo = false
+  private _recordingSuspendDepth = 0
   private readonly _pendingEntityModified = new Set<AcDbEntity>()
   private readonly _pendingLayerModified = new Map<
     string,
@@ -86,10 +87,15 @@ export class AcDbDatabaseTransactionManager {
   /**
    * Returns true when mutations should be recorded into the current transaction.
    *
-   * Recording is disabled while undo/redo is being applied.
+   * Recording is disabled while undo/redo is being applied and while
+   * {@link suspendRecording} is active.
    */
   isRecording(): boolean {
-    return this.hasTransaction() && !this._applyingUndoRedo
+    return (
+      this._recordingSuspendDepth === 0 &&
+      this.hasTransaction() &&
+      !this._applyingUndoRedo
+    )
   }
 
   /**
@@ -97,6 +103,32 @@ export class AcDbDatabaseTransactionManager {
    */
   isApplyingUndoRedo(): boolean {
     return this._applyingUndoRedo
+  }
+
+  /**
+   * Suspends change recording until the returned function is called.
+   *
+   * Bulk import paths (see `AcDbDatabase.read`) use this so a caller's active
+   * transaction cannot accumulate one change record per imported object: the
+   * change recorder scans its existing entries to coalesce append/remove
+   * pairs, so recording a whole drawing is quadratic in the entity count and
+   * the resulting change list can never be applied coherently anyway (the
+   * import's reset is not undoable).
+   *
+   * Suspensions nest and the returned resume function is idempotent. Callers
+   * must also relax {@link strictMode} while suspended, because the mutation
+   * guards reject mutations when `strictMode` is set and recording is off.
+   *
+   * @returns Function that resumes recording for this suspension
+   */
+  suspendRecording(): () => void {
+    this._recordingSuspendDepth++
+    let resumed = false
+    return () => {
+      if (resumed) return
+      resumed = true
+      this._recordingSuspendDepth--
+    }
   }
 
   /**

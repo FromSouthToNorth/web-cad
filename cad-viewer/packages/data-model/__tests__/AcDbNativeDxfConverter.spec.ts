@@ -1,12 +1,20 @@
 import { AcGeMathUtil } from '@hy/geometry-engine'
 
-import { acdbHostApplicationServices } from '../src/base'
 import {
-  AcDbBlockTableRecordFlag,
-  AcDbDatabase
-} from '../src/database'
+  acdbCreateDxfPairReader,
+  acdbDrainDxfPairs,
+  type AcDbDxfPairWireData,
+  acdbHostApplicationServices
+} from '../src/base'
+import type { AcDbDxfPairWireChunk } from '../src/base/AcDbDxfPairWire'
+import { AcDbBlockTableRecordFlag, AcDbDatabase } from '../src/database'
+import {
+  ACDB_DXF_WORKER_CHUNK_ACK_MESSAGE,
+  ACDB_DXF_WORKER_CHUNK_STOP_MESSAGE
+} from '../src/converter/worker/AcDbWorkerManager'
 import { AcDbNativeDxfConverter } from '../src/dxf'
 import {
+  AcDb3dSolid,
   AcDbBlockReference,
   AcDbCircle,
   AcDbEllipse,
@@ -20,9 +28,9 @@ import {
   AcDbSpline,
   AcDbTable,
   AcDbText,
-  AcDbXline,
-  AcDb3dSolid
+  AcDbXline
 } from '../src/entity'
+import { AcDbRenderingCache } from '../src/misc'
 
 describe('AcDbNativeDxfConverter', () => {
   it('streams HEADER, LAYER, and core entities into the database', async () => {
@@ -2026,14 +2034,16 @@ describe('AcDbNativeDxfConverter', () => {
     expect(text!.verticalMode).toBe(2)
     expect(text!.alignmentPoint.x).toBeCloseTo(105)
 
-    const mtext = model.find(e => e instanceof AcDbMText) as AcDbMText | undefined
+    const mtext = model.find(e => e instanceof AcDbMText) as
+      | AcDbMText
+      | undefined
     expect(mtext).toBeDefined()
     expect(mtext!.contents).toBe('Notes line continued')
     expect(mtext!.direction.x).toBeCloseTo(1)
 
-    const dim = model.find(
-      e => e instanceof AcDbRotatedDimension
-    ) as AcDbRotatedDimension | undefined
+    const dim = model.find(e => e instanceof AcDbRotatedDimension) as
+      | AcDbRotatedDimension
+      | undefined
     expect(dim).toBeDefined()
     expect(dim!.dimBlockId).toBe('*D1')
     expect(dim!.xLine1Point.x).toBeCloseTo(0)
@@ -2043,7 +2053,9 @@ describe('AcDbNativeDxfConverter', () => {
     expect(dim!.dimBlockPosition.x).toBeCloseTo(20)
     expect(dim!.dimBlockPosition.y).toBeCloseTo(0)
 
-    const table = model.find(e => e instanceof AcDbTable) as AcDbTable | undefined
+    const table = model.find(e => e instanceof AcDbTable) as
+      | AcDbTable
+      | undefined
     expect(table).toBeDefined()
     expect(table!.blockName).toBe('*T1')
     expect(table!.numRows).toBe(2)
@@ -2258,12 +2270,7 @@ describe('AcDbNativeDxfConverter', () => {
   })
 
   it('emits PARSE IN-PROGRESS while streaming entities', async () => {
-    const lines = [
-      '0',
-      'SECTION',
-      '2',
-      'ENTITIES'
-    ]
+    const lines = ['0', 'SECTION', '2', 'ENTITIES']
     for (let i = 0; i < 40; i++) {
       lines.push(
         '0',
@@ -2300,10 +2307,13 @@ describe('AcDbNativeDxfConverter', () => {
 
     const converter = new AcDbNativeDxfConverter()
     const buffer = new TextEncoder().encode(lines.join('\n')).buffer
-    await converter.read(buffer, db, { minimumChunkSize: 5, progress: async (pct, stage, status) => {
-      stages.push(`${stage}:${status}`)
-      percentages.push(pct)
-    }})
+    await converter.read(buffer, db, {
+      minimumChunkSize: 5,
+      progress: async (pct, stage, status) => {
+        stages.push(`${stage}:${status}`)
+        percentages.push(pct)
+      }
+    })
 
     expect(stages).toContain('PARSE:IN-PROGRESS')
     expect(stages).toContain('ENTITY:IN-PROGRESS')
@@ -2323,14 +2333,18 @@ describe('AcDbNativeDxfConverter', () => {
       expect(pct).toBeLessThan(18)
     }
     for (let i = 1; i < parseProgressPcts.length; i++) {
-      expect(parseProgressPcts[i]!).toBeGreaterThanOrEqual(parseProgressPcts[i - 1]!)
+      expect(parseProgressPcts[i]!).toBeGreaterThanOrEqual(
+        parseProgressPcts[i - 1]!
+      )
     }
     const entityProgressPcts = percentages.filter(
       (_, i) => stages[i] === 'ENTITY:IN-PROGRESS'
     )
     expect(entityProgressPcts.length).toBeGreaterThan(0)
     expect(entityProgressPcts[0]!).toBeGreaterThanOrEqual(20)
-    expect(entityProgressPcts[entityProgressPcts.length - 1]!).toBeLessThanOrEqual(98)
+    expect(
+      entityProgressPcts[entityProgressPcts.length - 1]!
+    ).toBeLessThanOrEqual(98)
   })
 
   it('does not count SEQEND as an unknown entity', async () => {
@@ -2415,7 +2429,8 @@ describe('AcDbNativeDxfConverter', () => {
     expect([...inserts[0].attributeIterator()]).toHaveLength(1)
 
     // Re-read via document reader to assert the diagnostic counter.
-    const { AcDbDxfDocumentReader } = await import('../src/dxf/AcDbDxfDocumentReader')
+    const { AcDbDxfDocumentReader } =
+      await import('../src/dxf/AcDbDxfDocumentReader')
     const { AcDbDxfFiler } = await import('../src/base/AcDbDxfFiler')
     const db2 = new AcDbDatabase()
     db2.createDefaultData()
@@ -2567,7 +2582,8 @@ describe('AcDbNativeDxfConverter', () => {
       ''
     ].join('\n')
 
-    const { AcDbDxfDocumentReader } = await import('../src/dxf/AcDbDxfDocumentReader')
+    const { AcDbDxfDocumentReader } =
+      await import('../src/dxf/AcDbDxfDocumentReader')
     const { AcDbDxfFiler } = await import('../src/base/AcDbDxfFiler')
     const db = new AcDbDatabase()
     db.createDefaultData()
@@ -2627,7 +2643,9 @@ describe('AcDbNativeDxfConverter', () => {
     const converter = new AcDbNativeDxfConverter()
     const db = new AcDbDatabase()
     acdbHostApplicationServices().workingDatabase = db
-    await converter.read(new TextEncoder().encode(dxf).buffer, db, { minimumChunkSize: 50 })
+    await converter.read(new TextEncoder().encode(dxf).buffer, db, {
+      minimumChunkSize: 50
+    })
 
     const solids = [...db.tables.blockTable.modelSpace.newIterator()].filter(
       e => e instanceof AcDb3dSolid
@@ -2675,7 +2693,9 @@ describe('AcDbNativeDxfConverter', () => {
     const converter = new AcDbNativeDxfConverter()
     const db = new AcDbDatabase()
     acdbHostApplicationServices().workingDatabase = db
-    await converter.read(new TextEncoder().encode(dxf).buffer, db, { minimumChunkSize: 50 })
+    await converter.read(new TextEncoder().encode(dxf).buffer, db, {
+      minimumChunkSize: 50
+    })
 
     const solid = [...db.tables.blockTable.modelSpace.newIterator()].find(
       e => e instanceof AcDb3dSolid
@@ -2685,4 +2705,484 @@ describe('AcDbNativeDxfConverter', () => {
     expect(solid.acisData).toContain('point $-1 1 2 3')
     expect(solid.hasRenderableGeometry).toBe(true)
   })
+
+  it('does not reuse the previous drawing block templates on the next read', async () => {
+    const converter = new AcDbNativeDxfConverter()
+
+    const first = new AcDbDatabase()
+    first.createDefaultData()
+    acdbHostApplicationServices().workingDatabase = first
+    await converter.read(
+      new TextEncoder().encode(ENTITY_ONLY_DXF).buffer,
+      first,
+      { minimumChunkSize: 50 }
+    )
+
+    // Rendering the first drawing fills the shared template cache; seeding it
+    // directly stands in for that render pass.
+    const dispose = jest.fn()
+    AcDbRenderingCache.instance.set('Door', { dispose } as never)
+    expect(AcDbRenderingCache.instance.has('Door')).toBe(true)
+
+    let staleTemplateVisibleAtStart: boolean | undefined
+    const second = new AcDbDatabase()
+    second.createDefaultData()
+    acdbHostApplicationServices().workingDatabase = second
+    await converter.read(
+      new TextEncoder().encode(ENTITY_ONLY_DXF).buffer,
+      second,
+      {
+        minimumChunkSize: 50,
+        progress: async () => {
+          // First callback fires after the clear and before any streaming, so
+          // the second read can never hit the first drawing's template.
+          if (staleTemplateVisibleAtStart === undefined) {
+            staleTemplateVisibleAtStart =
+              AcDbRenderingCache.instance.has('Door')
+          }
+        }
+      }
+    )
+
+    expect(staleTemplateVisibleAtStart).toBe(false)
+    expect(AcDbRenderingCache.instance.has('Door')).toBe(false)
+    expect(dispose).toHaveBeenCalledTimes(1)
+  })
+
+  it('disposes LRU-retired compacted templates on read', async () => {
+    const cache = AcDbRenderingCache.instance
+    const retiredList = (
+      cache as unknown as { _retiredCompactedTemplates: unknown[] }
+    )._retiredCompactedTemplates
+    const prevMaxEntries = AcDbRenderingCache.lruMaxEntries
+    const prevMaxBytes = AcDbRenderingCache.lruMaxEstimatedBytes
+    const retiredBefore = retiredList.length
+    const disposals: jest.Mock[] = []
+    try {
+      // Force one LRU eviction of a compacted template. Compacted templates
+      // are retired rather than disposed (their buffers can be aliased by live
+      // clones), and only clear() releases them.
+      AcDbRenderingCache.lruMaxEntries = 1
+      AcDbRenderingCache.lruMaxEstimatedBytes = 0
+      for (const name of ['Door', 'Window']) {
+        const dispose = jest.fn()
+        disposals.push(dispose)
+        cache.set(name, { isCompacted: true, dispose } as never)
+      }
+      expect(retiredList.length).toBe(retiredBefore + 1)
+
+      const converter = new AcDbNativeDxfConverter()
+      const db = new AcDbDatabase()
+      db.createDefaultData()
+      acdbHostApplicationServices().workingDatabase = db
+      await converter.read(
+        new TextEncoder().encode(ENTITY_ONLY_DXF).buffer,
+        db,
+        { minimumChunkSize: 50 }
+      )
+
+      expect(cache.has('Door')).toBe(false)
+      expect(cache.has('Window')).toBe(false)
+      expect(retiredList).toHaveLength(0)
+      expect(disposals[0]).toHaveBeenCalledTimes(1)
+      expect(disposals[1]).toHaveBeenCalledTimes(1)
+    } finally {
+      AcDbRenderingCache.lruMaxEntries = prevMaxEntries
+      AcDbRenderingCache.lruMaxEstimatedBytes = prevMaxBytes
+    }
+  })
+
+  describe('parser worker lifecycle', () => {
+    const originalWorker = (globalThis as unknown as { Worker?: unknown })
+      .Worker
+
+    beforeEach(() => {
+      ;(globalThis as unknown as { Worker: unknown }).Worker =
+        FakeDxfParserWorker as unknown
+      FakeDxfParserWorker.reset()
+    })
+
+    afterEach(() => {
+      ;(globalThis as unknown as { Worker?: unknown }).Worker = originalWorker
+    })
+
+    it('reuses one warm parser worker across reads', async () => {
+      FakeDxfParserWorker.response = {
+        success: true,
+        data: drainWire(ENTITY_ONLY_DXF)
+      }
+      const converter = new AcDbNativeDxfConverter({
+        parserWorkerUrl: 'warm-worker.js'
+      })
+
+      const first = new AcDbDatabase()
+      first.createDefaultData()
+      acdbHostApplicationServices().workingDatabase = first
+      await converter.read(
+        new TextEncoder().encode(ENTITY_ONLY_DXF).buffer,
+        first,
+        { minimumChunkSize: 50 }
+      )
+
+      const second = new AcDbDatabase()
+      second.createDefaultData()
+      acdbHostApplicationServices().workingDatabase = second
+      await converter.read(
+        new TextEncoder().encode(ENTITY_ONLY_DXF).buffer,
+        second,
+        { minimumChunkSize: 50 }
+      )
+
+      // Both drawings were tokenized by the worker…
+      expect([
+        ...first.tables.blockTable.modelSpace.newIterator()
+      ]).toHaveLength(1)
+      expect([
+        ...second.tables.blockTable.modelSpace.newIterator()
+      ]).toHaveLength(1)
+      // …with a single Worker instance that was never terminated: one zero-byte
+      // readiness probe when the worker was created, then one tokenize task per
+      // read (no probe for the second read on the warm worker).
+      expect(FakeDxfParserWorker.posted).toBe(3)
+      expect(FakeDxfParserWorker.probePosts).toBe(1)
+      expect(FakeDxfParserWorker.tokenizePosts).toBe(2)
+      expect(FakeDxfParserWorker.created).toBe(1)
+      expect(FakeDxfParserWorker.terminated).toBe(0)
+    })
+
+    it('falls back to main-thread parsing when the bundle is unusable', async () => {
+      // Every request fails, probe included: this is a missing/broken bundle,
+      // and the drawing bytes must never leave the main thread.
+      FakeDxfParserWorker.failEveryRequest = true
+      const warn = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => undefined)
+      try {
+        const converter = new AcDbNativeDxfConverter({
+          parserWorkerUrl: 'missing-bundle.js'
+        })
+        const db = new AcDbDatabase()
+        db.createDefaultData()
+        acdbHostApplicationServices().workingDatabase = db
+        await converter.read(
+          new TextEncoder().encode(ENTITY_ONLY_DXF).buffer,
+          db,
+          { minimumChunkSize: 50 }
+        )
+
+        const entities = [...db.tables.blockTable.modelSpace.newIterator()]
+        expect(entities).toHaveLength(1)
+        expect(warn).toHaveBeenCalledWith(
+          expect.stringContaining('DXF parser worker unavailable')
+        )
+        // Only the zero-byte probe was posted; the drawing bytes stayed here.
+        expect(FakeDxfParserWorker.posted).toBe(1)
+        expect(FakeDxfParserWorker.probePosts).toBe(1)
+        expect(FakeDxfParserWorker.tokenizePosts).toBe(0)
+        expect(FakeDxfParserWorker.terminated).toBe(1)
+      } finally {
+        warn.mockRestore()
+      }
+    })
+
+    it('keeps a worker that answered the probe with a task error', async () => {
+      // A task-level probe failure still proves bundle + protocol work, so the
+      // real read goes to the worker instead of the main thread.
+      FakeDxfParserWorker.probeResponse = {
+        success: false,
+        error: 'empty probe rejected'
+      }
+      FakeDxfParserWorker.response = {
+        success: true,
+        data: drainWire(ENTITY_ONLY_DXF)
+      }
+      const converter = new AcDbNativeDxfConverter({
+        parserWorkerUrl: 'picky-worker.js'
+      })
+      const db = new AcDbDatabase()
+      db.createDefaultData()
+      acdbHostApplicationServices().workingDatabase = db
+      await converter.read(
+        new TextEncoder().encode(ENTITY_ONLY_DXF).buffer,
+        db,
+        { minimumChunkSize: 50 }
+      )
+
+      const entities = [...db.tables.blockTable.modelSpace.newIterator()]
+      expect(entities).toHaveLength(1)
+      expect(FakeDxfParserWorker.probePosts).toBe(1)
+      expect(FakeDxfParserWorker.tokenizePosts).toBe(1)
+      expect(FakeDxfParserWorker.created).toBe(1)
+      expect(FakeDxfParserWorker.terminated).toBe(0)
+    })
+
+    it('reports a worker failure instead of hanging and drops the worker', async () => {
+      FakeDxfParserWorker.detachAndError = true
+      const converter = new AcDbNativeDxfConverter({
+        parserWorkerUrl: 'failing-worker.js'
+      })
+      const db = new AcDbDatabase()
+      db.createDefaultData()
+      acdbHostApplicationServices().workingDatabase = db
+
+      // A worker that answers the probe (so it is loaded and healthy) and then
+      // fails the real task after the bytes were transferred cannot fall back
+      // (the main thread no longer owns them): the read must reject with the
+      // worker reason instead of leaving a dangling promise.
+      await expect(
+        converter.read(new TextEncoder().encode(ENTITY_ONLY_DXF).buffer, db, {
+          minimumChunkSize: 50
+        })
+      ).rejects.toThrow(/DXF parser worker failed \(/)
+
+      // The failed worker was terminated rather than cached…
+      expect(FakeDxfParserWorker.terminated).toBe(1)
+
+      // …so the next read builds a fresh one and can succeed.
+      FakeDxfParserWorker.detachAndError = false
+      FakeDxfParserWorker.response = {
+        success: true,
+        data: drainWire(ENTITY_ONLY_DXF)
+      }
+      const retryDb = new AcDbDatabase()
+      retryDb.createDefaultData()
+      acdbHostApplicationServices().workingDatabase = retryDb
+      await converter.read(
+        new TextEncoder().encode(ENTITY_ONLY_DXF).buffer,
+        retryDb,
+        { minimumChunkSize: 50 }
+      )
+      expect(FakeDxfParserWorker.created).toBe(2)
+      expect(FakeDxfParserWorker.terminated).toBe(1)
+      // One probe + one tokenize per worker.
+      expect(FakeDxfParserWorker.posted).toBe(4)
+      expect(FakeDxfParserWorker.tokenizePosts).toBe(2)
+      expect([
+        ...retryDb.tables.blockTable.modelSpace.newIterator()
+      ]).toHaveLength(1)
+    })
+
+    it('falls back to main-thread parsing when the worker cannot receive input', async () => {
+      FakeDxfParserWorker.postMessageThrows = true
+      const warn = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => undefined)
+      try {
+        const converter = new AcDbNativeDxfConverter({
+          parserWorkerUrl: 'unreachable-worker.js'
+        })
+        const db = new AcDbDatabase()
+        db.createDefaultData()
+        acdbHostApplicationServices().workingDatabase = db
+        await converter.read(
+          new TextEncoder().encode(ENTITY_ONLY_DXF).buffer,
+          db,
+          { minimumChunkSize: 50 }
+        )
+
+        // The input never left the main thread, so the existing fallback runs.
+        expect([...db.tables.blockTable.modelSpace.newIterator()]).toHaveLength(
+          1
+        )
+        expect(warn).toHaveBeenCalledWith(
+          expect.stringContaining('falling back to main-thread parsing')
+        )
+        // The drawing bytes were never posted anywhere.
+        expect(FakeDxfParserWorker.tokenizePosts).toBe(0)
+        // The unusable worker is terminated rather than cached.
+        expect(FakeDxfParserWorker.terminated).toBe(1)
+      } finally {
+        warn.mockRestore()
+      }
+    })
+  })
 })
+
+/**
+ * Minimal ENTITIES-only DXF with a single LINE from (0,0,0) to (1,0,0), used
+ * by the parser-worker lifecycle tests.
+ */
+const ENTITY_ONLY_DXF = [
+  '0',
+  'SECTION',
+  '2',
+  'ENTITIES',
+  '0',
+  'LINE',
+  '5',
+  '1A',
+  '100',
+  'AcDbEntity',
+  '8',
+  '0',
+  '100',
+  'AcDbLine',
+  '10',
+  '0',
+  '20',
+  '0',
+  '30',
+  '0',
+  '11',
+  '1',
+  '21',
+  '0',
+  '31',
+  '0',
+  '0',
+  'ENDSEC',
+  '0',
+  'EOF',
+  ''
+].join('\n')
+
+/**
+ * Drains `dxf` into the wire payload a real parser worker would post back.
+ *
+ * @param dxf - DXF text to tokenize.
+ * @returns Drained pair wire data.
+ */
+function drainWire(dxf: string): AcDbDxfPairWireData {
+  const bytes = new TextEncoder().encode(dxf)
+  return acdbDrainDxfPairs(acdbCreateDxfPairReader(bytes), {
+    totalBytes: bytes.byteLength
+  })
+}
+
+/**
+ * `Worker` stand-in for the parser-worker lifecycle tests: it answers every
+ * task with a canned response so both the reuse and the failure paths can be
+ * exercised without a real worker bundle.
+ */
+class FakeDxfParserWorker {
+  static created = 0
+  static terminated = 0
+  /** Number of tasks posted to a fake worker. */
+  static posted = 0
+  /** Posted tasks that carried no drawing bytes (worker readiness probes). */
+  static probePosts = 0
+  /** Posted tasks that carried drawing bytes. */
+  static tokenizePosts = 0
+  /**
+   * Flow-control posts (chunk credits / stop) from the consumer. Not tasks,
+   * so they are counted separately from {@link posted}.
+   */
+  static flowControlPosts = 0
+  /** Chunks posted back before a task's final response. */
+  static chunkPosts = 0
+  /** Canned final response for every task. */
+  static response: { success: boolean; data?: unknown; error?: string } = {
+    success: true
+  }
+  /** Canned response for the zero-byte readiness probe only. */
+  static probeResponse: {
+    success: boolean
+    data?: unknown
+    error?: string
+  } | null = null
+  /**
+   * Emulate a script error. Only requests carrying drawing bytes fail, so the
+   * zero-byte probe still proves the worker is alive — the distinction the
+   * probe exists for.
+   */
+  static detachAndError = false
+  /** Emulate a script error for every request, probe included (dead bundle). */
+  static failEveryRequest = false
+  /** Emulate `postMessage` failing before the input moved to the worker. */
+  static postMessageThrows = false
+
+  private readonly listeners: Record<string, Array<(event: unknown) => void>> =
+    {
+      message: [],
+      error: []
+    }
+
+  constructor(_url: string | URL) {
+    FakeDxfParserWorker.created += 1
+  }
+
+  /**
+   * Restores the shared counters and canned behavior between tests.
+   */
+  static reset() {
+    FakeDxfParserWorker.created = 0
+    FakeDxfParserWorker.terminated = 0
+    FakeDxfParserWorker.posted = 0
+    FakeDxfParserWorker.probePosts = 0
+    FakeDxfParserWorker.tokenizePosts = 0
+    FakeDxfParserWorker.flowControlPosts = 0
+    FakeDxfParserWorker.chunkPosts = 0
+    FakeDxfParserWorker.response = { success: true }
+    FakeDxfParserWorker.probeResponse = null
+    FakeDxfParserWorker.detachAndError = false
+    FakeDxfParserWorker.failEveryRequest = false
+    FakeDxfParserWorker.postMessageThrows = false
+  }
+
+  addEventListener(type: 'message' | 'error', cb: (event: unknown) => void) {
+    this.listeners[type].push(cb)
+  }
+
+  removeEventListener(type: 'message' | 'error', cb: (event: unknown) => void) {
+    this.listeners[type] = this.listeners[type].filter(item => item !== cb)
+  }
+
+  postMessage(payload: { id?: string; input?: unknown; type?: string }) {
+    // Chunk credits are flow control, not tasks: they carry no input and must
+    // not be counted as posted work.
+    if (
+      payload.type === ACDB_DXF_WORKER_CHUNK_ACK_MESSAGE ||
+      payload.type === ACDB_DXF_WORKER_CHUNK_STOP_MESSAGE
+    ) {
+      FakeDxfParserWorker.flowControlPosts += 1
+      return
+    }
+    FakeDxfParserWorker.posted += 1
+    const isProbe =
+      payload.input instanceof ArrayBuffer && payload.input.byteLength === 0
+    if (isProbe) FakeDxfParserWorker.probePosts += 1
+    else FakeDxfParserWorker.tokenizePosts += 1
+
+    if (FakeDxfParserWorker.postMessageThrows) {
+      throw new Error('postMessage failed')
+    }
+    if (
+      FakeDxfParserWorker.failEveryRequest ||
+      (FakeDxfParserWorker.detachAndError && !isProbe)
+    ) {
+      if (!isProbe && payload.input instanceof ArrayBuffer) {
+        // Emulate a real transfer: the main thread loses the bytes.
+        structuredClone(payload.input, { transfer: [payload.input] })
+      }
+      this.listeners.error.forEach(cb => cb({ message: 'worker failed' }))
+      return
+    }
+    const response =
+      (isProbe ? FakeDxfParserWorker.probeResponse : null) ??
+      FakeDxfParserWorker.response
+
+    // Emulate the real worker's chunked protocol: the drained wire is posted as
+    // one `last: true` chunk before the summary response.
+    const wire = response.success ? response.data : undefined
+    if (wire && typeof wire === 'object' && 'codes' in wire) {
+      const chunk: AcDbDxfPairWireChunk = {
+        ...(wire as AcDbDxfPairWireData),
+        chunkIndex: 0,
+        last: true,
+        sourceEnd: 0
+      }
+      FakeDxfParserWorker.chunkPosts += 1
+      this.listeners.message.forEach(cb =>
+        cb({ data: { type: 'chunk', chunk } })
+      )
+    }
+
+    this.listeners.message.forEach(cb =>
+      cb({ data: { id: payload.id, ...response } })
+    )
+  }
+
+  terminate() {
+    FakeDxfParserWorker.terminated += 1
+  }
+}

@@ -127,7 +127,17 @@ export class AcDbSysVarManager {
   /** Cached current values for non-database-resident variables. */
   private cache = new Map<string, unknown>()
 
-  /** System variable related events */
+  /**
+   * System variable related events.
+   *
+   * This manager is a process-wide singleton, so its hubs outlive every
+   * document. Each {@link AcDbSysVarEventArgs} carries the `database` that
+   * raised it, and a listener that can outlive its own document must both
+   * compare that identity against the database it is bound to and call
+   * `removeEventListener` when it is torn down. Otherwise a discarded view
+   * keeps reacting to the next drawing — historically replaying a full
+   * conversion because `$LWDISPLAY` differed between two drawings.
+   */
   public readonly events = {
     /**
      * Fired after a system variable is changed directly through the SETVAR command or

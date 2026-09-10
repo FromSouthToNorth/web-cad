@@ -182,6 +182,27 @@ describe('span-based value parsing differential', () => {
     [10, '1234.5678901235'],
     [10, '360'],
     [10, '3.141592653589793'],
+    // doubles — 2^53 mantissa bound (P0-1). (2^53-9)/10 = 900719925474098.2,
+    // so the last exact accumulation step starts from mantissa <= 900719925474098.
+    [10, '900719925474099'],
+    [10, '9007199254740980'], // 900719925474098 * 10: last exact step
+    [10, '9007199254740989'], // largest value one exact step can reach
+    [10, '900719925474098.9'],
+    [10, '90071992547409.89'],
+    [10, '9007199254740991'], // 2^53-1: over the bound -> Number() fallback
+    [10, '9007199254740992'], // 2^53: over the bound -> Number() fallback
+    [10, '9007199254740993'], // 2^53+1: Number() rounds to 2^53
+    [10, '90071992547409820'], // 17 significant digits -> fallback
+    [10, '900719925474098.20'],
+    // doubles — leading zeros / signs / whitespace around long values
+    [10, '000000000000000039652926.80000000'],
+    [10, '+39652926.80000000'],
+    [10, '-39652926.80000000'],
+    [10, ' 39652926.80000000 '],
+    [10, '\t-39652926.80000000\t'],
+    [10, '39652926.80000000'],
+    [10, '39652926.800000000000000000'], // 26 significant digits -> fallback
+    [10, '99999999.999999999'], // 8 + 9 digits = 17 significant -> fallback
     // doubles — bail-out domain (long digits / huge exponents / literals)
     [10, '1234567890123456'],
     [10, '12345678901234567890'],
@@ -454,5 +475,75 @@ describe('span-based value parsing fuzz differential', () => {
     for (let i = 0; i < 30000; i++) pairs.push([160, randomIntValue(rng)])
     const text = buildText(pairs)
     checkPairs(pairs, acdbMakeAsciiDxfPairReader(text))
+  })
+})
+
+/**
+ * P0-1 regression guard: the previous fast path gave up after 15 significant
+ * digits, so the 7-8 integer digit + 8-9 fractional digit coordinates of the
+ * target drawing (15-17 significant digits) always fell back to
+ * "build a string + Number()". The 2^53 mantissa bound must accept the ones
+ * that are exact and still agree bit-for-bit with `Number()`.
+ */
+describe('real-drawing coordinate forms (2^53 mantissa bound)', () => {
+  /** Coordinates copied verbatim from the target DXF's ENTITIES section. */
+  const realCoordinates: Array<[number, string]> = [
+    [10, '39652926.80000000'],
+    [10, '37412590.02457349'],
+    [10, '4258210.793502409'],
+    [10, '37417036.76980662'],
+    [10, '4264162.737453413'],
+    [10, '24143480.39135598'],
+    [10, '2461294.672453704'],
+    [10, '2457003.095921401'],
+    [10, '2461294.672789352'],
+    [10, '2461293.347207709'],
+    [10, '4260441.211005302'],
+    [10, '37414935.44076337'],
+    [10, '4258633.804884002'],
+    [10, '37414938.15309483'],
+    [10, '4258629.17347618'],
+    [10, '0.00000000'],
+    [10, '0.000000000'],
+    [10, '99999999.999999999']
+  ]
+
+  it('matches Number() strictly on real drawing coordinates', () => {
+    checkPairs(
+      realCoordinates,
+      acdbMakeAsciiDxfPairReader(buildText(realCoordinates))
+    )
+    checkPairs(
+      realCoordinates,
+      acdbMakeUtf8AsciiDxfPairReader(
+        new TextEncoder().encode(buildText(realCoordinates))
+      )
+    )
+    // The value quoted in the P0-1 report must parse to exactly this literal.
+    const parsed = collectPairs(
+      acdbMakeAsciiDxfPairReader(buildText([[10, '39652926.80000000']]))
+    )
+    expect(parsed[0]!.value).toBe(39652926.8)
+  })
+
+  it('matches Number() on 20k generated 7-8 + 8-9 digit coordinates', () => {
+    const rng = mulberry32(0x2a53)
+    const pairs: Array<[number, string]> = []
+    for (let i = 0; i < 20000; i++) {
+      let s = rng() < 0.5 ? '-' : ''
+      s += String(1 + Math.floor(rng() * 9)) // 1st digit: no leading zero
+      const intRest = 6 + Math.floor(rng() * 2) // 7 or 8 integer digits
+      for (let j = 0; j < intRest; j++) s += Math.floor(rng() * 10)
+      s += '.'
+      const fracDigits = 8 + Math.floor(rng() * 2) // 8 or 9 fractional digits
+      for (let j = 0; j < fracDigits; j++) s += Math.floor(rng() * 10)
+      pairs.push([10, s])
+    }
+    const text = buildText(pairs)
+    checkPairs(pairs, acdbMakeAsciiDxfPairReader(text))
+    checkPairs(
+      pairs,
+      acdbMakeUtf8AsciiDxfPairReader(new TextEncoder().encode(text))
+    )
   })
 })

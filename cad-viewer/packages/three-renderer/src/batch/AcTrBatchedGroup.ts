@@ -117,6 +117,21 @@ export interface AcTrEntityInBatchedObject {
 }
 
 /**
+ * Batched-slot record stored per entity object id.
+ *
+ * Only INSERT decomposition (or a multi-run spanning entity) produces more than
+ * one slot, so the map keeps the bare item while exactly one slot exists and
+ * promotes the entry to an array from the second slot on. `null` marks an
+ * entity that is registered in the map but currently owns no slot, which keeps
+ * `_entitiesMap.size` (the group's entity count) unchanged for entities whose
+ * drawables all went to the unbatched group or were skipped as hidden.
+ */
+type AcTrEntitySlotRecord =
+  | AcTrEntityInBatchedObject
+  | AcTrEntityInBatchedObject[]
+  | null
+
+/**
  * Options for {@link AcTrBatchedGroup.appendLineGeometry},
  * {@link AcTrBatchedGroup.appendPointGeometry}, and related direct-append APIs.
  */
@@ -275,9 +290,11 @@ export class AcTrBatchedGroup extends THREE.Group {
   /**
    * All entities added in this group.
    * - The key is object id of the entity
-   * - The value is the entity's position information in the batched objects
+   * - The value is the entity's position information in the batched objects,
+   *   stored as a bare item while only one slot exists (see
+   *   {@link AcTrEntitySlotRecord})
    */
-  private _entitiesMap: Map<string, AcTrEntityInBatchedObject[]>
+  private _entitiesMap: Map<string, AcTrEntitySlotRecord>
   /**
    * Batches awaiting one coalesced compaction + highlight-mask upload pass.
    *
@@ -907,13 +924,13 @@ export class AcTrBatchedGroup extends THREE.Group {
    * @returns `true` when the entity exists in this group.
    */
   setEntityVisible(objectId: string, visible: boolean) {
-    const entityInfo = this._entitiesMap.get(objectId)
+    const registered = this._entitiesMap.has(objectId)
     const unbatchedObjects = this._unbatchedEntities.get(objectId)
-    if (!entityInfo && !unbatchedObjects) {
+    if (!registered && !unbatchedObjects) {
       return false
     }
 
-    entityInfo?.forEach(item => {
+    this.forEachEntitySlot(objectId, item => {
       const batchedObject = this.getObjectById(
         item.batchedObjectId
       ) as AcTrBatchedObject
@@ -937,16 +954,29 @@ export class AcTrBatchedGroup extends THREE.Group {
    * the entity is not present in this group.
    */
   getEntityVisible(objectId: string): boolean | undefined {
-    const entityInfo = this._entitiesMap.get(objectId)
+    const registered = this._entitiesMap.has(objectId)
     const unbatchedObjects = this._unbatchedEntities.get(objectId)
-    if (!entityInfo && !unbatchedObjects) {
+    if (!registered && !unbatchedObjects) {
       return undefined
     }
 
     let visible: boolean | undefined
+    let slotCount = 0
 
-    if (entityInfo && entityInfo.length > 0) {
-      visible = entityInfo.every(item => this.getBatchItemVisible(item))
+    if (registered) {
+      let allSlotsVisible = true
+      this.forEachEntitySlot(objectId, item => {
+        slotCount++
+        if (!this.getBatchItemVisible(item)) {
+          allSlotsVisible = false
+          // Stop at the first hidden slot, mirroring the old `every()`.
+          return true
+        }
+        return false
+      })
+      if (slotCount > 0) {
+        visible = allSlotsVisible
+      }
     }
 
     if (unbatchedObjects && unbatchedObjects.length > 0) {
@@ -956,6 +986,57 @@ export class AcTrBatchedGroup extends THREE.Group {
     }
 
     return visible
+  }
+
+  /**
+   * Visits every batched slot recorded for one entity id.
+   *
+   * Entries hold a bare item while the entity owns exactly one slot, so every
+   * reader must go through this helper instead of indexing the map value.
+   * Returning `true` from `visit` stops the walk.
+   *
+   * @param objectId - Entity object id.
+   * @param visit - Callback invoked once per batched slot.
+   */
+  private forEachEntitySlot(
+    objectId: string,
+    visit: (item: AcTrEntityInBatchedObject) => boolean | void
+  ) {
+    const record = this._entitiesMap.get(objectId)
+    if (record == null) {
+      return
+    }
+    if (!Array.isArray(record)) {
+      visit(record)
+      return
+    }
+    for (let index = 0, len = record.length; index < len; index++) {
+      if (visit(record[index]) === true) {
+        return
+      }
+    }
+  }
+
+  /**
+   * Records one batched slot for an entity id.
+   *
+   * The first slot of an entity is stored as a bare item and only promoted to
+   * an array from the second slot on, which saves one array per entity for the
+   * common single-slot case.
+   *
+   * @param objectId - Entity object id.
+   * @param item - Slot record produced by the batch container.
+   */
+  private appendEntitySlot(objectId: string, item: AcTrEntityInBatchedObject) {
+    const record = this._entitiesMap.get(objectId)
+    if (record == null) {
+      // Missing entry, or the `null` placeholder for a zero-slot entity.
+      this._entitiesMap.set(objectId, item)
+    } else if (Array.isArray(record)) {
+      record.push(item)
+    } else {
+      this._entitiesMap.set(objectId, [record, item])
+    }
   }
 
   /**
@@ -973,11 +1054,7 @@ export class AcTrBatchedGroup extends THREE.Group {
     // One logical entity (same objectId) can be appended in multiple passes
     // (e.g. INSERT decomposition by source layer and inherited layer-0 bucket).
     // Keep accumulating geometry mappings instead of overwriting previous ones.
-    let entityInfo = this._entitiesMap.get(objectId)
-    if (!entityInfo) {
-      entityInfo = []
-      this._entitiesMap.set(objectId, entityInfo)
-    }
+    const appendedSlots: AcTrEntityInBatchedObject[] = []
 
     const existingUnbatched = this._unbatchedEntities.get(objectId)
     const unbatchedObjects: THREE.Object3D[] = existingUnbatched ?? []
@@ -1011,7 +1088,7 @@ export class AcTrBatchedGroup extends THREE.Group {
           bboxIntersectionCheck: bboxIntersectionCheck
         })
         if (item) {
-          entityInfo.push(item)
+          appendedSlots.push(item)
           this.applyBatchSlotVisibility(item, entityVisible && object.visible)
         }
         return
@@ -1024,7 +1101,7 @@ export class AcTrBatchedGroup extends THREE.Group {
           bboxIntersectionCheck: bboxIntersectionCheck
         })
         if (item) {
-          entityInfo.push(item)
+          appendedSlots.push(item)
           this.applyBatchSlotVisibility(item, entityVisible && object.visible)
         }
       } else if (object instanceof THREE.Mesh) {
@@ -1037,7 +1114,7 @@ export class AcTrBatchedGroup extends THREE.Group {
           styleManager
         )
         if (item) {
-          entityInfo.push(item)
+          appendedSlots.push(item)
           this.applyBatchSlotVisibility(item, entityVisible && object.visible)
         }
       } else if (object instanceof THREE.Points) {
@@ -1046,7 +1123,7 @@ export class AcTrBatchedGroup extends THREE.Group {
           bboxIntersectionCheck: bboxIntersectionCheck
         })
         if (item) {
-          entityInfo.push(item)
+          appendedSlots.push(item)
           this.applyBatchSlotVisibility(item, entityVisible && object.visible)
         }
       }
@@ -1056,6 +1133,18 @@ export class AcTrBatchedGroup extends THREE.Group {
       }
     }
     visitDrawable(entity)
+
+    if (appendedSlots.length === 0) {
+      // Keep the entity registered (and counted) even when every drawable went
+      // to the unbatched group or was skipped as hidden.
+      if (!this._entitiesMap.has(objectId)) {
+        this._entitiesMap.set(objectId, null)
+      }
+    } else {
+      for (let index = 0; index < appendedSlots.length; index++) {
+        this.appendEntitySlot(objectId, appendedSlots[index])
+      }
+    }
 
     if (hasUnbatched) {
       this._unbatchedEntities.set(objectId, unbatchedObjects)
@@ -1248,12 +1337,7 @@ export class AcTrBatchedGroup extends THREE.Group {
     item: AcTrEntityInBatchedObject,
     visible: boolean
   ) {
-    let entityInfo = this._entitiesMap.get(objectId)
-    if (!entityInfo) {
-      entityInfo = []
-      this._entitiesMap.set(objectId, entityInfo)
-    }
-    entityInfo.push(item)
+    this.appendEntitySlot(objectId, item)
     this.applyBatchSlotVisibility(item, visible)
   }
 
@@ -1267,11 +1351,9 @@ export class AcTrBatchedGroup extends THREE.Group {
    */
   removeEntity(objectId: string) {
     let result = false
-    const entityInfo = this._entitiesMap.get(objectId)
-    if (entityInfo) {
+    if (this._entitiesMap.has(objectId)) {
       const batchedObjects = new Map<number, AcTrBatchedObject>()
-      for (let index = 0, len = entityInfo.length; index < len; index++) {
-        const item = entityInfo[index]
+      this.forEachEntitySlot(objectId, item => {
         const batchedObject = this.getObjectById(
           item.batchedObjectId
         ) as AcTrBatchedObject
@@ -1280,7 +1362,7 @@ export class AcTrBatchedGroup extends THREE.Group {
           batchedObjects.set(item.batchedObjectId, batchedObject)
           result = true
         }
-      }
+      })
       batchedObjects.forEach(batchedObject =>
         this.scheduleBatchFlush(batchedObject)
       )
@@ -1336,19 +1418,23 @@ export class AcTrBatchedGroup extends THREE.Group {
    */
   isIntersectWith(objectId: string, raycaster: THREE.Raycaster) {
     const result = false
-    const entityInfo = this._entitiesMap.get(objectId)
-    if (entityInfo) {
-      const intersects: THREE.Intersection[] = []
-      for (let index = 0, len = entityInfo.length; index < len; index++) {
-        const item = entityInfo[index]
-        const batchedObject = this.getObjectById(
-          item.batchedObjectId
-        ) as AcTrBatchedObject
-        if (batchedObject) {
-          batchedObject.intersectWith(item.batchId, raycaster, intersects)
-          if (intersects.length > 0) return true
+    const intersects: THREE.Intersection[] = []
+    let hit = false
+    this.forEachEntitySlot(objectId, item => {
+      const batchedObject = this.getObjectById(
+        item.batchedObjectId
+      ) as AcTrBatchedObject
+      if (batchedObject) {
+        batchedObject.intersectWith(item.batchId, raycaster, intersects)
+        if (intersects.length > 0) {
+          hit = true
+          return true
         }
       }
+      return false
+    })
+    if (hit) {
+      return true
     }
     const unbatchedObjects = this._unbatchedEntities.get(objectId)
     if (unbatchedObjects) {
@@ -1458,8 +1544,7 @@ export class AcTrBatchedGroup extends THREE.Group {
 
     const dirtyBatches = new Set<AcTrOriginBatch>()
     for (const objectId of objectIds) {
-      const entityInfo = this._entitiesMap.get(objectId)
-      entityInfo?.forEach(item => {
+      this.forEachEntitySlot(objectId, item => {
         const batchedObject = this.getObjectById(
           item.batchedObjectId
         ) as AcTrOriginBatch | null
@@ -1572,16 +1657,16 @@ export class AcTrBatchedGroup extends THREE.Group {
     }
   ): number {
     let added = 0
-    const entityInfo = this._entitiesMap.get(objectId)
-    if (entityInfo && added < options.maxSlots) {
-      const limit = Math.min(entityInfo.length, options.maxSlots)
-      for (let index = 0; index < limit; index++) {
-        const item = entityInfo[index]
+    if (added < options.maxSlots) {
+      this.forEachEntitySlot(objectId, item => {
+        if (added >= options.maxSlots) {
+          return true
+        }
         const batchedObject = this.getObjectById(item.batchedObjectId) as
           | AcTrOriginBatch
           | undefined
         if (!batchedObject || !this.hasBatchObjectAt(batchedObject)) {
-          continue
+          return false
         }
 
         const object = batchedObject.getObjectAt(item.batchId)
@@ -1599,7 +1684,8 @@ export class AcTrBatchedGroup extends THREE.Group {
         overlayUserData.previewDrawable = options.mode === 'preview'
         containerGroup.add(object)
         added++
-      }
+        return false
+      })
     }
 
     const unbatchedObjects = this._unbatchedEntities.get(objectId)

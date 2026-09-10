@@ -90,14 +90,72 @@ export interface AcDbBlockTableRecordAttrs extends AcDbSymbolTableRecordAttrs {
   previewIcon?: Uint8Array
 }
 
+/**
+ * Returns true when `value` equals `lowerReference`, comparing ASCII letters
+ * case-insensitively.
+ *
+ * `lowerReference` must already be lower case. Unlike `value.toLowerCase()`
+ * this allocates nothing, which matters because the space-name checks run
+ * once per entity while loading a drawing.
+ */
+function equalsAsciiIgnoreCase(value: string, lowerReference: string): boolean {
+  const length = lowerReference.length
+  if (value.length !== length) return false
+  for (let i = 0; i < length; i++) {
+    const code = value.charCodeAt(i)
+    const folded = code >= 65 && code <= 90 ? code + 32 : code
+    if (folded !== lowerReference.charCodeAt(i)) return false
+  }
+  return true
+}
+
+/**
+ * Returns true when `value` starts with `lowerPrefix`, comparing ASCII letters
+ * case-insensitively.
+ *
+ * `lowerPrefix` must already be lower case. Allocates nothing.
+ */
+function startsWithAsciiIgnoreCase(
+  value: string,
+  lowerPrefix: string
+): boolean {
+  const length = lowerPrefix.length
+  if (value.length < length) return false
+  for (let i = 0; i < length; i++) {
+    const code = value.charCodeAt(i)
+    const folded = code >= 65 && code <= 90 ? code + 32 : code
+    if (folded !== lowerPrefix.charCodeAt(i)) return false
+  }
+  return true
+}
+
 export class AcDbBlockTableRecord extends AcDbSymbolTableRecord<AcDbBlockTableRecordAttrs> {
   /** Name constant for model space block table record */
   static MODEL_SPACE_NAME = '*Model_Space'
   /** Name prefix for paper space block table records */
   static PAPER_SPACE_NAME_PREFIX = '*Paper_Space'
 
+  /**
+   * Lower-cased {@link MODEL_SPACE_NAME}, cached so the space-name checks never
+   * call `toLowerCase()` per invocation.
+   */
+  private static readonly MODEL_SPACE_NAME_LOWER =
+    AcDbBlockTableRecord.MODEL_SPACE_NAME.toLowerCase()
+  /**
+   * Lower-cased {@link PAPER_SPACE_NAME_PREFIX}, cached so the space-name
+   * checks never call `toLowerCase()` per invocation.
+   */
+  private static readonly PAPER_SPACE_NAME_PREFIX_LOWER =
+    AcDbBlockTableRecord.PAPER_SPACE_NAME_PREFIX.toLowerCase()
+
   /** Entities owned by this block table record, in insertion order */
   private _entities: AcDbEntity[]
+
+  /** Cached {@link isModelSapce} result for the current {@link name} */
+  private _isModelSpace = false
+
+  /** Cached {@link isPaperSapce} result for the current {@link name} */
+  private _isPaperSpace = false
 
   /**
    * Returns true if the specified name is the name of the model space block table record.
@@ -115,8 +173,9 @@ export class AcDbBlockTableRecord extends AcDbSymbolTableRecord<AcDbBlockTableRe
    * ```
    */
   static isModelSapceName(name: string) {
-    return (
-      name.toLowerCase() == AcDbBlockTableRecord.MODEL_SPACE_NAME.toLowerCase()
+    return equalsAsciiIgnoreCase(
+      name,
+      AcDbBlockTableRecord.MODEL_SPACE_NAME_LOWER
     )
   }
 
@@ -136,9 +195,10 @@ export class AcDbBlockTableRecord extends AcDbSymbolTableRecord<AcDbBlockTableRe
    * ```
    */
   static isPaperSapceName(name: string) {
-    return name
-      .toLowerCase()
-      .startsWith(AcDbBlockTableRecord.PAPER_SPACE_NAME_PREFIX.toLowerCase())
+    return startsWithAsciiIgnoreCase(
+      name,
+      AcDbBlockTableRecord.PAPER_SPACE_NAME_PREFIX_LOWER
+    )
   }
 
   /**
@@ -191,6 +251,33 @@ export class AcDbBlockTableRecord extends AcDbSymbolTableRecord<AcDbBlockTableRe
     })
     super(attrs, defaultAttrs)
     this._entities = []
+    this.refreshSpaceFlags(this.name)
+  }
+
+  /**
+   * Recomputes the cached model/paper space flags for `name`.
+   *
+   * {@link isModelSapce} and {@link isPaperSapce} are read once per entity while
+   * loading a drawing, so they must be plain field reads rather than
+   * case-insensitive name comparisons. The cache is refreshed here on every
+   * name write instead of being computed once.
+   */
+  private refreshSpaceFlags(name: string) {
+    this._isModelSpace = AcDbBlockTableRecord.isModelSapceName(name)
+    this._isPaperSpace = AcDbBlockTableRecord.isPaperSapceName(name)
+  }
+
+  /**
+   * Gets or sets the name of this block table record.
+   *
+   * Overridden so that writing the name keeps the cached space flags in sync.
+   */
+  override get name(): string {
+    return this.getAttr('name')
+  }
+  override set name(value: string) {
+    this.setAttr('name', value)
+    this.refreshSpaceFlags(value)
   }
 
   /**
@@ -208,7 +295,7 @@ export class AcDbBlockTableRecord extends AcDbSymbolTableRecord<AcDbBlockTableRe
    * ```
    */
   get isModelSapce() {
-    return AcDbBlockTableRecord.isModelSapceName(this.name)
+    return this._isModelSpace
   }
 
   /**
@@ -226,7 +313,7 @@ export class AcDbBlockTableRecord extends AcDbSymbolTableRecord<AcDbBlockTableRe
    * ```
    */
   get isPaperSapce() {
-    return AcDbBlockTableRecord.isPaperSapceName(this.name)
+    return this._isPaperSpace
   }
 
   /**
@@ -434,16 +521,27 @@ export class AcDbBlockTableRecord extends AcDbSymbolTableRecord<AcDbBlockTableRe
       }
     }
 
-    const entitiesToAppend = Array.isArray(entity) ? entity : [entity]
-    for (const item of entitiesToAppend) {
-      commitEntity(item)
+    // Avoid allocating a single-element array for the common one-entity call.
+    if (Array.isArray(entity)) {
+      for (const item of entity) {
+        commitEntity(item)
+      }
+    } else {
+      commitEntity(entity)
     }
 
     if (manager.isRecording()) {
-      for (const item of entitiesToAppend) {
+      if (Array.isArray(entity)) {
+        for (const item of entity) {
+          manager.recordAppend(
+            { type: 'blockTableRecord', ownerId: this.objectId },
+            item
+          )
+        }
+      } else {
         manager.recordAppend(
           { type: 'blockTableRecord', ownerId: this.objectId },
-          item
+          entity
         )
       }
     }
@@ -694,4 +792,3 @@ export class AcDbBlockTableRecord extends AcDbSymbolTableRecord<AcDbBlockTableRe
     return this
   }
 }
-

@@ -143,4 +143,12 @@ describe('AcCmUiYieldGate', () => {
     await expect(gate.maybeYield(yieldFn)).resolves.toBe(true)
     expect(yieldFn).toHaveBeenCalledTimes(1)
   })
+
+  it('keeps the shared default budget at 50ms', () => {
+    // The one-frame parse budget introduced by P1-13 is local to data-model
+    // (`ACDB_DXF_PARSE_YIELD_BUDGET_MS`), so this shared default — also used
+    // by e.g. the block-render cache — must not drift with it.
+    expect(ACCM_DEFAULT_UI_YIELD_BUDGET_MS).toBe(50)
+    expect(new AcCmUiYieldGate().budgetMs).toBe(50)
+  })
 })

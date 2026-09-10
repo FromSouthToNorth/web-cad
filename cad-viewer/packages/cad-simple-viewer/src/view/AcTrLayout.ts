@@ -112,10 +112,15 @@ export class AcTrLayout {
    *
    * INSERT decomposition buckets one entity's fragments onto several layers,
    * so a scan of every layer per selected id made bulk highlight O(ids ×
-   * layers). This index keeps `getLayersByObjectId` an O(1) lookup for
+   * layers). This index keeps the reverse lookup an O(1) operation for
    * large box selections.
+   *
+   * A single layer is stored as a bare `AcTrLayer`: only decomposed INSERTs
+   * spread over several layers promote the entry to an array. Readers must go
+   * through {@link visitEntityLayers}, which iterates without materializing a
+   * per-query array.
    */
-  private _entityLayerIndex: Map<AcDbObjectId, AcTrLayer[]>
+  private _entityLayerIndex: Map<AcDbObjectId, AcTrLayer | AcTrLayer[]>
   /** The flag indicating whether the layout is loaded/activated */
   private _isLoaded: boolean
   /**
@@ -340,16 +345,13 @@ export class AcTrLayout {
    * @returns True if the object intersects with the ray, false otherwise
    */
   isIntersectWith(objectId: string, raycaster: THREE.Raycaster) {
-    const layers = this.getLayersByObjectId(objectId)
-    for (let index = 0; index < layers.length; ++index) {
-      const layer = layers[index]
-      if (layer && layer.isIntersectWith(objectId, raycaster)) return true
-    }
-    return false
+    return this.visitEntityLayers(objectId, layer =>
+      layer.isIntersectWith(objectId, raycaster)
+    )
   }
 
   hasVisibleEntity(objectId: AcDbObjectId) {
-    return this.getLayersByObjectId(objectId).some(layer => layer.visible)
+    return this.visitEntityLayers(objectId, layer => layer.visible)
   }
 
   /**
@@ -452,13 +454,12 @@ export class AcTrLayout {
    */
   removeEntity(objectId: AcDbObjectId) {
     let result = false
-    const indexedLayers = this._entityLayerIndex.get(objectId)
-    if (indexedLayers) {
-      for (const layer of indexedLayers) {
+    if (this._entityLayerIndex.has(objectId)) {
+      this.visitEntityLayers(objectId, layer => {
         if (layer.removeEntity(objectId)) {
           result = true
         }
-      }
+      })
     } else {
       // Fallback when the reverse index has no entry for this id; keeps
       // removal correct even if some path bypassed the index.
@@ -670,20 +671,21 @@ export class AcTrLayout {
     const idsByLayer = new Map<AcTrLayer, Set<AcDbObjectId>>()
 
     for (const id of entityIds) {
-      const layers = this.getLayersByObjectId(id)
-      if (layers.length === 0) {
-        if (requireAllEntities || missingEntity === 'fail') {
-          return null
-        }
-        continue
-      }
-      for (const layer of layers) {
+      let found = false
+      this.visitEntityLayers(id, layer => {
+        found = true
         let layerIds = idsByLayer.get(layer)
         if (!layerIds) {
           layerIds = new Set()
           idsByLayer.set(layer, layerIds)
         }
         layerIds.add(id)
+      })
+      if (!found) {
+        if (requireAllEntities || missingEntity === 'fail') {
+          return null
+        }
+        continue
       }
     }
 
@@ -784,15 +786,15 @@ export class AcTrLayout {
         continue
       }
       let changed = false
-      for (const layer of this.getLayersByObjectId(objectId)) {
+      this.visitEntityLayers(objectId, layer => {
         // INSERT-layer bucket visibility comes from the layer group itself.
         if (layer.name === insertLayerName) {
-          continue
+          return
         }
         if (layer.setEntityVisible(objectId, !frozen)) {
           changed = true
         }
-      }
+      })
       if (changed) {
         touched.push(objectId)
       }
@@ -866,15 +868,14 @@ export class AcTrLayout {
     }
     const layerToIds = new Map<AcTrLayer, AcDbObjectId[]>()
     for (const id of ids) {
-      const layers = this.getLayersByObjectId(id)
-      for (const layer of layers) {
+      this.visitEntityLayers(id, layer => {
         const bucket = layerToIds.get(layer)
         if (bucket) {
           bucket.push(id)
         } else {
           layerToIds.set(layer, [id])
         }
-      }
+      })
     }
     layerToIds.forEach((entityIds, layer) => apply(layer, entityIds))
   }
@@ -899,22 +900,34 @@ export class AcTrLayout {
   }
 
   /**
-   * Returns all layers that contain renderable entities associated with
-   * the specified AutoCAD object ID.
+   * Visits every render layer that holds geometry for one entity id.
    *
-   * In AutoCAD, an INSERT entity may reference multiple child entities that
-   * reside on different layers. During rendering, this engine groups entities
-   * by layer and assigns each group the INSERT entity's object ID.
+   * The index stores a bare {@link AcTrLayer} while the entity lives on a
+   * single layer, so every reader must go through this helper instead of
+   * indexing the map value. Returning `true` from `visit` stops the walk; the
+   * method returns `true` when it stopped early.
    *
-   * As a result, a single object ID (typically from an INSERT entity) may
-   * correspond to multiple layers, and this method returns all such layers.
-   *
-   * @param objectId - The AutoCAD object ID to search for (e.g. an INSERT entity ID)
-   * @returns An array of layers containing entities associated with the given object ID;
-   *          returns an empty array if no matching layers are found
+   * @param objectId - The AutoCAD object ID to look up.
+   * @param visit - Callback invoked once per layer holding the entity.
+   * @returns `true` when `visit` asked to stop, otherwise `false`.
    */
-  private getLayersByObjectId(objectId: AcDbObjectId) {
-    return this._entityLayerIndex.get(objectId) ?? []
+  private visitEntityLayers(
+    objectId: AcDbObjectId,
+    visit: (layer: AcTrLayer) => boolean | void
+  ): boolean {
+    const record = this._entityLayerIndex.get(objectId)
+    if (record === undefined) {
+      return false
+    }
+    if (!Array.isArray(record)) {
+      return visit(record) === true
+    }
+    for (let index = 0, len = record.length; index < len; index++) {
+      if (visit(record[index]) === true) {
+        return true
+      }
+    }
+    return false
   }
 
   /**
@@ -923,14 +936,19 @@ export class AcTrLayout {
    * Called from the entity-ingestion paths (`addEntity` / `addDirectEntity`)
    * so the reverse index tracks the same membership as the batched groups.
    * A single INSERT may contribute fragments to several layers, so one id can
-   * map to multiple entries.
+   * map to multiple entries. The first layer is stored as a bare value and the
+   * entry is promoted to an array only from the second layer on.
    */
   private indexEntityLayer(objectId: AcDbObjectId, layer: AcTrLayer) {
-    const layers = this._entityLayerIndex.get(objectId)
-    if (!layers) {
-      this._entityLayerIndex.set(objectId, [layer])
-    } else if (!layers.includes(layer)) {
-      layers.push(layer)
+    const record = this._entityLayerIndex.get(objectId)
+    if (record === undefined) {
+      this._entityLayerIndex.set(objectId, layer)
+    } else if (Array.isArray(record)) {
+      if (!record.includes(layer)) {
+        record.push(layer)
+      }
+    } else if (record !== layer) {
+      this._entityLayerIndex.set(objectId, [record, layer])
     }
   }
 
@@ -948,10 +966,12 @@ export class AcTrLayout {
         layers.push(layer)
       }
     }
-    if (layers.length > 0) {
-      this._entityLayerIndex.set(objectId, layers)
-    } else {
+    if (layers.length === 0) {
       this._entityLayerIndex.delete(objectId)
+    } else if (layers.length === 1) {
+      this._entityLayerIndex.set(objectId, layers[0])
+    } else {
+      this._entityLayerIndex.set(objectId, layers)
     }
   }
 

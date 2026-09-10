@@ -84,8 +84,15 @@ export class AcDbObject<ATTRS extends AcDbObjectAttrs = AcDbObjectAttrs> {
   private _database?: AcDbDatabase
   /** The attributes object that stores all object properties */
   private _attrs: AcCmObject<ATTRS>
-  /** XData attached to this object */
-  private _xDataMap: Map<string, AcDbResultBuffer>
+  /**
+   * XData attached to this object, keyed by AppId.
+   *
+   * Lazily created by {@link setXData}: the vast majority of imported objects
+   * carry no XData at all, and an eagerly allocated (even empty) `Map` costs a
+   * non-trivial amount of memory per object at DXF/DWG import scale. Every
+   * reader must treat `undefined` as "no XData".
+   */
+  private _xDataMap?: Map<string, AcDbResultBuffer>
 
   /**
    * Creates a new AcDbObject instance.
@@ -101,7 +108,6 @@ export class AcDbObject<ATTRS extends AcDbObjectAttrs = AcDbObjectAttrs> {
   constructor(attrs?: Partial<ATTRS>, defaultAttrs?: Partial<ATTRS>) {
     attrs = attrs || {}
     this._attrs = new AcCmObject<ATTRS>(attrs, defaultAttrs)
-    this._xDataMap = new Map()
 
     // Generate objectId if not provided. Only use a real database handle when this
     // object is already bound to a database (`_database`). Falling back to the
@@ -401,7 +407,7 @@ export class AcDbObject<ATTRS extends AcDbObjectAttrs = AcDbObjectAttrs> {
    * ```
    */
   getXData(appId: string): AcDbResultBuffer | undefined {
-    return this._xDataMap.get(appId)
+    return this._xDataMap?.get(appId)
   }
 
   /**
@@ -431,7 +437,11 @@ export class AcDbObject<ATTRS extends AcDbObjectAttrs = AcDbObjectAttrs> {
   setXData(resbuf: AcDbResultBuffer): void {
     for (const item of resbuf) {
       if (item.code === AcDbDxfCode.ExtendedDataRegAppName) {
-        this._xDataMap.set(item.value as string, resbuf)
+        const xDataMap = (this._xDataMap ??= new Map<
+          string,
+          AcDbResultBuffer
+        >())
+        xDataMap.set(item.value as string, resbuf)
       }
     }
   }
@@ -453,7 +463,7 @@ export class AcDbObject<ATTRS extends AcDbObjectAttrs = AcDbObjectAttrs> {
    * ```
    */
   removeXData(appId: string): void {
-    this._xDataMap.delete(appId)
+    this._xDataMap?.delete(appId)
   }
 
   /**
@@ -576,13 +586,26 @@ export class AcDbObject<ATTRS extends AcDbObjectAttrs = AcDbObjectAttrs> {
   /**
    * Replaces extended-data entries from a snapshot map.
    *
-   * @param source - Deep-cloned xdata map from a snapshot object
+   * An empty (or absent) source leaves {@link _xDataMap} `undefined` instead of
+   * allocating an empty `Map`; a non-empty source always rebuilds a fresh map so
+   * restoring never mutates the snapshot. Note that the map is created *before*
+   * filling it - a snapshot taken from an object with no XData must not make
+   * the restored object look like it owns an empty XData map.
+   *
+   * @param source - Deep-cloned xdata map from a snapshot object, or undefined
    */
-  private restoreXDataMapFrom(source: Map<string, AcDbResultBuffer>): void {
-    this._xDataMap.clear()
-    for (const [key, value] of source.entries()) {
-      this._xDataMap.set(key, this.cloneValue(value) as AcDbResultBuffer)
+  private restoreXDataMapFrom(
+    source: Map<string, AcDbResultBuffer> | undefined
+  ): void {
+    if (!source || source.size === 0) {
+      this._xDataMap = undefined
+      return
     }
+    const restored = new Map<string, AcDbResultBuffer>()
+    for (const [key, value] of source.entries()) {
+      restored.set(key, this.cloneValue(value) as AcDbResultBuffer)
+    }
+    this._xDataMap = restored
   }
 
   /**
@@ -595,10 +618,12 @@ export class AcDbObject<ATTRS extends AcDbObjectAttrs = AcDbObjectAttrs> {
    */
   private copySnapshotStateTo(target: this): void {
     target._attrs = this.cloneAttrs(this._attrs)
-    target._xDataMap = this.cloneValue(this._xDataMap) as Map<
-      string,
-      AcDbResultBuffer
-    >
+    if (this._xDataMap) {
+      target._xDataMap = this.cloneValue(this._xDataMap) as Map<
+        string,
+        AcDbResultBuffer
+      >
+    }
 
     const source = this as unknown as Record<string, unknown>
     const dest = target as unknown as Record<string, unknown>
@@ -798,6 +823,7 @@ export class AcDbObject<ATTRS extends AcDbObjectAttrs = AcDbObjectAttrs> {
 
   /** Emit all attached XData buffers (DXF groups 1000–1071). */
   protected dxfOutXData(filer: AcDbDxfFiler): void {
+    if (!this._xDataMap) return
     for (const data of this._xDataMap.values()) {
       filer.writeResultBuffer(data)
     }

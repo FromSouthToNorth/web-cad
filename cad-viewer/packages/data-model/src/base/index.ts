@@ -23,12 +23,21 @@ export type {
   AcDbDxfPairReader
 } from './AcDbDxfPairReader'
 export {
+  ACDB_DXF_WIRE_CHUNK_BYTES,
   acdbDrainDxfPairs,
+  acdbDrainDxfPairsChunked,
   acdbDxfPairWireTransferables,
-  acdbMakeDxfPairArrayReader
+  acdbDxfWireChunking,
+  acdbJoinDxfPairWireChunks,
+  acdbMakeDxfPairArrayReader,
+  acdbMakeDxfPairChunkReader
 } from './AcDbDxfPairWire'
 export type {
+  AcDbDxfPairChunkDrainOptions,
+  AcDbDxfPairChunkDrainSummary,
+  AcDbDxfPairChunkReader,
   AcDbDxfPairDrainOptions,
+  AcDbDxfPairWireChunk,
   AcDbDxfPairWireData
 } from './AcDbDxfPairWire'
 export {

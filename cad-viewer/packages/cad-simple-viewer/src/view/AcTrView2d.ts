@@ -1,5 +1,7 @@
 import {
+  type AcCmEventManager,
   AcCmUiYieldGate,
+  accmYieldToUi,
   AcDbAttribute,
   AcDbBlockReference,
   AcDbBlockTableRecord,
@@ -150,6 +152,21 @@ export class AcTrView2d extends AcEdBaseView {
    * A value of `null` indicates that no animation frame is currently scheduled.
    */
   private _rafId: number | null = null
+  /**
+   * Removers for the listeners this view registers on process-wide hubs
+   * (`document`, `AcDbSysVarManager`, `AcApSettingManager` and the host layout
+   * manager). Their callbacks close over the view, so a view dropped without
+   * {@link dispose} is never collected and keeps reacting to the next
+   * document's events.
+   */
+  private _disposers: Array<() => void> = []
+  /**
+   * True once {@link dispose} ran. Makes teardown idempotent and turns the
+   * resize / animation entry points into no-ops, because the container's
+   * `ResizeObserver` (owned by {@link AcEdBaseView}) can still call back into a
+   * disposed view.
+   */
+  private _disposed = false
   /** Manager for layout views and viewport handling */
   private _layoutViewManager: AcTrLayoutViewManager
   /** The 3D scene containing all CAD entities organized by layouts and layers */
@@ -255,6 +272,17 @@ export class AcTrView2d extends AcEdBaseView {
    * conservative — early chunks just fall back to the legacy 100 segments.
    */
   private _openUnionBox = new THREE.Box3()
+  /**
+   * Running union of entity extents converted during the current open, used as
+   * the O(1) input of the throttled mid-open fit.
+   *
+   * Kept separate from {@link _openUnionBox} on purpose: that box also drives
+   * `arcLodDiagonal`, which intentionally ignores multi-layer INSERT buckets,
+   * and mixing the two would silently change arc tessellation. Both boxes are
+   * fed at the same union sites, so this one mirrors exactly what has been
+   * appended to the scene so far.
+   */
+  private _progressiveFitBox = new THREE.Box3()
   /** Last time progressive open marked the canvas dirty for paint. */
   private _lastProgressivePaintAt = 0
   /** Mid-open WebGL paints while progressive convert was still running. */
@@ -279,10 +307,20 @@ export class AcTrView2d extends AcEdBaseView {
 
   /**
    * Wall-time between cooperative yields during progressive open (ms).
-   * Kept relatively large so convert throughput stays close to the
-   * non-progressive path; smaller budgets made open 2–3× slower.
+   * Aligned with one 60Hz frame: the drain used to hold the main thread for
+   * up to 300ms (≈18 frames) per slice, which is what made the drawing
+   * unresponsive while it converted. The DXF parse path uses its own
+   * one-frame budget, so both halves of an open hand the main thread back at
+   * the same cadence.
+   *
+   * The budget is only meaningful together with a frame-based yield — see
+   * `batchConvert`. Whether the smaller budget costs wall time has **not**
+   * been measured in a real browser: an earlier comment here claimed
+   * "smaller budgets made open 2–3× slower", but no drain measurement ever
+   * confirmed it, so that claim is deliberately gone and the throughput
+   * trade-off must be settled by a real-device A/B.
    */
-  private static readonly PROGRESSIVE_OPEN_YIELD_BUDGET_MS = 300
+  private static readonly PROGRESSIVE_OPEN_YIELD_BUDGET_MS = 16
   /**
    * Minimum interval between progressive mid-open paints (ms).
    * Full-scene WebGL paints dominate open wall time on large drawings;
@@ -387,7 +425,16 @@ export class AcTrView2d extends AcEdBaseView {
     const sysVarManager = AcDbSysVarManager.instance()
     const modelBkVar = AcDbSystemVariables.MODELBKCOLOR.toLowerCase()
     const paperBkVar = AcDbSystemVariables.PAPERBKCOLOR.toLowerCase()
-    sysVarManager.events.sysVarChanged.addEventListener(args => {
+    this.bindGlobalEvent(sysVarManager.events.sysVarChanged, args => {
+      // Ignore variables set on a database this view is not drawing — a
+      // previous document after quit → reopen, or an overlay reference drawing.
+      // `context.database` is `undefined` until the first open binds it (see
+      // `bindDrawDatabase`); the view still follows the active document then,
+      // so that the shell can restyle the empty startup drawing.
+      const boundDatabase = this._renderer.context.database
+      if (boundDatabase && args.database !== boundDatabase) {
+        return
+      }
       const nameLower = args.name.toLowerCase()
       if (nameLower === modelBkVar || nameLower === paperBkVar) {
         const isModelSpace = this.isModelSpaceLayout(args.database)
@@ -403,7 +450,7 @@ export class AcTrView2d extends AcEdBaseView {
       }
     })
 
-    AcApSettingManager.instance.events.modified.addEventListener(args => {
+    this.bindGlobalEvent(AcApSettingManager.instance.events.modified, args => {
       if (args.key == 'isShowStats') {
         this.toggleStatsVisibility(this._stats, args.value as boolean)
       }
@@ -636,10 +683,15 @@ export class AcTrView2d extends AcEdBaseView {
     // When using OrbitControls in THREE.js, it attaches its own event listeners to the DOM elements,
     // such as the canvas or the entire document. This can interfere with other event listeners you
     // add, including the keydown event.
-    document.addEventListener('keydown', (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       this._keyHandler.handleKeyDown(e)
-    })
-    acdbHostApplicationServices().layoutManager.events.layoutSwitched.addEventListener(
+    }
+    document.addEventListener('keydown', onKeyDown)
+    this._disposers.push(() =>
+      document.removeEventListener('keydown', onKeyDown)
+    )
+    this.bindGlobalEvent(
+      acdbHostApplicationServices().layoutManager.events.layoutSwitched,
       args => {
         const btrId = args.layout.blockTableRecordId
         // "First visit" is tracked separately from view existence because
@@ -2128,6 +2180,26 @@ export class AcTrView2d extends AcEdBaseView {
   }
 
   /**
+   * Resolves the fit box for the throttled mid-open framing.
+   *
+   * Reads the running entity-extent union ({@link _progressiveFitBox}) instead
+   * of `AcTrScene.box`: batch-geometry extents cost O(active slots ×
+   * `Box3.applyMatrix4`) and the layout box is invalidated by every appended
+   * entity, so at the 500ms mid-open cadence it is always dirty and fully
+   * recomputed (measured ~52ms per tick on the 千树塔 drawing). The running
+   * union is O(1) and covers every entity already appended to the scene.
+   *
+   * Only the *throttled* framing uses this. The terminal fit still goes through
+   * {@link resolveLayoutFitBox} so the final initial view is unchanged.
+   */
+  private resolveProgressiveFitBox(): AcGeBox2d | undefined {
+    if (this._progressiveFitBox.isEmpty()) {
+      return undefined
+    }
+    return AcTrGeometryUtil.threeBox3dToGeBox2d(this._progressiveFitBox)
+  }
+
+  /**
    * Applies the initial zoom-to-fit for a layout the user just switched
    * into for the first time. Picks the best available "what should the
    * camera frame?" signal in this order:
@@ -2231,7 +2303,87 @@ export class AcTrView2d extends AcEdBaseView {
     this._missedImages.clear()
     this._renderer.context.arcLodDiagonal = 0
     this._openUnionBox.makeEmpty()
+    this._progressiveFitBox.makeEmpty()
     this._renderer.dispose()
+  }
+
+  /**
+   * Permanently tears down this view and releases everything it keeps alive.
+   *
+   * Dropping the caller's reference is not enough: the animation loop closes
+   * over `this`, the view registers listeners on process-wide hubs (see
+   * {@link bindGlobalEvent}), and {@link bindDrawDatabase} stores the drawing
+   * database on the shared render context. That last one is what made every
+   * quit → reopen cycle retain the previous drawing's whole `AcDbDatabase`
+   * (hundreds of MB for a large drawing) even though `AcApDocManager.destroy()`
+   * ran. Call this from the owner's teardown.
+   *
+   * Order matters: stop the frame loop first (nothing may re-dirty or repaint
+   * during teardown), then release scene content and the database binding, then
+   * the WebGL context, and only then detach DOM and global listeners.
+   *
+   * Idempotent and terminal: the instance must not be used afterwards.
+   */
+  dispose(): void {
+    if (this._disposed) return
+    this._disposed = true
+
+    // 1. Stop the frame loop, pending hover timers and open-fit framing.
+    this.stopAnimationLoop()
+    this.clearHover()
+    this.endProgressiveOpenFit()
+
+    // 2. Unwind listeners registered on process-wide hubs (`document` keydown,
+    //    sysvar / settings / layout-switch hubs). They close over this view.
+    const disposers = this._disposers
+    this._disposers = []
+    for (const unbind of disposers) {
+      unbind()
+    }
+
+    // 3. Release scene content, batch geometry, materials, and invalidate any
+    //    in-flight progressive convert so it abandons the cleared scene.
+    this.clear()
+    this._gripManager.dispose()
+    this._selectionVertexMarkers.dispose()
+
+    // 4. Drop the drawing database and the per-layout cameras / views.
+    this._renderer.context.database = undefined
+    this._layoutViewManager = new AcTrLayoutViewManager()
+
+    // 5. Release the WebGL context. Browsers cap the number of live contexts,
+    //    and without this every opened view keeps one (plus its GPU resources)
+    //    for the lifetime of the page.
+    const webglRenderer = this._renderer.internalRenderer
+    webglRenderer.dispose()
+    webglRenderer.forceContextLoss()
+
+    // 6. Detach DOM owned by this view so neither a reused container nor
+    //    `document` can keep the canvas / overlay layer / stats box reachable.
+    this._css2dRenderer.domElement.remove()
+    this._stats.dom.remove()
+    this.canvas.remove()
+    // Release the drawing buffer backing the now-detached canvas.
+    this.canvas.width = 0
+    this.canvas.height = 0
+  }
+
+  /**
+   * Subscribes to one process-wide event hub and records how to unsubscribe.
+   *
+   * @param emitter - Event hub to subscribe to
+   * @param listener - Callback invoked while the view is alive
+   */
+  private bindGlobalEvent<T>(
+    emitter: AcCmEventManager<T>,
+    listener: (args: T) => void
+  ): void {
+    const guarded = (args: T) => {
+      if (this._disposed) return
+      listener(args)
+    }
+    emitter.addEventListener(guarded)
+    this._disposers.push(() => emitter.removeEventListener(guarded))
   }
 
   /**
@@ -2292,6 +2444,13 @@ export class AcTrView2d extends AcEdBaseView {
     this._isDirty = this._scene.unselect(ids)
   }
 
+  /**
+   * Cancels the pending animation frame.
+   *
+   * `animate` re-schedules itself every frame and closes over the view, so
+   * nothing is ever collected while the loop runs. Called by {@link dispose};
+   * can also be used to pause repaints without tearing the view down.
+   */
   stopAnimationLoop() {
     if (this._rafId != null) {
       cancelAnimationFrame(this._rafId)
@@ -2354,6 +2513,10 @@ export class AcTrView2d extends AcEdBaseView {
   }
 
   protected onWindowResize() {
+    // The base class observes the container with a `ResizeObserver` it keeps
+    // private, so it keeps calling this after {@link dispose}; resizing a
+    // released renderer is meaningless (and would resurrect the dirty loop).
+    if (this._disposed) return
     super.onWindowResize()
     this._renderer.setSize(this.width, this.height)
     this._css2dRenderer.setSize(this.width, this.height)
@@ -2362,12 +2525,16 @@ export class AcTrView2d extends AcEdBaseView {
   }
 
   private animate = () => {
+    if (this._disposed) return
     this._rafId = requestAnimationFrame(this.animate)
 
     this.events.renderFrame.dispatch({
       render: this._renderer,
       camera: this.internalCamera
     })
+    // A `renderFrame` listener may dispose the view synchronously; stop before
+    // touching the released renderer / scene.
+    if (this._disposed) return
 
     // Self-heal the near/far planes when the scene Z extent grows past what
     // the last framing applied (see autoRefreshCameraDepthRange).
@@ -2774,15 +2941,21 @@ export class AcTrView2d extends AcEdBaseView {
       : this._openUnionBox.min.distanceTo(this._openUnionBox.max)
     // Time-budgeted yields keep the canvas painting during large open chunks
     // (count-based yields alone stall on expensive INSERT / hatch batches).
-    // Prefer setTimeout(0) over rAF: waiting a full frame per yield inflated
-    // total open wall time without improving first-paint much.
+    // The budget is ~one frame, so the yield must be a real animation frame:
+    // with ~18× as many slices, a `setTimeout(0)` yield pays the browser's 4ms
+    // nested-timer clamp on every slice and inflates the drain wall time
+    // instead of improving the paint cadence. `accmYieldToUi` uses rAF in
+    // foreground tabs and falls back to a timer in hidden tabs, where rAF is
+    // throttled or paused.
     const yieldGate = progressive
       ? new AcCmUiYieldGate(AcTrView2d.PROGRESSIVE_OPEN_YIELD_BUDGET_MS)
       : undefined
-    const yieldToEventLoop = () =>
-      new Promise<void>(resolve => setTimeout(resolve, 0))
     for (let i = 0; i < entities.length; ++i) {
       const entity = entities[i]
+      // Start of the slice element: a single entity is converted in one
+      // synchronous stretch, so this is the only point where the overrun of a
+      // giant entity can be measured (see the yield block at the loop end).
+      const entityStartedAt = yieldGate ? performance.now() : 0
       try {
         // Document was cleared / replaced while this batch was draining.
         if (epoch !== this._convertEpoch) {
@@ -2828,6 +3001,7 @@ export class AcTrView2d extends AcEdBaseView {
             }
             if (!unionBox.isEmpty()) {
               this._openUnionBox.union(unionBox)
+              this._progressiveFitBox.union(unionBox)
             }
             let registerSpatialIndex = true
             for (const directMeta of directMetas) {
@@ -2848,7 +3022,7 @@ export class AcTrView2d extends AcEdBaseView {
               if (progressive) {
                 this.markProgressiveDirty()
                 this._progressiveOpenFit.afterGeometryBatch(
-                  () => this.resolveLayoutFitBox(),
+                  () => this.resolveProgressiveFitBox(),
                   i
                 )
               }
@@ -2879,6 +3053,7 @@ export class AcTrView2d extends AcEdBaseView {
           threeEntity.visible = entity.visibility !== false
           if (!threeEntity.wcsBbox.isEmpty()) {
             this._openUnionBox.union(threeEntity.wcsBbox)
+            this._progressiveFitBox.union(threeEntity.wcsBbox)
           }
           if (
             threeEntity instanceof AcTrGroup &&
@@ -2937,7 +3112,7 @@ export class AcTrView2d extends AcEdBaseView {
               if (progressive) {
                 this.markProgressiveDirty()
                 this._progressiveOpenFit.afterGeometryBatch(
-                  () => this.resolveLayoutFitBox(),
+                  () => this.resolveProgressiveFitBox(),
                   i
                 )
               }
@@ -2998,8 +3173,21 @@ export class AcTrView2d extends AcEdBaseView {
       if (yieldGate) {
         // Yield for input/overlay, but do not force a full-scene paint here —
         // paints are throttled separately via markProgressiveDirty().
-        const didYield = await yieldGate.maybeYield(yieldToEventLoop)
-        if (didYield) {
+        //
+        // The checkpoint is *after* every entity, so one giant entity (INSERT
+        // expansion, huge hatch) can eat the whole budget by itself and there
+        // is no way to yield inside it. Measuring it from its own start makes
+        // that case explicit: an over-budget entity yields immediately instead
+        // of stacking the next entity on top of an already-late frame. The
+        // branch is intentional even though the gate's elapsed-time check
+        // currently fires in the same case — it pins "over budget still
+        // yields" against a future gate that adds a minimum-entity floor.
+        const entityCostMs = performance.now() - entityStartedAt
+        if (entityCostMs >= yieldGate.budgetMs) {
+          await accmYieldToUi()
+          yieldGate.mark()
+          this._progressiveYieldCount++
+        } else if (await yieldGate.maybeYield(accmYieldToUi)) {
           this._progressiveYieldCount++
         }
       }
@@ -3149,6 +3337,11 @@ export class AcTrView2d extends AcEdBaseView {
       }
       this._layerAppearance.refreshTextMaterialsInObjectTree(entity)
       this._scene.addEntity(entity, true)
+      // Multi-layer INSERT buckets are appended here and never reach the
+      // per-entity union sites above, so feed the mid-open fit box explicitly —
+      // otherwise the O(1) progressive fit would frame only the non-INSERT part
+      // of a drawing. (Union with an empty box is a no-op.)
+      this._progressiveFitBox.union(entity.wcsBbox)
       this.applySessionHiddenObjectState(groupObjectId)
       entity.dispose()
     })
@@ -3157,7 +3350,7 @@ export class AcTrView2d extends AcEdBaseView {
     if (progressive) {
       this.markProgressiveDirty()
       this._progressiveOpenFit.afterGeometryBatch(() =>
-        this.resolveLayoutFitBox()
+        this.resolveProgressiveFitBox()
       )
     }
   }

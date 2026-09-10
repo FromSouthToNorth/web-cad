@@ -13,11 +13,6 @@ export {
   acdbMakeAsciiDxfPairReader,
   acdbMakeBinaryDxfPairReader,
   acdbMakeUtf8AsciiDxfPairReader,
-  acdbMakeWindowedAsciiDxfPairReader,
-  acdbPeekDxfHeaderInfo,
-  acdbSupportsWindowedDecode,
-  acdbValidateUtf8Prefix,
-  UTF8_SNIFF_BYTES,
   acdbAssignWorkingDatabase,
   acdbGetWorkingDatabase,
   acdbSetHostApplicationServicesProvider,
@@ -33,7 +28,6 @@ export {
 export type {
   AcDbDxfFilerMode,
   AcDbDxfFilerOptions,
-  AcDbDxfHeaderInfo,
   AcDbDxfOutputFormat,
   AcDbDxfPair,
   AcDbDxfPairReader,
@@ -343,7 +337,6 @@ export {
   acdbOsnapModesToMask,
   acdbToggleOsnapMode,
   acdbDecodeMLeaderStyleRawColor,
-  acdbDwgCodePageToEncoding
 } from './misc'
 export type {
   AcDbFormatterOptions,

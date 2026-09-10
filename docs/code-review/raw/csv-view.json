@@ -1,0 +1,90 @@
+{
+  "domain": "csv-view",
+  "summary": "对 csv-view 领域（AcTrView2d.ts + spatialIndex/）6 条 finding 逐条复核：全部 confirmed，无 refuted，其中 2 条下调严重度（3、4 由 P2→P3）。P1 两条为真：updateEntity 漏配平 _numOfEntitiesToProcess 导致每次编辑实体即负值钳零并告警（可复现、影响 waiter/进度）；clear() 未重置 _layoutViewManager/_initializedLayouts 等，第二个文档复用了上一张图纸的布局相机、viewportViews 与首次访问标记（regen() 也走 clear()，修复需区分换文档与同文档重绘）。P2 一条：子索引构建未用接口自述的批量 load()（低风险一行改动，但仅 >100 项的 RBush 子索引有收益）。P3 三条：大数组展开入队的未处理 rejection 与计数泄漏（触发条件苛刻）、window 框选全量子项遍历（常数倍而非复杂度升级）、每实体 async 让门（合计约 0.1s 级）。",
+  "findings": [
+    {
+      "title": "updateEntity 调 batchConvert 未配平待处理计数，导致 _numOfEntitiesToProcess 下溢并被钳到 0",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/view/AcTrView2d.ts",
+      "line": "2047-2049, 2986-2992, 3165-3172",
+      "severity": "P1",
+      "category": "correctness",
+      "evidence": "void (async () => {\n      await this.batchConvert(entities)  …  if (epoch === this._convertEpoch) {\n          this.decreaseNumOfEntitiesToProcess()  …  this._numOfEntitiesToProcess--\n    if (this._numOfEntitiesToProcess < 0) {\n      this._numOfEntitiesToProcess = 0",
+      "impact": "addEntity(1944)、loadLayoutEntitiesIfNeeded(2541)、convertMissingEntitiesOnLayer(2621)、ensureEntitiesConvertedForExport(1252) 都在调 batchConvert 前 +N，唯独 updateEntity 没有；而 batchConvert 的 finally 对每个实体减 1。结果：每次实体修改（MOVE/属性改/图层改/撤销，且 AcApContext.entityModified→updateEntity 是常态入口）都会把共享计数减到负值，被钳到 0 并打印 'Something wrong! ... should not be less than 0.'，每个实体一条日志；更严重的是若此刻确有转换在途，isProcessingEntities 会提前变 false，使 waitUntilIdle/zoomToFitDrawing 的 waiter/ensureEntitiesConvertedForExport 在场景未完成时提前返回（过早 fit、HTML 导出缺几何），entityProcessingProgress 的分母也失真。",
+      "fix": "在 updateEntity 调 batchConvert 前做同样的计数配平（_numOfEntitiesToProcess/_totalEntitiesToProcess += entities.length），或改为由调用方统一管理计数、batchConvert 不再自减。",
+      "confidence": "high",
+      "verdict": "confirmed",
+      "correctedSeverity": "P1",
+      "note": "已复核：updateEntity(2028-2062) 在 2048 直接 await batchConvert，未做 1944/2541/2621 的 +N 配平；batchConvert(2784) 循环对每个实体在 finally(2986-2992) 调 decreaseNumOfEntitiesToProcess，3166-3171 减到负值即钳 0 并 warn。AcApContext.ts:77-91 entityModified→updateEntity 是常态入口，单实体编辑即告警；若有转换在途，797 isProcessingEntities 提前 false，2169/1411 waiter 提前触发。最小修复：2048 前补 _numOfEntitiesToProcess/_totalEntitiesToProcess += entities.length。"
+    },
+    {
+      "title": "clear() 不重置每文档布局状态：第二个文档复用上一张图纸的布局视图、相机与首次访问标记",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/view/AcTrView2d.ts",
+      "line": "2219-2235, 2413-2415, 655-658",
+      "severity": "P1",
+      "category": "correctness",
+      "evidence": "clear() {\n    this._convertEpoch++\n    this._convertQueue.length = 0  …  let layoutView = this._layoutViewManager.getAt(layoutBtrId)\n    if (layoutView == null) {  …  const isFirstVisit = !this._initializedLayouts.has(btrId)",
+      "impact": "AcApDocManager 是进程单例、视图只在构造时 new 一次（AcApDocManager.ts:507），openDocument 只调 view.clear()（AcApDocManager.ts:1658），而 clear() 不触碰 _layoutViewManager / _initializedLayouts / _externallyFramedLayouts / _loadingLayouts / _convertingLayers，AcTrLayoutViewManager 也没有 clear()。而布局的 btrId 就是 DXF 的 handle（data-model AcDbObject.dxfIn code 5 → objectId，AcDbLayout.blockTableRecordId = modelSpace.objectId），跨图纸高度重复（模型空间常为 1F）。于是新图纸 addLayout→createLayoutViewIfNeeded 命中旧 AcTrLayoutView：沿用上一张图纸的相机 pan/zoom；旧 viewportViews 保留（viewportCount>0 时 ensureViewportViews 被跳过，且新图纸不存在的视口条目永不删除，drawViewports 会用过期纸空间矩形）；_initializedLayouts 保留旧 id 使新图纸首次切到该布局不再 auto-zoom（657 行 isFirstVisit 恒为 false），用户可能看到空白/上一张图的取景；布局视图对象持续累积。",
+      "fix": "clear() 中清空 _layoutViewManager（为 AcTrLayoutViewManager 增加 clear() 并重建）、_initializedLayouts、_externallyFramedLayouts、_loadingLayouts、_convertingLayers，并按新文档重新创建布局视图与视口视图。",
+      "confidence": "high",
+      "verdict": "confirmed",
+      "correctedSeverity": "P1",
+      "note": "已复核 clear()(2219-2235) 只重置 epoch/计数/scene/renderer，未动 _layoutViewManager（691 处 new 一次，AcTrLayoutViewManager 无 clear()）、_initializedLayouts(201) 等四个集合。btrId 即 handle（AcDbObject.ts:843-844），跨图纸易复用；AcApDocManager 单例(592-597)、view 仅 507 建一次、1658 只 clear()。2414 getAt 命中旧 AcTrLayoutView（旧相机），2486-2493 因 viewportCount>0 跳过 ensureViewportViews，657 isFirstVisit 恒 false。注意 1136 regen() 也走 clear()，同文档需保留相机。"
+    },
+    {
+      "title": "loadLayoutEntitiesIfNeeded 的异步转换失败被吞掉（含整布局数组展开入队），计数永不回减",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/view/AcTrView2d.ts",
+      "line": "2541-2558",
+      "severity": "P2",
+      "category": "correctness",
+      "evidence": "this._numOfEntitiesToProcess += entities.length\n      const convert = async () => {\n        try {\n          if (this._progressiveRendering) {\n            this._convertQueue.push(...entities)  …  void convert()",
+      "impact": "entities 是整块 block table record 的全量数组（2523-2527 逐实体 push，无分块），progressive 开启时用展开调用入队；实体数超过约 12 万即抛 RangeError（同文件 3144-3146 的注释已明确警告该模式，导出路径 1242 是同类问题，此处是不同调用点）。convert 是 async 且以 void convert() 触发，异常成为未处理的 promise rejection：finally 只清 _loadingLayouts，而 _numOfEntitiesToProcess 已 +N 却永不回减 → isProcessingEntities / isOpenFileWorkPending 恒为 true，打开/切布局遮罩不消失、zoomToFitDrawing 的 waiter 永不触发、isLoaded 也不再置位（每次切该布局重试）。触发条件是该布局尚未被解析流式装载且规模巨大（大图纸的模型空间通常已在打开时装载，故为中等概率）。",
+      "fix": "改为分批入队（for 循环 push 或 splice 分批），并给 convert 加 catch/回滚：记录 pending 数，失败时一次性扣回 _numOfEntitiesToProcess，同时避免未处理 rejection。",
+      "confidence": "medium",
+      "verdict": "confirmed",
+      "correctedSeverity": "P3",
+      "note": "已复核 2540-2558：+N 后 progressive 走 2545 this._convertQueue.push(...entities)；异常在 async convert 内成为 2558 void convert() 的未处理 rejection（无 catch 兜底），finally 只删 _loadingLayouts，计数永久 +N，797 恒 true。事实成立，但触发需「布局未被流式装载且实体数>约 12 万」：2511 对 entityCount>0 已早退，且 AcDbBlockTableRecord.ts:451-459 表明各空间都会 entityAppended，大图纸模型空间走不到此处，可达性低。更易触发的同类点在 1242（导出跨布局累计），但 1252 才 +N 不漏计数。修复：分批 push + catch 回滚。"
+    },
+    {
+      "title": "层次索引 window 模式对每个命中重复做全量子项遍历与分配",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/spatialIndex/AcTrHierarchicalSpatialIndex.ts",
+      "line": "196-207, 218-233",
+      "severity": "P2",
+      "category": "performance",
+      "evidence": "const level2 = child.search(bbox)\n      const hitEx: AcEdSpatialQueryResultItemEx = {\n        ...hit,\n        children: level2\n      }  …  const allChildren = child.all().filter(isFiniteSpatialBBox)",
+      "impact": "window 框选（左→右拖拽在 mouseup 判定）时，对 root 的每个命中都要：child.search 遍历一遍子索引 + child.all() 把整棵子索引物化成数组 + filter 再遍历一遍 + { ...hit } 新建对象；即便随后被 isWindowSelectionHit 否决，这个 { ...hit }/level2 也已分配。大图纸框选命中数千个带子索引的 INSERT（每个子索引可达数万项，见 AcTrView2d.ts:3061 关于单 group >100,000 的注释）时，是 命中数 × 子项数 的重复遍历与大量临时数组/对象，全部在 mouseup 主线程内完成。crossing（悬停拾取）路径不受影响。",
+      "fix": "一次遍历完成判定：取 all() 一次后在循环里同时判相交与全包含（避免 search + all 两遍），并去掉 { ...hit } 复制（把 children 原地挂到命中对象上）；或把 options 透传给 child.search 并比较子项总数以判定全包含。",
+      "confidence": "high",
+      "verdict": "confirmed",
+      "correctedSeverity": "P3",
+      "note": "已复核 177-210/218-233：window 时每个带 childIndex 的命中都先 child.search(196) + 新建 {...hit}(197-200)，再 all()(227)+filter+every(232)。事实成立，但 child.search 与 {...hit} 在 crossing 下同样必需（结果需要 children），window 独有的额外开销只是 all()+filter 一次全量子树物化；量级是各命中子项数之和而非「命中数×子项数」的乘积，属约 2 倍常数而非复杂度升级。且 197 的拷贝不宜直接去掉：186-191 直接 push 索引内同一 hit 对象，原地挂 children 会污染索引。故下调为 P3。"
+    },
+    {
+      "title": "子索引构建用逐条 insert 而非接口自述的批量 load()",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/spatialIndex/AcTrHierarchicalSpatialIndex.ts",
+      "line": "352-364",
+      "severity": "P2",
+      "category": "performance",
+      "evidence": "const existing = this.childIndexes.get(id)\n    if (existing) {\n      existing.clear()\n      finiteItems.forEach(item => existing.insert({ ...item }))  …  finiteItems.forEach(item => spatialIndex.insert({ ...item }))",
+      "impact": "AcTrSpatialIndex.ts:71-75 的接口文档明确写着 load() 批量建树比逐条 insert 快约 2-3 倍、且之后查询性能好 20-30%；这里却对每个子盒子逐条 insert（RBush 的 chooseSubtree/分裂、Map 去重、外加 `{ ...item }` 每个子盒子一次拷贝）。INSERT/多区域 hatch 的子盒子可达数万（AcTrView2d.ts:3061 注释：单个 group 可能 >100,000 对象），且图层重新打开会经 convertMissingEntitiesOnLayer→batchConvert→registerEntitySpatialIndex→ensureChildIndex 反复重建，属每次打开/每次图层可视性恢复的构建热路径。",
+      "fix": "两条 forEach 改为 spatialIndex.load(finiteItems)（新索引为空树，正是 load 的最优场景）；已存在的子索引 clear() 后同样 load()，并去掉 `{ ...item }` 拷贝。",
+      "confidence": "high",
+      "verdict": "confirmed",
+      "correctedSeverity": "P2",
+      "note": "已复核 352-364：existing.clear() 后逐条 existing.insert({...item})、新建索引也逐条 insert，与 AcTrSpatialIndex.ts:64/70-84 接口自述（load 建树快 2-3 倍、查询好 20-30%）不符。createIndexBySize(391-399) 对 >100 项走 AcTrRBushSpatialIndex，其 load(53-60) 即 tree.load 并顺带填 idMap，语义等价；ensureChildIndex 会被 registerEntitySpatialIndex(AcTrLayout.ts:1072) 在每次 add/updateEntity 时重建。注意 ≤100 项走 AcTrLinearSpatialIndex，其 load(60-64) 仍是循环 insert，无收益。"
+    },
+    {
+      "title": "渐进式让帧：每个实体一次 async 调用 + await（38.9 万次 promise 与微任务）",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/view/AcTrView2d.ts",
+      "line": "2998-3005",
+      "severity": "P3",
+      "category": "performance",
+      "evidence": "if (yieldGate) {\n        // Yield for input/overlay, but do not force a full-scene paint here —\n        const didYield = await yieldGate.maybeYield(yieldToEventLoop)",
+      "impact": "AcCmUiYieldGate.maybeYield 是 async 方法（packages/common/src/AcCmYieldToUi.ts:143）：预算未到时也返回 Promise，调用侧 await 每次都产生一次 async promise 分配 + 一次微任务。batchConvert 对每个实体都执行该 await，一次 38.9 万实体的打开即约 38.9 万次 promise 分配与等量微任务，而真正让出只有每 300ms 一次；转换队列是主线程热路径，纯开销无收益。",
+      "fix": "给 AcCmUiYieldGate 增加同步判定（如 shouldYield()/tryYield()），仅在预算到期时才 await；否则跳过 await 直接进入下一个实体。",
+      "confidence": "medium",
+      "verdict": "confirmed",
+      "correctedSeverity": "P3",
+      "note": "已复核 AcCmYieldToUi.ts:139-158：maybeYield 为 async，预算未到时 return false 也仍返回 Promise；AcTrView2d.ts:2998-3005 在 progressive 每实体循环末尾无条件 await，389k 实体≈389k 次 async 调用+微任务。事实成立，但单次开销约百纳秒级（合计约 0.1s 量级），且 2780 每个 batchConvert 都新建 gate、要单批跑满 300ms 才真正让出，收益有限；维持 P3，可加同步 shouldYield() 判定后再 await。"
+    }
+  ]
+}

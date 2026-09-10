@@ -317,14 +317,15 @@ export interface AcDbDxfPairReader {
 
 - **接口契约**：注释明确"实现不得把整个文件物化为 `string[]`"；999 注释对在 reader 层直接过滤，`next/peek` 均不返回。
 - 工厂函数：
-  - `acdbCreateDxfPairReader(data)`（`src/base/AcDbDxfPairReader.ts:990`）——真实文件入口：二进制魔数检测、编码判定（GBK/UTF-8 嗅探兜底）、窗口化 vs 全文读取选择。
-  - `acdbMakeAsciiDxfPairReader(text)`——已解码字符串的 reader。
+  - `acdbCreateDxfPairReader(data)`——真实文件入口：二进制魔数检测后，ASCII DXF 一律按 UTF-8 字节 reader 解析（不再做编码探测/回退）。
+  - `acdbMakeUtf8AsciiDxfPairReader(bytes)`——UTF-8/ASCII 字节级 reader；组码与数值行不经过 `TextDecoder`。
+  - `acdbMakeAsciiDxfPairReader(text)`——已解码字符串的兼容入口：先 UTF-8 编码为字节，再交给字节 reader。
+  - `acdbMakeBinaryDxfPairReader(data)`——二进制 DXF reader；字符串按 UTF-8 解码，与 binary 写出端一致。
   - `acdbIsBinaryDxf(data)`——22 字节魔数（`AutoCAD Binary DXF\r\n` + `0x1A 0x00`）检测。
-  - `acdbPeekDxfHeaderInfo(buffer)`——不解码全文，仅 64KiB 分块 peek `$ACADVER` / `$DWGCODEPAGE`。
-- 热路径优化（M1/M2 性能战役）：
-  - `acdbReadDxfCodeFromChars`：char 级组码扫描；
-  - `acdbParseDoubleSpan` / `acdbParseIntSpan` / `acdbParseLongSpan`：span 级数值解析（在可证明精确的域内零分配，越域回退 slice+Number）；
-  - `acdbValidateUtf8Prefix`：前 256KB 严格 RFC 3629 校验，修复"UTF-8 字节 + 陈旧 GBK 头"的乱码。
+- 热路径优化：
+  - `acdbReadDxfCodeFromBytes`：字节级组码扫描；
+  - `acdbParseDoubleSpan` / `acdbParseIntSpan` / `acdbParseLongSpan`：字节 span 级数值解析（在可证明精确的域内零分配，越域回退 decode+`Number`/`parseInt`）；
+  - `acdbDecodeUtf8Span`：纯 ASCII 值走 `String.fromCharCode` 零 `TextDecoder` 快路径，含多字节 UTF-8 时才调用 `TextDecoder('utf-8')`。
 
 ---
 

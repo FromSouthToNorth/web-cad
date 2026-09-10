@@ -1,6 +1,7 @@
-// Reader-level memory comparison: old full-decode path vs windowed path.
-// Retains every string value (like real entity parsing) so slices cannot be
-// collected, and reports external memory + RSS in addition to heapUsed.
+// Reader-level memory comparison: byte-level UTF-8 reader vs the legacy
+// full-decode path. Retains every string value (like real entity parsing) so
+// slices cannot be collected, and reports external memory + RSS in addition
+// to heapUsed.
 'use strict'
 const { readFileSync } = require('node:fs')
 // tools/ has no own node_modules link; fall back to the workspace bundle so
@@ -14,15 +15,15 @@ const dataModel = (() => {
 })()
 const {
   acdbMakeAsciiDxfPairReader,
-  acdbMakeWindowedAsciiDxfPairReader
+  acdbMakeUtf8AsciiDxfPairReader
 } = dataModel
 
 function drainRetain(reader) {
   const kept = []
   for (;;) {
-    const p = reader.next()
-    if (p === undefined) return kept
-    if (typeof p.value === 'string') kept.push(p.value)
+    const pair = reader.next()
+    if (pair === undefined) return kept
+    if (typeof pair.value === 'string') kept.push(pair.value)
   }
 }
 
@@ -52,13 +53,10 @@ const file = process.argv[2]
 const bytes = new Uint8Array(readFileSync(file))
 console.log('file bytes:', (bytes.length / 1048576).toFixed(1), 'MB')
 
-const windowed = peakOf(() =>
-  drainRetain(acdbMakeWindowedAsciiDxfPairReader(bytes, 'gbk'))
-)
-console.log('windowed gbk :', JSON.stringify(windowed))
+const byteReader = peakOf(() => drainRetain(acdbMakeUtf8AsciiDxfPairReader(bytes)))
+console.log('byte reader  :', JSON.stringify(byteReader))
 
-const oldPath = peakOf(() => {
-  const text = new TextDecoder('gbk').decode(bytes)
-  return drainRetain(acdbMakeAsciiDxfPairReader(text))
-})
-console.log('full decode  :', JSON.stringify(oldPath))
+const fullDecode = peakOf(() =>
+  drainRetain(acdbMakeAsciiDxfPairReader(new TextDecoder('utf-8').decode(bytes)))
+)
+console.log('full decode  :', JSON.stringify(fullDecode))

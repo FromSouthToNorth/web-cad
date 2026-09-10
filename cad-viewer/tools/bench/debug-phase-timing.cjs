@@ -11,7 +11,6 @@ const { readFile } = require('node:fs/promises')
 const {
   AcDbDxfFiler,
   acdbCreateDxfPairReader,
-  acdbPeekDxfHeaderInfo,
   acdbIsBinaryDxf
 } = require('@mlightcad/data-model')
 
@@ -27,10 +26,8 @@ async function main() {
   mark('start')
 
   mark(`binary? ${acdbIsBinaryDxf(bytes)}`)
-  const info = acdbPeekDxfHeaderInfo(buffer)
-  mark(`header info: version=${info.version?.toString?.() ?? info.version} encoding=${info.encoding}`)
 
-  // Force the same resolution acdbCreateDxfPairReader uses.
+  // The UTF-8-only reader no longer probes the header for an encoding.
   const reader = acdbCreateDxfPairReader(buffer)
   mark(`pair reader created: ${reader.kind}`)
 

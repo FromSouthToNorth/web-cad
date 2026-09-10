@@ -1,6 +1,6 @@
 import {
   acdbMakeAsciiDxfPairReader,
-  acdbMakeWindowedAsciiDxfPairReader
+  acdbMakeUtf8AsciiDxfPairReader
 } from '../src/base/AcDbDxfPairReader'
 import type { AcDbDxfPair } from '../src/base/AcDbDxfPair'
 
@@ -291,7 +291,7 @@ describe('span-based value parsing differential', () => {
     [1, ' ABC '],
     [1, ''],
     [1, '中文文本'],
-    [1, ' leading and trailing  '],
+    [1, ' leading and trailing  ']
     // comments get filtered by the reader, not by span parsing
   ]
 
@@ -300,19 +300,18 @@ describe('span-based value parsing differential', () => {
     checkPairs(crafted, reader)
   })
 
-  it('windowed reader matches the slice-based reference semantics', () => {
-    const reader = acdbMakeWindowedAsciiDxfPairReader(
-      new TextEncoder().encode(buildText(crafted)),
-      'utf-8'
+  it('byte reader matches the slice-based reference semantics', () => {
+    const reader = acdbMakeUtf8AsciiDxfPairReader(
+      new TextEncoder().encode(buildText(crafted))
     )
     checkPairs(crafted, reader)
   })
 
-  it('windowed and full-text readers agree on multibyte string values', () => {
+  it('byte and text readers agree on multibyte string values', () => {
     const text = buildText(crafted)
     const a = collectPairs(acdbMakeAsciiDxfPairReader(text))
     const b = collectPairs(
-      acdbMakeWindowedAsciiDxfPairReader(new TextEncoder().encode(text), 'utf-8')
+      acdbMakeUtf8AsciiDxfPairReader(new TextEncoder().encode(text))
     )
     expect(b.length).toBe(a.length)
     for (let i = 0; i < a.length; i++) {
@@ -331,9 +330,18 @@ describe('span-based value parsing differential', () => {
   })
 
   it('filters 999 comment pairs without slicing their value line', () => {
-    const text = ['999', 'a comment', '10', '1.5', '999', 'another', '70', '3'].join('\r\n')
+    const text = [
+      '999',
+      'a comment',
+      '10',
+      '1.5',
+      '999',
+      'another',
+      '70',
+      '3'
+    ].join('\r\n')
     const reader = acdbMakeAsciiDxfPairReader(text)
-    expect(collectPairs(reader).map((p) => [p.code, p.value])).toEqual([
+    expect(collectPairs(reader).map(p => [p.code, p.value])).toEqual([
       [10, 1.5],
       [70, 3]
     ])
@@ -355,7 +363,18 @@ function randomDoubleValue(rng: () => number): string {
   const roll = rng()
   if (roll < 0.02) {
     // digit-less / special forms
-    const specials = ['', '   ', '-', '+', '.', 'Infinity', '-Infinity', 'NaN', 'e5', '0x10']
+    const specials = [
+      '',
+      '   ',
+      '-',
+      '+',
+      '.',
+      'Infinity',
+      '-Infinity',
+      'NaN',
+      'e5',
+      '0x10'
+    ]
     return specials[Math.floor(rng() * specials.length)]!
   }
   if (roll < 0.05) {
@@ -410,14 +429,14 @@ describe('span-based value parsing fuzz differential', () => {
     checkPairs(pairs, acdbMakeAsciiDxfPairReader(text))
   })
 
-  it('matches Number() on random doubles through the windowed reader', () => {
+  it('matches Number() on random doubles through the byte reader', () => {
     const rng = mulberry32(0xd0b1e)
     const pairs: Array<[number, string]> = []
     for (let i = 0; i < 100000; i++) pairs.push([10, randomDoubleValue(rng)])
     const text = buildText(pairs)
     checkPairs(
       pairs,
-      acdbMakeWindowedAsciiDxfPairReader(new TextEncoder().encode(text), 'utf-8')
+      acdbMakeUtf8AsciiDxfPairReader(new TextEncoder().encode(text))
     )
   })
 

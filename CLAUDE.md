@@ -84,7 +84,7 @@ pnpm format                   # prettier 格式化 packages/**/*.{ts,js,vue,json
 - 关键包：
   - `common`：基础工具、颜色管理、日志。
   - `geometry-engine` / `graphic-interface`：几何计算与图形接口抽象。
-  - `data-model`：DWG/DXF 解析核心，仿 ObjectARX API；含 DXF tokenizer Web Worker。
+  - `data-model`：DWG/DXF 解析核心，仿 ObjectARX API；含 DXF tokenizer Web Worker。DXF 文本编码仅支持 UTF-8：pair reader 直接扫描 UTF-8 字节，组码/数值不经全量解码，字符串按需惰性解码。
   - `three-renderer`：Three.js 渲染。
   - `cad-simple-viewer`：轻量查看器核心。
   - `cad-viewer`：Vue 全功能查看器。

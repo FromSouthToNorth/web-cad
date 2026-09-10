@@ -1,37 +1,25 @@
 export { AcDbDxfCode } from './AcDbDxfCode'
-export {
-  AcDbDxfFiler,
-  AcDbDxfFilerStatus
-} from './AcDbDxfFiler'
+export { AcDbDxfFiler, AcDbDxfFilerStatus } from './AcDbDxfFiler'
 export type {
   AcDbDxfFilerMode,
   AcDbDxfFilerOptions,
   AcDbDxfOutputFormat
 } from './AcDbDxfFiler'
-export {
-  acdbDxfIsInt32Code,
-  acdbDxfValueType
-} from './AcDbDxfGroupCodeTypes'
+export { acdbDxfIsInt32Code, acdbDxfValueType } from './AcDbDxfGroupCodeTypes'
 export type {
   AcDbDxfValueType,
   AcDbDxfValueTypeOrComment
 } from './AcDbDxfGroupCodeTypes'
 export type { AcDbDxfPair } from './AcDbDxfPair'
 export {
-  UTF8_SNIFF_BYTES,
   acdbCreateDxfPairReader,
   acdbIsBinaryDxf,
   acdbMakeAsciiDxfPairReader,
   acdbMakeBinaryDxfPairReader,
-  acdbMakeUtf8AsciiDxfPairReader,
-  acdbMakeWindowedAsciiDxfPairReader,
-  acdbPeekDxfHeaderInfo,
-  acdbSupportsWindowedDecode,
-  acdbValidateUtf8Prefix
+  acdbMakeUtf8AsciiDxfPairReader
 } from './AcDbDxfPairReader'
 export type {
   AcDbCreateDxfPairReaderOptions,
-  AcDbDxfHeaderInfo,
   AcDbDxfPairReader
 } from './AcDbDxfPairReader'
 export {

@@ -62,9 +62,11 @@ export interface AcApOpenFileProfileSnapshot {
 /**
  * Session open-file profiler.
  *
- * Always records PARSE/ENTITY (and other `openProgress` sub-stages),
- * wall-clock read vs scene convert time, and {@link AcDbRenderingCache}
- * hit/miss counters for the last open. Console output remains gated by the
+ * Always records PARSE/ENTITY (and other `openProgress` sub-stages) and
+ * wall-clock read vs scene convert time. {@link AcDbRenderingCache}
+ * hit/miss counters are only instrumented when OPENPROF is on, because that
+ * instrumentation costs a `performance.now()` pair plus counter updates per
+ * INSERT draw / cache hit. Console output is gated by the same
  * {@link AcDbSystemVariables.OPENPROF} system variable.
  *
  * Stage durations use **active-stage wall time**: from the first event of a
@@ -79,6 +81,8 @@ export class AcApOpenFileProfiler {
 
   private _active = false
   private _printToConsole = false
+  /** True while this session owns {@link AcDbRenderingCache.profiling}. */
+  private _cacheProfiling = false
   private _t0 = 0
   private _readEndMs = 0
   private _stages = new Map<string, StageStats>()
@@ -114,8 +118,10 @@ export class AcApOpenFileProfiler {
   /**
    * Starts a profiling session for the next document open.
    *
-   * Call from document-open start (before `db.read` / URI open). Always
-   * collects a snapshot; console printing follows OPENPROF.
+   * Call from document-open start (before `db.read` / URI open). Stage timings
+   * are always collected; {@link AcDbRenderingCache} instrumentation and
+   * console printing both follow OPENPROF, so the default (off) open pays no
+   * per-INSERT profiling cost.
    *
    * @param database - Database that will emit `openProgress` for this open.
    */
@@ -132,8 +138,15 @@ export class AcApOpenFileProfiler {
     this._activeStageStartedAt = 0
     this._database = database
 
+    // Reset unconditionally so the published snapshot can never report a
+    // previous session's counters as this open's. Only *collect* when OPENPROF
+    // is on: `profiling` adds a `performance.now()` pair and counter updates to
+    // every INSERT cache hit/miss while entities convert.
     AcDbRenderingCache.resetProfile()
-    AcDbRenderingCache.profiling = true
+    this._cacheProfiling = this._printToConsole
+    if (this._cacheProfiling) {
+      AcDbRenderingCache.profiling = true
+    }
 
     this._progressListener = (args: AcDbProgressdEventArgs) => {
       this.onProgress(args)
@@ -160,8 +173,9 @@ export class AcApOpenFileProfiler {
    */
   cancel(): void {
     this.detachProgressListener()
-    if (this._active) {
+    if (this._cacheProfiling) {
       AcDbRenderingCache.profiling = false
+      this._cacheProfiling = false
     }
     this._active = false
     this._printToConsole = false

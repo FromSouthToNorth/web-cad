@@ -1,5 +1,7 @@
 import {
   AcGeArea2d,
+  AcGeIndexNode,
+  AcGePoint2dLike,
   AcGePoint3dLike,
   AcGiSubEntityTraits
 } from '@hy/data-model'
@@ -8,10 +10,10 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
-import { AcTrRenderContext } from '../renderer/AcTrRenderContext'
 import { RTE_REBASE_THRESHOLD } from '../draw/AcTrBatchDrawPolicy'
+import { AcTrRenderContext } from '../renderer/AcTrRenderContext'
 import { AcTrBufferGeometryUtil } from '../util'
-import { AcTrPolygon } from './AcTrPolygon'
+import { AcTrPolygon, resolveBoundaryAnchor } from './AcTrPolygon'
 
 /** Which batch container the built line geometry should append into. */
 export type AcTrLineGeometryKind = 'basic' | 'fat'
@@ -53,6 +55,60 @@ export interface AcTrDirectEntityMeta extends AcTrBuiltDirectGeometry {
 const _point = /*@__PURE__*/ new THREE.Vector3()
 const _originDelta = /*@__PURE__*/ new THREE.Vector3()
 const _dummyDisposeMaterial = /*@__PURE__*/ new THREE.MeshBasicMaterial()
+
+/**
+ * Maximum boundary vertex count (after dropping the duplicated closing vertex)
+ * that still qualifies for the single-loop fill fast path. SOLID / TRACE are
+ * always four (or fewer) corner points.
+ */
+const SMALL_FILL_LOOP_MAX_POINTS = 4
+/**
+ * Smallest |signed area| accepted by the single-loop fill fast path, in
+ * squared drawing units. Smaller values fall back to THREE.Shape + earcut.
+ */
+const SMALL_FILL_LOOP_MIN_AREA = 1e-9
+
+/**
+ * Counters for the direct-batch fill fast path.
+ *
+ * Read by tests and A/B benchmarks to prove whether a fill skipped
+ * `THREE.Shape` + earcut or fell back to it. Never used for rendering.
+ */
+export interface AcTrAreaBuildStats {
+  /** Builds served by the single-loop (≤ 4 point) fan triangulation. */
+  smallLoopFastPath: number
+  /** Builds that fell back to `THREE.Shape` + earcut. */
+  generalPath: number
+}
+
+const _areaBuildStats: AcTrAreaBuildStats = {
+  smallLoopFastPath: 0,
+  generalPath: 0
+}
+
+/** Returns a snapshot of the fill-build counters. */
+export function getAreaBuildStats(): AcTrAreaBuildStats {
+  return { ..._areaBuildStats }
+}
+
+/** Resets the fill-build counters. */
+export function resetAreaBuildStats(): void {
+  _areaBuildStats.smallLoopFastPath = 0
+  _areaBuildStats.generalPath = 0
+}
+
+/**
+ * Test-only seam: forces {@link buildAreaGeometry} to ignore the single-loop
+ * fast path so equivalence tests can build the same area through the general
+ * `THREE.Shape` + earcut path with identical traits. Never set by production
+ * code.
+ */
+let _forceGeneralAreaPath = false
+
+/** Enables or disables the forced general fill path (tests only). */
+export function setForceGeneralAreaPath(force: boolean): void {
+  _forceGeneralAreaPath = force
+}
 
 /**
  * Interleaved vertex attribute data accepted by line-segment builders.
@@ -198,7 +254,275 @@ export function buildPointGeometry(
 }
 
 /**
+ * Geometry produced by the single-loop fill fast path, in WCS coordinates
+ * (anchor rebasing happens later in {@link buildAreaGeometry}).
+ */
+interface AcTrSmallFillLoopGeometry {
+  /** Deduplicated boundary vertices in drawing coordinates. */
+  points: THREE.Vector2[]
+  /** Fan triangles indexing into {@link points}. */
+  indices: number[]
+  /**
+   * Local triangulation origin. Matches
+   * {@link resolveBoundaryAnchor} so the fast path lands on the same
+   * `worldOffset` as the general path.
+   */
+  anchor: THREE.Vector2
+}
+
+/**
+ * Extracts the boundary of a hole-free small loop (≤ 4 distinct points) so it
+ * can be triangulated directly instead of going through
+ * `THREE.Shape` + earcut + a temporary {@link AcTrPolygon}.
+ *
+ * Returns `null` whenever the area is not provably equivalent to the general
+ * path:
+ * - more than one loop, or any nested loop (a hole);
+ * - more than {@link SMALL_FILL_LOOP_MAX_POINTS} distinct points (curved or
+ *   densely tessellated boundaries, where earcut decides the triangulation);
+ * - fewer than three distinct points, a non-finite coordinate, or a
+ *   degenerate (self-overlapping / zero-area) loop.
+ *
+ * The general path remains the fallback for every rejected case.
+ *
+ * @param pointBoundaries - All boundary loops of the area, in WCS.
+ * @param hierarchy - Loop hierarchy returned by {@link AcGeArea2d.buildHierarchy}.
+ * @returns Fan-triangulated boundary, or `null` to use the general path.
+ */
+function buildSmallFillLoopGeometry(
+  pointBoundaries: AcGePoint2dLike[][],
+  hierarchy: AcGeIndexNode
+): AcTrSmallFillLoopGeometry | null {
+  if (pointBoundaries.length !== 1 || hierarchy.children.length !== 1) {
+    return null
+  }
+  const root = hierarchy.children[0]
+  // A child loop is a hole: only earcut may generate keyholes for it.
+  if (!root || root.children.length !== 0) {
+    return null
+  }
+  const loop = pointBoundaries[root.index] ?? pointBoundaries[0]
+  if (!loop) {
+    return null
+  }
+
+  const points: THREE.Vector2[] = []
+  for (let i = 0; i < loop.length; i++) {
+    const point = loop[i]
+    if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) {
+      return null
+    }
+    // Closed loops repeat their first vertex; a repeated corner adds nothing.
+    if (points.length > 0 && isSamePoint2d(points[points.length - 1], point)) {
+      continue
+    }
+    points.push(new THREE.Vector2(point.x, point.y))
+  }
+  while (
+    points.length > 1 &&
+    isSamePoint2d(points[0], points[points.length - 1])
+  ) {
+    points.pop()
+  }
+  if (points.length < 3 || points.length > SMALL_FILL_LOOP_MAX_POINTS) {
+    return null
+  }
+
+  const area = signedArea2d(points)
+  if (Math.abs(area) < SMALL_FILL_LOOP_MIN_AREA) {
+    return null
+  }
+  // Self-intersecting loops (bow-ties) get no triangles from earcut; any
+  // triangulation would fill the crossing lobes instead. Only earcut decides.
+  if (hasSelfIntersection(points)) {
+    return null
+  }
+  // A 3-point loop has exactly one triangulation; a 4-point loop has two and
+  // only one of them is valid when the quad is concave. Pick the one whose
+  // signed triangle areas add up to the polygon's signed area.
+  const indices = triangulateSmallLoop(points, area)
+  if (!indices) {
+    return null
+  }
+
+  return {
+    points,
+    indices,
+    anchor: resolveBoundaryAnchor(pointBoundaries)
+  }
+}
+
+/** Relative tolerance when matching a triangulation against the loop area. */
+const SMALL_FILL_LOOP_AREA_EPSILON = 1e-9
+
+/**
+ * Triangulates a simple 3- or 4-point loop.
+ *
+ * Vertices are listed in loop order, so the only fan that can be wrong is the
+ * 4-point one: for a concave quad the diagonal `0→2` covers area outside the
+ * polygon while `1→3` is the correct one. Comparing the signed area sum with
+ * the loop's own signed area selects the correct split without any
+ * point-in-polygon test.
+ *
+ * @returns Index triplets, or `null` when no triangulation covers the loop.
+ */
+function triangulateSmallLoop(
+  points: THREE.Vector2[],
+  area: number
+): number[] | null {
+  const count = points.length
+  const splits =
+    count === 3
+      ? [[0, 1, 2]]
+      : [
+          [0, 1, 2, 0, 2, 3],
+          [0, 1, 3, 1, 2, 3]
+        ]
+  const tolerance = Math.abs(area) * SMALL_FILL_LOOP_AREA_EPSILON
+  for (const split of splits) {
+    let sum = 0
+    for (let i = 0; i < split.length; i += 3) {
+      sum += signedTriangleArea2d(
+        points[split[i]],
+        points[split[i + 1]],
+        points[split[i + 2]]
+      )
+    }
+    if (Math.abs(sum - area) <= tolerance) {
+      return split
+    }
+  }
+  return null
+}
+
+/** Signed area of one triangle in the same shoelace orientation as a loop. */
+function signedTriangleArea2d(
+  a: THREE.Vector2,
+  b: THREE.Vector2,
+  c: THREE.Vector2
+): number {
+  return ((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)) * 0.5
+}
+
+/** Compares two 2-D points exactly; fill boundaries carry no tolerance. */
+function isSamePoint2d(a: AcGePoint2dLike, b: AcGePoint2dLike): boolean {
+  return a.x === b.x && a.y === b.y
+}
+
+/**
+ * Signed shoelace area of an open point list, translated by the first vertex
+ * first so large drawing coordinates keep their precision.
+ */
+function signedArea2d(points: THREE.Vector2[]): number {
+  const origin = points[0]
+  let area = 0
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    const p1 = points[j]
+    const p2 = points[i]
+    area +=
+      (p1.x - origin.x) * (p2.y - origin.y) -
+      (p2.x - origin.x) * (p1.y - origin.y)
+  }
+  return area * 0.5
+}
+
+/**
+ * Returns whether the closed loop crosses itself.
+ *
+ * Only adjacent edges share an endpoint in a well-formed closed loop, so the
+ * test walks every non-adjacent edge pair. Loops of three points cannot
+ * self-intersect. Endpoint-touching is not reported here (it is handled by the
+ * degenerate-area test); a proper crossing is.
+ */
+function hasSelfIntersection(points: THREE.Vector2[]): boolean {
+  const count = points.length
+  if (count < 4) {
+    return false
+  }
+  for (let i = 0; i < count; i++) {
+    const a = points[i]
+    const b = points[(i + 1) % count]
+    for (let j = i + 1; j < count; j++) {
+      if ((j + 1) % count === i || j === (i + 1) % count) {
+        continue
+      }
+      const c = points[j]
+      const d = points[(j + 1) % count]
+      if (segmentsProperlyIntersect(a, b, c, d)) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
+/** Orientation of `c` relative to the directed line `a`→`b`. */
+function orientation2d(
+  a: THREE.Vector2,
+  b: THREE.Vector2,
+  c: THREE.Vector2
+): number {
+  const value = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
+  if (value > 0) return 1
+  if (value < 0) return -1
+  return 0
+}
+
+/** Returns whether segments `ab` and `cd` cross in their interiors. */
+function segmentsProperlyIntersect(
+  a: THREE.Vector2,
+  b: THREE.Vector2,
+  c: THREE.Vector2,
+  d: THREE.Vector2
+): boolean {
+  const d1 = orientation2d(a, b, c)
+  const d2 = orientation2d(a, b, d)
+  const d3 = orientation2d(c, d, a)
+  const d4 = orientation2d(c, d, b)
+  return d1 !== d2 && d3 !== d4
+}
+
+/**
+ * Builds the anchor-local mesh geometry of one small fill loop.
+ *
+ * Mirrors the vertex set written by `THREE.ShapeGeometry` for the same loop:
+ * the duplicated closing vertex is dropped (it is never referenced by a
+ * triangle) and the fan triangulation covers exactly the same region.
+ */
+function buildSmallFillLoopMesh(
+  loop: AcTrSmallFillLoopGeometry
+): THREE.BufferGeometry {
+  const anchor = loop.anchor
+  const vertexCount = loop.points.length
+  const positions = new Float32Array(vertexCount * 3)
+  let offset = 0
+  for (let i = 0; i < vertexCount; i++) {
+    const point = loop.points[i]
+    positions[offset++] = point.x - anchor.x
+    positions[offset++] = point.y - anchor.y
+    positions[offset++] = 0
+  }
+
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  geometry.setIndex(
+    new THREE.BufferAttribute(
+      vertexCount > 65535 / 3
+        ? Uint32Array.from(loop.indices)
+        : Uint16Array.from(loop.indices),
+      1
+    )
+  )
+  return geometry
+}
+
+/**
  * Builds rebased mesh geometry from a solid or gradient hatch area.
+ *
+ * Single-loop boundaries with at most four distinct points (SOLID / TRACE
+ * quads) are fan-triangulated directly, skipping `THREE.Shape`, earcut and the
+ * temporary {@link AcTrPolygon}. Every other area — holes, curved boundaries,
+ * patterned hatches — still uses the general path.
  *
  * Patterned hatches (definition lines without gradient) return `null`.
  * A temporary {@link AcTrPolygon} is built and disposed; mesh materials from
@@ -220,44 +544,61 @@ export function buildAreaGeometry(
     return null
   }
 
-  const polygon = new AcTrPolygon(area, traits, context)
-  const meshGeometries: THREE.BufferGeometry[] = []
-  let meshPosition: THREE.Vector3 | undefined
-  let resolvedMaterial: THREE.Material | undefined
-
-  polygon.traverse(object => {
-    if (object instanceof THREE.Mesh && object.geometry) {
-      meshGeometries.push(object.geometry.clone())
-      meshPosition = object.position.clone()
-      if (!resolvedMaterial && object.material instanceof THREE.Material) {
-        resolvedMaterial = object.material
-      }
-    }
-  })
-
-  polygon.traverse(object => {
-    if (object instanceof THREE.Mesh) {
-      object.geometry = new THREE.BufferGeometry()
-      object.material = _dummyDisposeMaterial
-    }
-  })
-  polygon.dispose()
-
-  if (meshGeometries.length === 0) {
-    return null
-  }
+  // Solid single-loop fills (SOLID / TRACE quads, ≤ 4 corners) triangulate
+  // directly. Gradient fills keep the general path because only
+  // {@link AcTrPolygon} writes the `gradientPosition` attribute the gradient
+  // shader reads. Every other loop shape still falls back too.
+  const smallLoop =
+    style.gradient || _forceGeneralAreaPath
+      ? null
+      : buildSmallFillLoopGeometry(area.getPoints(100), area.buildHierarchy())
 
   let geometry: THREE.BufferGeometry
-  if (meshGeometries.length === 1) {
-    geometry = meshGeometries[0]
+  let meshPosition: THREE.Vector3 | undefined
+  let resolvedMaterial: THREE.Material | undefined
+  if (smallLoop) {
+    _areaBuildStats.smallLoopFastPath++
+    meshPosition = new THREE.Vector3(smallLoop.anchor.x, smallLoop.anchor.y, 0)
+    geometry = buildSmallFillLoopMesh(smallLoop)
+    resolvedMaterial = context.styleManager.getFillMaterial(traits)
   } else {
-    const merged = mergeGeometries(meshGeometries)
-    if (!merged) {
-      meshGeometries.forEach(item => item.dispose())
+    _areaBuildStats.generalPath++
+    const polygon = new AcTrPolygon(area, traits, context)
+    const meshGeometries: THREE.BufferGeometry[] = []
+
+    polygon.traverse(object => {
+      if (object instanceof THREE.Mesh && object.geometry) {
+        meshGeometries.push(object.geometry.clone())
+        meshPosition = object.position.clone()
+        if (!resolvedMaterial && object.material instanceof THREE.Material) {
+          resolvedMaterial = object.material
+        }
+      }
+    })
+
+    polygon.traverse(object => {
+      if (object instanceof THREE.Mesh) {
+        object.geometry = new THREE.BufferGeometry()
+        object.material = _dummyDisposeMaterial
+      }
+    })
+    polygon.dispose()
+
+    if (meshGeometries.length === 0) {
       return null
     }
-    geometry = merged
-    meshGeometries.forEach(item => item.dispose())
+
+    if (meshGeometries.length === 1) {
+      geometry = meshGeometries[0]
+    } else {
+      const merged = mergeGeometries(meshGeometries)
+      if (!merged) {
+        meshGeometries.forEach(item => item.dispose())
+        return null
+      }
+      geometry = merged
+      meshGeometries.forEach(item => item.dispose())
+    }
   }
 
   const boundingBox = AcTrBufferGeometryUtil.safeComputeBoundingBox(geometry)

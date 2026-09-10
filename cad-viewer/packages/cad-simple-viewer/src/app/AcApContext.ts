@@ -1,4 +1,5 @@
 import {
+  type AcCmEventManager,
   AcDbEntity,
   AcDbLayout,
   AcDbSystemVariables,
@@ -45,6 +46,19 @@ export class AcApContext {
   private _view: AcEdBaseView
   /** The document containing the CAD database */
   private _doc: AcApDocument
+  /**
+   * Removers for every listener the constructor registered.
+   *
+   * Several of them live on hubs that outlive this context — above all the
+   * module-level singleton `AcDbSysVarManager.instance().events` — so a context
+   * dropped without {@link destroy} keeps reacting to events raised by the next
+   * document. The `LWDISPLAY` branch below makes that expensive: it would
+   * `clear()` a stale view and replay a full `regen()` of the *current*
+   * database.
+   */
+  private _disposers: Array<() => void> = []
+  /** True once {@link destroy} ran; makes teardown idempotent. */
+  private _destroyed = false
 
   /**
    * Creates a new application context that binds a document with its view.
@@ -63,7 +77,7 @@ export class AcApContext {
     this._doc = doc
 
     // Add entity to scene
-    doc.database.events.entityAppended.addEventListener(args => {
+    this.bindEvent(doc.database.events.entityAppended, args => {
       const pending = asEntityList(args.entity).filter(
         entity => !this.view.hasEntity(entity.objectId)
       )
@@ -74,7 +88,7 @@ export class AcApContext {
     })
 
     // Update entity
-    doc.database.events.entityModified.addEventListener(args => {
+    this.bindEvent(doc.database.events.entityModified, args => {
       const eventArgs = args as AcDbEntityModifiedEventArgs
       const view = this.view
       if (
@@ -92,7 +106,7 @@ export class AcApContext {
     })
 
     // Erase entity
-    doc.database.events.entityErased.addEventListener(args => {
+    this.bindEvent(doc.database.events.entityErased, args => {
       const pending = asEntityList(args.entity).filter(entity =>
         this.view.hasEntity(entity.objectId)
       )
@@ -103,17 +117,26 @@ export class AcApContext {
     })
 
     // Set layer visibility
-    doc.database.events.layerAppended.addEventListener(args => {
+    this.bindEvent(doc.database.events.layerAppended, args => {
       this._view.addLayer(args.layer)
     })
 
     // Update layer information such as visibility
-    doc.database.events.layerModified.addEventListener(args => {
+    this.bindEvent(doc.database.events.layerModified, args => {
       this._view.updateLayer(args.layer, args.changes)
     })
 
     // Set point display mode
-    AcDbSysVarManager.instance().events.sysVarChanged.addEventListener(args => {
+    this.bindEvent(AcDbSysVarManager.instance().events.sysVarChanged, args => {
+      // The hub is a process-wide singleton, so only react to variables set on
+      // the database this context owns. A stale context (one whose owner never
+      // called `destroy()` — e.g. a previous document manager after
+      // quit → reopen) would otherwise act on the *current* drawing while
+      // driving its own dead view: the LWDISPLAY branch below would `clear()`
+      // that stale view and replay a full `regen()` of the new database.
+      if (args.database !== this._doc.database) {
+        return
+      }
       if (args.name == AcDbSystemVariables.PDMODE.toLowerCase()) {
         ;(this._view as AcTrView2d).rerenderPoints(args.database.pdmode)
       } else if (args.name == AcDbSystemVariables.LWDISPLAY.toLowerCase()) {
@@ -137,19 +160,19 @@ export class AcApContext {
       }
     })
 
-    doc.database.events.dictObjetSet.addEventListener(args => {
+    this.bindEvent(doc.database.events.dictObjetSet, args => {
       if (args.object instanceof AcDbLayout) {
         this._view.addLayout(args.object as AcDbLayout)
       }
     })
 
     // Show their grip points when entities are selected
-    view.selectionSet.events.selectionAdded.addEventListener(args => {
+    this.bindEvent(view.selectionSet.events.selectionAdded, args => {
       view.highlight(args.ids)
     })
 
     // Hide their grip points when entities are deselected
-    view.selectionSet.events.selectionRemoved.addEventListener(args => {
+    this.bindEvent(view.selectionSet.events.selectionRemoved, args => {
       view.unhighlight(args.ids)
     })
   }
@@ -170,5 +193,48 @@ export class AcApContext {
    */
   get doc(): AcApDocument {
     return this._doc
+  }
+
+  /**
+   * Removes every listener this context registered.
+   *
+   * The context subscribes to hubs that outlive it — above all the module-level
+   * singleton `AcDbSysVarManager.instance().events` — so without this teardown a
+   * discarded context (quit → reopen creates a new document manager) keeps
+   * receiving `sysVarChanged` and reacting with the *next* document's database.
+   * Owners must call it from their teardown, e.g. `AcApDocManager.destroy()`.
+   *
+   * Idempotent: calling it more than once is a no-op.
+   */
+  destroy(): void {
+    if (this._destroyed) return
+    this._destroyed = true
+    const disposers = this._disposers
+    this._disposers = []
+    for (const unbind of disposers) {
+      unbind()
+    }
+  }
+
+  /**
+   * Subscribes to one event hub and records how to unsubscribe.
+   *
+   * Keeping registration and removal paired here is what makes {@link destroy}
+   * a single loop; the wrapper additionally ignores any callback already in
+   * flight when the context is destroyed.
+   *
+   * @param emitter - Event hub to subscribe to
+   * @param listener - Callback invoked while the context is alive
+   */
+  private bindEvent<T>(
+    emitter: AcCmEventManager<T>,
+    listener: (args: T) => void
+  ): void {
+    const guarded = (args: T) => {
+      if (this._destroyed) return
+      listener(args)
+    }
+    emitter.addEventListener(guarded)
+    this._disposers.push(() => emitter.removeEventListener(guarded))
   }
 }

@@ -135,7 +135,58 @@ const SAMPLE_DXF = [
   ''
 ].join('\n')
 
+/**
+ * Numeric wire tags from {@link AcDbDxfPairWireData.types}. The wire format is
+ * an external contract with the worker, so the numbers are pinned here
+ * independently of how the drain produces them.
+ */
+const WIRE_TAG_BY_PAIR_TYPE: Record<AcDbDxfPair['type'], number> = {
+  string: 0,
+  int: 1,
+  double: 2,
+  long: 3,
+  bool: 4,
+  handle: 5,
+  binary: 6
+}
+
 describe('AcDbDxfPairWire', () => {
+  it('writes the documented wire tag for every pair type', () => {
+    // One pair per type: 0/5/70/160/10/290/310 map to string/handle/int/long/
+    // double/bool/binary — see `acdbDxfValueType`.
+    const dxf = [
+      '0',
+      'SECTION',
+      '5',
+      '2F',
+      '70',
+      '1',
+      '160',
+      '42',
+      '10',
+      '1.5',
+      '290',
+      '1',
+      '310',
+      '01FF',
+      '0',
+      'EOF',
+      ''
+    ].join('\n')
+    const bytes = new TextEncoder().encode(dxf).buffer
+
+    const direct = readAll(acdbCreateDxfPairReader(bytes))
+    expect(new Set(direct.map(pair => pair.type))).toEqual(
+      new Set(['string', 'handle', 'int', 'long', 'double', 'bool', 'binary'])
+    )
+
+    const wire = acdbDrainDxfPairs(acdbCreateDxfPairReader(bytes))
+    expect(wire.count).toBe(direct.length)
+    expect(Array.from(wire.types)).toEqual(
+      direct.map(pair => WIRE_TAG_BY_PAIR_TYPE[pair.type])
+    )
+  })
+
   it('round-trips an ASCII pair stream losslessly', () => {
     const direct = readAll(
       acdbCreateDxfPairReader(new TextEncoder().encode(SAMPLE_DXF).buffer)
@@ -266,6 +317,61 @@ describe('AcDbDxfPairWire', () => {
     })
     expect(wire.codes.length).toBe(1204)
     expect(wire.codes.buffer.byteLength).toBe(1204 * 4)
+
+    const replayed = readAll(acdbMakeDxfPairArrayReader(wire))
+    expectSamePairStream(replayed, direct)
+  })
+
+  it('seeds the string index capacity so it is neither grown nor copied', () => {
+    // 8 pairs per row with 3 string/handle pairs (37.5%), close to the share
+    // real ASCII drawings show. Passing `totalBytes = pairs * 12` pins the pair
+    // estimate to the actual pair count, so a 0.4 seed lands just above the
+    // used length, inside the zero-copy `MAX_TRIM_SLACK_RATIO` band. An
+    // `estimated / 4` seed would instead grow 2× and then be copied down to
+    // exact size, leaving an exactly sized backing buffer.
+    const parts = ['0', 'SECTION', '2', 'ENTITIES']
+    for (let i = 0; i < 500; i++) {
+      parts.push(
+        '0',
+        'LINE',
+        '8',
+        'L',
+        '5',
+        'FF',
+        '10',
+        '1',
+        '20',
+        '2',
+        '11',
+        '3',
+        '21',
+        '4',
+        '31',
+        '5'
+      )
+    }
+    parts.push('0', 'ENDSEC', '0', 'EOF', '')
+    const bytes = new TextEncoder().encode(parts.join('\n')).buffer
+
+    const direct = readAll(acdbCreateDxfPairReader(bytes))
+    expect(direct.length).toBeGreaterThan(4000)
+    const stringPairs = direct.filter(
+      pair => pair.type === 'string' || pair.type === 'handle'
+    ).length
+    expect(stringPairs / direct.length).toBeGreaterThan(0.3)
+    expect(stringPairs / direct.length).toBeLessThan(0.4)
+
+    const wire = acdbDrainDxfPairs(acdbCreateDxfPairReader(bytes), {
+      totalBytes: direct.length * 12
+    })
+    expect(wire.stringIndices.length).toBe(stringPairs)
+    // Kept as a view over the larger seed buffer, and within the trim band.
+    expect(wire.stringIndices.buffer.byteLength).toBeGreaterThan(
+      wire.stringIndices.length * 4
+    )
+    expect(wire.stringIndices.buffer.byteLength).toBeLessThanOrEqual(
+      wire.stringIndices.length * 4 * 1.25
+    )
 
     const replayed = readAll(acdbMakeDxfPairArrayReader(wire))
     expectSamePairStream(replayed, direct)

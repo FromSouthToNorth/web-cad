@@ -351,15 +351,18 @@ export class AcTrHierarchicalSpatialIndex implements AcTrSpatialIndex {
 
     const existing = this.childIndexes.get(id)
     if (existing) {
+      // `clear()` empties the tree first, so `load()` performs a real OMT
+      // bulk build here instead of one top-down insertion per item.
       existing.clear()
-      finiteItems.forEach(item => existing.insert({ ...item }))
+      existing.load(finiteItems.map(item => ({ ...item })))
       return existing
     }
 
     const spatialIndex = this.createIndexBySize(finiteItems.length)
     if (!spatialIndex) return undefined
 
-    finiteItems.forEach(item => spatialIndex.insert({ ...item }))
+    // Freshly created and therefore empty: same bulk-build fast path.
+    spatialIndex.load(finiteItems.map(item => ({ ...item })))
     this.setChildIndex(id, spatialIndex)
     return spatialIndex
   }

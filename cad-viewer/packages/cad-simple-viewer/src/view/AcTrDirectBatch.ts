@@ -1,14 +1,14 @@
 import { AcDbEntity, AcDbRay, AcDbXline } from '@hy/data-model'
 import {
   type AcTrDirectEntityMeta,
-  type AcTrEntity,
   type AcTrRenderer,
   buildAreaGeometry,
   buildLineGeometryMulti,
   buildLineSegmentsGeometryMulti,
   buildPointGeometry,
   isDirectBatchRejectedMaterial,
-  resolveAnchorFromBox} from '@hy/three-renderer'
+  resolveAnchorFromBox
+} from '@hy/three-renderer'
 
 /**
  * Whether the entity advertises a single batchable draw primitive.
@@ -28,6 +28,11 @@ export function isDirectBatchCandidate(entity: AcDbEntity): boolean {
  * Entities whose geometry spans beyond the precision-safe extent are split
  * into several metas — one per rebased run — so every run lands in a batch
  * container whose origin is close enough for precise float32 storage.
+ *
+ * The drawable returned by `worldDraw` during capture is never used: every
+ * captured primitive is rebuilt from the payload. The renderer therefore hands
+ * back a shared, dispose-immune placeholder instead of a real entity, which
+ * removes one `AcTrEntity` allocation per direct-batch entity.
  */
 export function tryBuildDirectEntityMetas(
   entity: AcDbEntity,
@@ -38,9 +43,9 @@ export function tryBuildDirectEntityMetas(
   }
 
   renderer.beginDirectCapture()
-  let placeholder: AcTrEntity | undefined
   try {
-    placeholder = entity.worldDraw(renderer) as AcTrEntity | undefined
+    // Placeholder so worldDraw can attach objectId / layer metadata.
+    entity.worldDraw(renderer)
     const payload = renderer.takeDirectCapture()
     if (!payload) {
       return null
@@ -79,8 +84,6 @@ export function tryBuildDirectEntityMetas(
   } catch (error) {
     renderer.cancelDirectCapture()
     throw error
-  } finally {
-    placeholder?.dispose()
   }
 }
 

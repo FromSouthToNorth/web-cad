@@ -408,6 +408,36 @@ describe('AcDbDatabaseTransactionManager', () => {
     expect(db.getObjectById(nested.objectId)).toBe(nested)
   })
 
+  it('suspends recording until every suspension is resumed', () => {
+    const db = new AcDbDatabase()
+    const manager = db.transactionManager
+    manager.startTransaction()
+    const recordAppend = jest.spyOn(manager, 'recordAppend')
+
+    const resumeOuter = manager.suspendRecording()
+    expect(manager.isRecording()).toBe(false)
+    const resumeInner = manager.suspendRecording()
+
+    // Nested suspension keeps recording off, and resuming the inner one does
+    // not re-enable it.
+    resumeInner()
+    expect(manager.isRecording()).toBe(false)
+    db.tables.blockTable.modelSpace.appendEntity(createLine())
+    expect(recordAppend).not.toHaveBeenCalled()
+
+    resumeOuter()
+    expect(manager.isRecording()).toBe(true)
+    // Resume functions are idempotent: a second call must not over-decrement.
+    resumeInner()
+    expect(manager.isRecording()).toBe(true)
+
+    db.tables.blockTable.modelSpace.appendEntity(createLine())
+    expect(recordAppend).toHaveBeenCalledTimes(1)
+
+    recordAppend.mockRestore()
+    manager.abortTransaction()
+  })
+
   it('enforces strictMode for mutations outside transactions', () => {
     const db = new AcDbDatabase()
     db.transactionManager.strictMode = true

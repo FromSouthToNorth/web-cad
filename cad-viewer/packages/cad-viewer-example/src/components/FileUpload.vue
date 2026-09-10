@@ -206,7 +206,11 @@ const selectedMode = ref<AcEdOpenMode>(AcEdOpenMode.Write)
 const selectedOpenViewMode = ref<OpenViewModeChoice>('auto')
 const useMainThreadDraw = ref(false)
 const drawNoPlotLayers = ref(false)
-const progressiveRendering = ref(false)
+// Default ON to stay aligned with App.vue and the documented M2 behaviour
+// ("加载期间画面可交互"): progressive rendering is the gate that enables the
+// mid-open convert/paint yields (P1-14 / P2-1 / P2-6). The radio group below
+// still lets the user turn it off per open.
+const progressiveRendering = ref(true)
 
 const openViewModes = computed(() => [
   {

@@ -19,18 +19,27 @@ export {
   acdbSetLayoutManagerFactory,
   acdbDxfValueType,
   ACDB_DXF_MTEXT_CHUNK_CHARS,
+  ACDB_DXF_WIRE_CHUNK_BYTES,
   ACDB_DXF_XDATA_BINARY_MAX_BYTES,
   ACDB_DXF_XDATA_STRING_MAX_BYTES,
   acdbChunkBinaryByMaxBytes,
   acdbChunkDxfMTextContents,
-  acdbChunkUtf8ByMaxBytes
+  acdbChunkUtf8ByMaxBytes,
+  acdbDrainDxfPairsChunked,
+  acdbDxfWireChunking,
+  acdbJoinDxfPairWireChunks,
+  acdbMakeDxfPairChunkReader
 } from './base/'
 export type {
   AcDbDxfFilerMode,
   AcDbDxfFilerOptions,
   AcDbDxfOutputFormat,
   AcDbDxfPair,
+  AcDbDxfPairChunkDrainOptions,
+  AcDbDxfPairChunkDrainSummary,
+  AcDbDxfPairChunkReader,
   AcDbDxfPairReader,
+  AcDbDxfPairWireChunk,
   AcDbDxfValueType,
   AcDbDxfMTextContentChunk,
   AcDbObjectAttrs,
@@ -54,6 +63,7 @@ export {
   acdbCreateWorkerApi
 } from './converter'
 export type {
+  AcDbWorkerChunkSession,
   AcDbWorkerConfig,
   AcDbWorkerInstance,
   AcDbWorkerMessage,

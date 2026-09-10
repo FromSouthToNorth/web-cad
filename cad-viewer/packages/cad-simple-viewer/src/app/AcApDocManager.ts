@@ -586,6 +586,12 @@ export class AcApDocManager {
    * This method should be called before accessing the `instance` property
    * if you want to provide a specific canvas element.
    *
+   * Container reuse contract: {@link destroy} releases the view and its WebGL
+   * resources (canvas included), and sets `_instance` back to `undefined`. A
+   * container that a destroyed instance was created with therefore belongs to
+   * that dead view and must not be handed to a new instance; pass a freshly
+   * created container element per instance.
+   *
    * @param options -Options for creating AcApDocManager instance
    * @returns The singleton instance
    */
@@ -620,11 +626,47 @@ export class AcApDocManager {
   }
 
   /**
-   * Destroy the view and unload all plugins
+   * Destroys the manager and unloads all plugins.
+   *
+   * The document, its context, its overlay/reference drawings, and the view are
+   * torn down as well: view listeners that live on module-level singletons or on
+   * `document`, the self-scheduling animation loop, the rendered scene, and the
+   * reference the renderer keeps to the drawing database (hundreds of MB for
+   * large drawings) are all released, so a destroyed manager no longer pins the
+   * previous drawing.
+   *
+   * After this call {@link AcApDocManager._instance} is cleared and the view —
+   * including its canvas and WebGL resources — is released, so callers that want
+   * to keep using the viewer must create a new instance with a fresh container.
    */
   async destroy() {
     await this._pluginManager.unloadAllPlugins()
     this.context.doc.destroy()
+    // Overlay/reference drawings are parsed into their own databases and are only
+    // reachable from this manager, so drop them here instead of leaving a whole
+    // extra drawing pinned by a destroyed instance.
+    this.clearOverlays()
+    // Capture the view before the context teardown below: a context
+    // implementation is free to drop its own view reference while removing
+    // listeners.
+    const view = this.context.view as AcTrView2d
+    // The draw style toolbar listens on `AcApSettingManager.instance` and on
+    // `document`; both outlive this manager and keep the view (hence the
+    // renderer and the drawing database it references) reachable.
+    this._drawStyleToolbar.dispose?.()
+    // The context listens on the global `AcDbSysVarManager` singleton, so its
+    // listener must be removed explicitly or it keeps calling into a dead
+    // view/database of the previous drawing.
+    ;(this.context as AcApContext & { destroy?: () => void }).destroy?.()
+    // Stop the self-scheduling animation loop first: its request callback closes
+    // over the view, so it alone keeps the whole scene and database alive. This
+    // is also the fallback when the optional `dispose()` hook below is absent.
+    view.stopAnimationLoop?.()
+    ;(view as AcTrView2d & { dispose?: () => void }).dispose?.()
+    // `renderer.context.database` is the last reference to the parsed database;
+    // unbind it even when `dispose()` already did, so a destroyed view cannot
+    // pin the previous drawing.
+    view.bindDrawDatabase?.(undefined)
     acapUninstallOpenFileDialog()
     AcTrMTextRenderer.resetInstance()
     resetWebworkerReadinessCache()
@@ -1773,7 +1815,16 @@ export class AcApDocManager {
     } else {
       this._openFileProfiler.cancel()
       ;(this.curView as AcTrView2d).endProgressiveOpenFit()
-      this.regen()
+      // `regen()` replays the whole database through the converter, so it is
+      // only worth doing when the failed attempt actually reset the database.
+      // When the failure happened before that reset (no converter registered for
+      // the file type, or a URI that could not be fetched) the previous drawing
+      // is still intact and the view was already cleared: replaying hundreds of
+      // thousands of entities would stall the viewer for nothing behind a
+      // failed open.
+      if (this.context.doc.database.wasResetForLatestOpenAttempt) {
+        this.regen()
+      }
     }
   }
 
@@ -1811,11 +1862,25 @@ export class AcApDocManager {
    * Checks whether the current document's database already has usable content
    * even though the open operation reported failure.
    *
+   * Only content produced by the failed attempt itself counts, as reported by
+   * {@link AcDbDatabase.wasResetForLatestOpenAttempt}: a failure that happens
+   * before the database is reset leaves the previous drawing loaded, and that
+   * stale drawing must not be presented as recovered partial content.
+   *
    * @returns True when the database has recoverable partial content.
    * @protected
    */
   protected hasRecoverablePartialContent(): boolean {
     const db = this.context.doc.database
+    // One database instance is reused by every open, so a failed attempt that
+    // never reached `db.read`'s destructive reset (a `.dwg` with no registered
+    // converter, for example) leaves the previous drawing in place. That stale
+    // drawing trivially satisfies "model space has entities", so without this
+    // gate the failure is misread as a recovered partial open and the document
+    // is activated against content from the previous file.
+    if (!db.wasResetForLatestOpenAttempt) {
+      return false
+    }
     // `db.extents` comes from the DWG/DXF header, and some DXF files omit it
     // entirely, leaving it empty even when entities parsed successfully. Check
     // for actual entities in model space first, and only fall back to the

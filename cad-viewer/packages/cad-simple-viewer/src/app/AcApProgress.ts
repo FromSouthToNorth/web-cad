@@ -39,6 +39,22 @@ export interface AcApProgressOptions {
   overlay?: boolean
 
   /**
+   * Whether pointer input passes through the fullscreen dimmer.
+   *
+   * When `false` (default) the overlay is modal: it swallows every click,
+   * wheel and drag over its host, which is what short, deliberately blocking
+   * work (export, DXF conversion) wants. Long background work that must leave
+   * the viewer usable — e.g. progressive document open, where geometry keeps
+   * draining for seconds — sets this to `true`, otherwise the ribbon and
+   * canvas are unreachable for the whole operation. The spinner/progress
+   * wrapper stays interactive either way, so the indicator remains the single
+   * dead zone in passthrough mode.
+   *
+   * @defaultValue `false`
+   */
+  passthroughPointer?: boolean
+
+  /**
    * Background color used when {@link overlay} is enabled.
    * @defaultValue `"rgba(0,0,0,0.18)"`
    */
@@ -144,6 +160,7 @@ export class AcApProgress {
       color: options.color ?? 'var(--ml-ui-accent, #0b84ff)',
       host: options.host ?? document.body,
       overlay: options.overlay ?? true,
+      passthroughPointer: options.passthroughPointer ?? false,
       overlayColor:
         options.overlayColor ?? 'var(--ml-ui-overlay, rgba(0,0,0,0.5))',
       message: options.message ?? '',
@@ -274,7 +291,9 @@ export class AcApProgress {
     }
 
     const root = document.createElement('div')
-    root.className = 'ml-ccl-overlay'
+    root.className = this.options.passthroughPointer
+      ? 'ml-ccl-overlay ml-ccl-overlay-passthrough'
+      : 'ml-ccl-overlay'
     root.style.display = 'flex'
     root.style.background = this.options.overlay
       ? this.options.overlayColor
@@ -358,11 +377,20 @@ export class AcApProgress {
     pointer-events: auto;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
   }
+
+  /* Passthrough variant (see AcApProgressOptions.passthroughPointer): the
+     dimmer drops its own hit target so pointer input reaches the UI below.
+     The wrapper opts back in, which keeps the spinner/progress column as the
+     only dead zone. */
+  .ml-ccl-overlay-passthrough {
+    pointer-events: none;
+  }
   
   .ml-ccl-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
+    pointer-events: auto;
   }
 
   .ml-ccl-spinner-stage {

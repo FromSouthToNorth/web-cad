@@ -2,6 +2,11 @@
  * Default work-slice budget (ms) before a cooperative UI yield during
  * main-thread work. Large enough to keep throughput high; small enough that
  * spinners and progress UI still update.
+ *
+ * Shared default — do not lower it globally. The DXF parse path deliberately
+ * passes its own one-frame budget (`ACDB_DXF_PARSE_YIELD_BUDGET_MS` in
+ * `@hy/data-model`) rather than changing this value, because other gates
+ * (e.g. the block-render cache) also rely on this default.
  */
 export const ACCM_DEFAULT_UI_YIELD_BUDGET_MS = 50
 

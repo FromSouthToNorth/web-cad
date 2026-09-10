@@ -4,6 +4,7 @@ export {
   acdbCreateWorkerApi
 } from './AcDbWorkerManager'
 export type {
+  AcDbWorkerChunkSession,
   AcDbWorkerConfig,
   AcDbWorkerInstance,
   AcDbWorkerProgressCallback,

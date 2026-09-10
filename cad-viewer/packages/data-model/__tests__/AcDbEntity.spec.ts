@@ -1,4 +1,4 @@
-import { AcCmColor } from '@hy/common'
+import { AcCmColor, AcCmTransparency } from '@hy/common'
 import { DEFAULT_ACGI_CONTEXT, AcGiContext } from '@hy/graphic-interface'
 import {
   AcGeBox3d,
@@ -9,10 +9,12 @@ import {
   AcGeVector3d
 } from '@hy/geometry-engine'
 
+import { AcDbDxfFiler } from '../src/base/AcDbDxfFiler'
 import { acdbHostApplicationServices } from '../src/base/AcDbHostApplicationServices'
 import { AcDbDatabase } from '../src/database/AcDbDatabase'
 import { AcDbLayerTableRecord } from '../src/database/AcDbLayerTableRecord'
 import { AcDbLinetypeTableRecord } from '../src/database/AcDbLinetypeTableRecord'
+import { AcDbDxfDocumentReader } from '../src/dxf/AcDbDxfDocumentReader'
 import { AcDb2dPolyline, AcDbPoly2dType } from '../src/entity/AcDb2dPolyline'
 import { AcDb2dVertex } from '../src/entity/AcDb2dVertex'
 import { AcDbArc } from '../src/entity/AcDbArc'
@@ -226,6 +228,103 @@ describe('AcDbEntity.color resolution', () => {
     line.color.setByLayer()
 
     expect(line.resolvedColor.RGB).toBe(0xaa5500)
+  })
+})
+
+describe('AcDbEntity lazy color and transparency defaults', () => {
+  let db: AcDbDatabase
+
+  beforeEach(() => {
+    db = new AcDbDatabase()
+    db.createDefaultData()
+    acdbHostApplicationServices().workingDatabase = db
+  })
+
+  const createLine = () =>
+    new AcDbLine(new AcGePoint3d(0, 0, 0), new AcGePoint3d(1, 0, 0))
+
+  it('keeps the unset color and transparency values unchanged', () => {
+    db.cecolor = new AcCmColor().setRGBValue(0x336699)
+
+    const line = createLine()
+    line.layer = '0'
+    db.tables.blockTable.modelSpace.appendEntity(line)
+
+    // Color is still seeded from CECOLOR for programmatically created
+    // entities; laziness must not change the observable value.
+    expect(line.color.isByLayer).toBe(false)
+    expect(line.color.RGB).toBe(0x336699)
+
+    // Transparency was never assigned: ByLayer / alpha 255, i.e. the value the
+    // previous eagerly allocated `new AcCmTransparency()` held.
+    const transparency = line.transparency
+    expect(transparency.isByLayer).toBe(true)
+    expect(transparency.isByAlpha).toBe(false)
+    expect(transparency.alpha).toBe(255)
+    expect(transparency.percentage).toBeUndefined()
+    expect(transparency.serialize()).toBe(new AcCmTransparency().serialize())
+    // First access materializes once and then keeps returning that instance.
+    expect(line.transparency).toBe(transparency)
+  })
+
+  it('reports an entity without DXF color group as ByLayer, not CECOLOR', async () => {
+    const dxf =
+      '0\nSECTION\n2\nHEADER\n' +
+      '9\n$ACADVER\n1\nAC1024\n' +
+      '9\n$CECOLOR\n62\n4\n' +
+      '0\nENDSEC\n' +
+      '0\nSECTION\n2\nTABLES\n' +
+      '0\nTABLE\n2\nLAYER\n70\n2\n' +
+      '0\nLAYER\n2\n0\n70\n0\n62\n7\n6\nContinuous\n' +
+      '0\nLAYER\n2\nWALLS\n70\n0\n62\n1\n6\nContinuous\n' +
+      '0\nENDTAB\n' +
+      '0\nENDSEC\n' +
+      '0\nSECTION\n2\nENTITIES\n' +
+      '0\nLINE\n8\nWALLS\n' +
+      '10\n0\n20\n0\n30\n0\n' +
+      '11\n10\n21\n0\n31\n0\n' +
+      '0\nENDSEC\n' +
+      '0\nEOF'
+
+    const dxfDb = new AcDbDatabase()
+    acdbHostApplicationServices().workingDatabase = dxfDb
+    await new AcDbDxfDocumentReader(dxfDb).read(
+      AcDbDxfFiler.fromString(dxf, { database: dxfDb })
+    )
+
+    const [line] = [...dxfDb.tables.blockTable.modelSpace.newIterator()]
+    // The lazily materialized default must be exactly `new AcCmColor()`:
+    // ByLayer (ACI 256) with no RGB, never the CECOLOR tint (ACI 4).
+    expect(line.color.isByLayer).toBe(true)
+    expect(line.color.colorIndex).toBe(256)
+    expect(line.color.RGB).toBeUndefined()
+    expect(line.color.isByBlock).toBe(false)
+    // ... and it still resolves against the entity's layer (WALLS = ACI 1).
+    expect(line.resolvedColor.colorIndex).toBe(1)
+  })
+
+  it('does not leak in-place color or transparency edits between entities', () => {
+    db.cecolor = new AcCmColor().setByLayer()
+
+    const a = createLine()
+    const b = createLine()
+    a.layer = '0'
+    b.layer = '0'
+    db.tables.blockTable.modelSpace.appendEntity(a)
+    db.tables.blockTable.modelSpace.appendEntity(b)
+
+    expect(a.color).not.toBe(b.color)
+    expect(a.transparency).not.toBe(b.transparency)
+
+    // Mutating copies that callers receive in place must stay entity-local.
+    a.color.colorIndex = 1
+    a.transparency.alpha = 0
+
+    expect(a.color.colorIndex).toBe(1)
+    expect(b.color.isByLayer).toBe(true)
+    expect(b.color.colorIndex).toBe(256)
+    expect(b.transparency.isByLayer).toBe(true)
+    expect(b.transparency.alpha).toBe(255)
   })
 })
 

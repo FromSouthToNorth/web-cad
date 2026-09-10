@@ -75,7 +75,16 @@ export abstract class AcDbBaseWorker<TInput = unknown, TOutput = unknown> {
    */
   private setupMessageHandler(): void {
     self.onmessage = async (event: MessageEvent<AcDbWorkerMessage<TInput>>) => {
-      const { id, input } = event.data
+      const data = event.data as AcDbWorkerMessage<TInput> | undefined
+      // Only task messages carry an `id`. Everything else on this channel is
+      // flow control (for example the chunk credit/stop messages a streaming
+      // worker uses). Dispatching those as tasks would call `executeTask` with
+      // an undefined input: it would throw *and*, worse, clobber the in-flight
+      // task's state — a streaming worker resets its credit waiters there, so
+      // the parked producer promise would never be resumed and the stream
+      // would stall forever.
+      if (!data || typeof data.id !== 'string') return
+      const { id, input } = data
       const context: AcDbWorkerTaskContext = {
         reportProgress: progress => this.sendProgress(id, progress)
       }

@@ -53,6 +53,31 @@ const _composedLineStyleCache = new WeakMap<
 >()
 
 /**
+ * Case-insensitive comparison against an upper-case ASCII keyword that never
+ * allocates, unlike `value.toUpperCase() === keyword`.
+ *
+ * {@link AcDbEntity.lineType} is assigned for every DXF group 6 pair (~384k
+ * times when importing a large drawing) and the value is almost always a
+ * mixed-case linetype name such as `Continuous`, so the former pair of
+ * `toUpperCase()` calls produced one throwaway string per entity on the import
+ * hot path. Exactness: ASCII case mapping is one-to-one, so a character that
+ * is not the keyword's character under `toUpperCase()` (including every
+ * non-ASCII character) can never make the strings equal.
+ */
+function acdbEqualsAsciiKeywordIgnoreCase(
+  value: string,
+  keyword: string
+): boolean {
+  if (value.length !== keyword.length) return false
+  for (let i = 0; i < value.length; i++) {
+    let code = value.charCodeAt(i)
+    if (code >= 97 && code <= 122) code -= 32
+    if (code !== keyword.charCodeAt(i)) return false
+  }
+  return true
+}
+
+/**
  * Abstract base class for all drawing entities.
  *
  * This class provides the fundamental functionality for all drawing entities,
@@ -80,6 +105,19 @@ export abstract class AcDbEntity extends AcDbObject {
   private _layer?: string
   /** The color of this entity */
   private _color?: AcCmColor
+  /**
+   * True when the entity was read from a DXF file with no color group
+   * (62/420) and therefore defaults to ByLayer.
+   *
+   * {@link applyDxfFileDefaults} used to allocate a ByLayer `AcCmColor` for
+   * every such entity on the import path (~386k allocations on a large
+   * drawing). This flag replaces that allocation: {@link getEntityColor}
+   * materializes the equivalent ByLayer color on first access, while the two
+   * decisions that used to be keyed off `_color != null` keep their exact
+   * previous answers — {@link hasExplicitColor} still reports true and
+   * {@link resolveEffectiveProperties} still skips the CECOLOR seed.
+   */
+  private _colorIsByLayerDefault: boolean = false
   /** The linetype name for this entity */
   private _lineType?: string
   /** The line weight for this entity */
@@ -88,8 +126,16 @@ export abstract class AcDbEntity extends AcDbObject {
   private _linetypeScale?: number
   /** Whether this entity is visible */
   private _visibility: boolean = true
-  /** The transparency level of this entity (0-1) */
-  private _transparency: AcCmTransparency = new AcCmTransparency()
+  /**
+   * The transparency level of this entity (0-1).
+   *
+   * Lazily allocated: only entities carrying DXF group 440 ever need a value,
+   * so the eager per-entity `new AcCmTransparency()` at construction was pure
+   * overhead on the import path. The getter materializes the default
+   * (ByLayer / alpha 255) on first access and caches it, so each entity still
+   * owns its own mutable instance exactly as before.
+   */
+  private _transparency?: AcCmTransparency
   /** Whether transparency was explicitly assigned on this entity. */
   private _transparencySet: boolean = false
   /** DXF group 67 paper-space flag captured during dxfIn. */
@@ -256,9 +302,9 @@ export abstract class AcDbEntity extends AcDbObject {
   set lineType(value: string) {
     if (!value) {
       this._lineType = ByLayer
-    } else if (value.toUpperCase() === 'BYLAYER') {
+    } else if (acdbEqualsAsciiKeywordIgnoreCase(value, 'BYLAYER')) {
       this._lineType = ByLayer
-    } else if (value.toUpperCase() === 'BYBLOCK') {
+    } else if (acdbEqualsAsciiKeywordIgnoreCase(value, 'BYBLOCK')) {
       this._lineType = ByBlock
     } else {
       this._lineType = value
@@ -361,7 +407,9 @@ export abstract class AcDbEntity extends AcDbObject {
    * ```
    */
   get transparency() {
-    return this._transparency
+    // `??=` preserves the previous per-entity identity: the first access
+    // allocates the mutable default, later accesses return that same object.
+    return (this._transparency ??= new AcCmTransparency())
   }
 
   /**
@@ -388,18 +436,28 @@ export abstract class AcDbEntity extends AcDbObject {
 
   /**
    * Returns whether a color value has been explicitly assigned on this entity.
+   *
+   * A DXF-loaded entity whose file omitted color group 62/420 counts as
+   * "entity-owned" too: its color is the ByLayer default rather than a
+   * database-wide default such as HPCOLOR/CECOLOR. {@link AcDbHatch} relies on
+   * this distinction, and it kept the same answer when
+   * {@link applyDxfFileDefaults} materialized that default eagerly.
    */
   protected hasExplicitColor() {
-    return this._color != null
+    return this._color != null || this._colorIsByLayerDefault
   }
 
   /**
    * Returns the stored entity color, initializing it from CECOLOR if needed.
+   *
+   * Entities marked by {@link applyDxfFileDefaults} are materialized as the
+   * ByLayer default (`new AcCmColor()`) instead of the CECOLOR seed, which is
+   * exactly what the eager allocation used to store for them.
    */
   protected getEntityColor() {
     if (this._color == null) {
       this._color = new AcCmColor()
-      if (this.database.cecolor) {
+      if (!this._colorIsByLayerDefault && this.database.cecolor) {
         this._color.copy(this.database.cecolor)
       }
     }
@@ -410,6 +468,7 @@ export abstract class AcDbEntity extends AcDbObject {
    * Assigns the stored entity color.
    */
   protected setEntityColor(value: AcCmColor) {
+    this._colorIsByLayerDefault = false
     if (this._color == null) this._color = new AcCmColor()
     this._color.copy(value)
   }
@@ -431,11 +490,15 @@ export abstract class AcDbEntity extends AcDbObject {
    * right after dxfIn so that {@link resolveEffectiveProperties} doesn't bake
    * CECOLOR into file-loaded entities on append.
    *
+   * Records the default lazily ({@link getEntityColor} materializes the
+   * ByLayer color on first access) instead of allocating an `AcCmColor` per
+   * entity; ~89% of the entities in a large processed drawing take this path.
+   *
    * @internal
    */
   applyDxfFileDefaults() {
     if (this._color == null) {
-      this._color = new AcCmColor()
+      this._colorIsByLayerDefault = true
     }
   }
 
@@ -600,7 +663,11 @@ export abstract class AcDbEntity extends AcDbObject {
       this._layer = this.database.clayer ?? '0'
     }
 
-    if (this._color == null && this.shouldResolveColorFromCecolor()) {
+    if (
+      this._color == null &&
+      !this._colorIsByLayerDefault &&
+      this.shouldResolveColorFromCecolor()
+    ) {
       this._color = new AcCmColor()
       if (this.database.cecolor) {
         this._color.copy(this.database.cecolor)

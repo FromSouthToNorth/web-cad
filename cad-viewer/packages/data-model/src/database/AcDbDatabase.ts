@@ -183,8 +183,11 @@ export interface AcDbOpenDatabaseOptions {
   /**
    * Opens the drawing database in read-only mode.
    *
-   * When true, the database will be opened in read-only mode, preventing
-   * any modifications to the database content.
+   * A read always replaces the whole database without recording the imported
+   * content into an active transaction (see {@link AcDbDatabase.read}), so a
+   * read is change-free whether or not this flag is set. The flag is kept for
+   * callers that describe the access mode of an open; the data model honors it
+   * by never recording a read.
    */
   readOnly?: boolean
 
@@ -420,6 +423,17 @@ export class AcDbDatabase extends AcDbObject {
   private _pendingDictObjectSet: { object: AcDbObject; key: string }[] = []
   private _pendingDictObjectErased: { object: AcDbObject; key: string }[] = []
   private _lastOpenError: AcDbOpenDatabaseError | null = null
+  /** Id of the most recent open attempt started on this database. */
+  private _openAttemptId = 0
+  /**
+   * {@link _openAttemptId} of the last open attempt that reached the
+   * destructive reset in {@link read}.
+   *
+   * It stays behind `_openAttemptId` when an attempt fails before that reset
+   * (for example a file type with no registered converter, or a URI that cannot
+   * be fetched), which means the previous drawing is still loaded and untouched.
+   */
+  private _resetAttemptId = -1
 
   /**
    * Events that can be triggered by the database.
@@ -827,8 +841,12 @@ export class AcDbDatabase extends AcDbObject {
    */
   notifyEntityAppended(entity: AcDbEntity | AcDbEntity[]): void {
     if (this.isEventBatched()) {
-      const items = Array.isArray(entity) ? entity : [entity]
-      this._pendingEntityAppended.push(...items)
+      // Avoid allocating a single-element array for the common one-entity call.
+      if (Array.isArray(entity)) {
+        this._pendingEntityAppended.push(...entity)
+      } else {
+        this._pendingEntityAppended.push(entity)
+      }
       return
     }
     this.events.entityAppended.dispatch({
@@ -2145,11 +2163,31 @@ export class AcDbDatabase extends AcDbObject {
   }
 
   /**
+   * Whether the most recent open attempt reset this database, so any content it
+   * holds now came from that attempt.
+   *
+   * `false` means the attempt failed before its destructive reset — no converter
+   * is registered for the file type, or the file could not be fetched — and the
+   * database still holds the drawing that was loaded before. Callers use this to
+   * tell "recovered partial content produced by the failed attempt" apart from
+   * "the previous drawing is still here".
+   */
+  get wasResetForLatestOpenAttempt(): boolean {
+    return this._resetAttemptId === this._openAttemptId
+  }
+
+  /**
    * Reads drawing data from a string or ArrayBuffer.
    *
    * This method parses the provided data and populates the database with
    * the resulting entities, tables, and objects. The method supports
    * both DXF and DWG file formats.
+   *
+   * A read always resets and repopulates this database; the imported content is
+   * never recorded as changes of a caller's active transaction (recording is
+   * suspended and `strictMode` is relaxed for the duration of the import), so a
+   * read performed inside a transaction leaves that transaction's change list
+   * untouched.
    *
    * @param data - The drawing data as a string or ArrayBuffer
    *   - For DXF files: Pass a string containing the DXF content
@@ -2173,41 +2211,63 @@ export class AcDbDatabase extends AcDbObject {
     options: AcDbOpenDatabaseOptions,
     fileType: AcDbConverterType = AcDbFileType.DXF
   ) {
+    // Take the attempt id before the converter lookup: when no converter is
+    // registered this method throws without resetting the database, so the
+    // previous drawing stays loaded and must not be reported as content produced
+    // by this attempt (see `wasResetForLatestOpenAttempt`).
+    this._openAttemptId++
     const converter = AcDbDatabaseConverterManager.instance.get(fileType)
     if (converter == null)
       throw new Error(
         `Database converter for file type '${fileType}' isn't registered and can can't read this file!`
       )
 
-    this.clear()
-    this._lastOpenError = null
-    this._drawNoPlotLayers = options?.drawNoPlotLayers ?? true
-    if (options?.fileName) {
-      this.setDwgName(options.fileName)
-    }
-
-    // Ensure this database is the host working database for the duration of
-    // conversion. Converters (including peer packages such as dxf-json-converter)
-    // assign real handles on unbound objects; some entity getters still fall
-    // back to the working database before append/add binds them.
-    acdbAssignWorkingDatabase(this)
+    // A read replaces the whole database, and that reset is not undoable, so
+    // recording the imported objects into a caller's active transaction only
+    // builds a change list that can never be applied coherently (the change
+    // recorder's coalescing scan also makes that recording quadratic in the
+    // entity count). Suspend recording and relax strict mode for the entire
+    // import, then restore the caller's setup.
+    const transactionManager = this.transactionManager
+    const strictMode = transactionManager.strictMode
+    transactionManager.strictMode = false
+    const resumeRecording = transactionManager.suspendRecording()
 
     try {
-      await converter.read(data, this, {
-        minimumChunkSize: (options && options.minimumChunkSize) || 10,
-        progress: this.createConversionProgressHandler(),
-        timeout: options?.timeout,
-        sysVars: options?.sysVars
-      })
-    } catch (error) {
-      const openError = AcDbOpenDatabaseError.from(error)
-      this._lastOpenError = openError
-      this.events.openFailed.dispatch({ database: this, error: openError })
-      throw openError
-    }
+      this.clear()
+      this._resetAttemptId = this._openAttemptId
+      this._lastOpenError = null
+      this._drawNoPlotLayers = options?.drawNoPlotLayers ?? true
+      if (options?.fileName) {
+        this.setDwgName(options.fileName)
+      }
 
-    this._lastOpenError = null
-    this.ensureDatabaseDefaults()
+      // Ensure this database is the host working database for the duration of
+      // conversion. Converters (including peer packages such as dxf-json-converter)
+      // assign real handles on unbound objects; some entity getters still fall
+      // back to the working database before append/add binds them.
+      acdbAssignWorkingDatabase(this)
+
+      try {
+        await converter.read(data, this, {
+          minimumChunkSize: (options && options.minimumChunkSize) || 10,
+          progress: this.createConversionProgressHandler(),
+          timeout: options?.timeout,
+          sysVars: options?.sysVars
+        })
+      } catch (error) {
+        const openError = AcDbOpenDatabaseError.from(error)
+        this._lastOpenError = openError
+        this.events.openFailed.dispatch({ database: this, error: openError })
+        throw openError
+      }
+
+      this._lastOpenError = null
+      this.ensureDatabaseDefaults()
+    } finally {
+      resumeRecording()
+      transactionManager.strictMode = strictMode
+    }
   }
 
   private createConversionProgressHandler(): AcDbConversionProgressCallback {
@@ -2249,6 +2309,9 @@ export class AcDbDatabase extends AcDbObject {
    * @param options Input options to read drawing data
    */
   async openUri(url: string, options: AcDbOpenDatabaseOptions): Promise<void> {
+    // The fetch below can fail before `read()` runs, so this attempt has to be
+    // registered here to keep `wasResetForLatestOpenAttempt` false for it.
+    this._openAttemptId++
     this.events.openProgress.dispatch({
       database: this,
       percentage: 0,

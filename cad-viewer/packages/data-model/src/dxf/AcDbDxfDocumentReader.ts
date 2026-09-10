@@ -1,8 +1,4 @@
-import {
-  ACCM_DEFAULT_UI_YIELD_BUDGET_MS,
-  AcCmUiYieldGate,
-  accmYieldToUi
-} from '@hy/common'
+import { AcCmUiYieldGate, accmYieldToUi } from '@hy/common'
 import { AcGePoint3d } from '@hy/geometry-engine'
 
 import { AcDbDxfFiler } from '../base/AcDbDxfFiler'
@@ -35,15 +31,47 @@ import { acdbDxfInEntity } from './AcDbDxfEntityFactory'
 import { acdbDxfInHeader } from './AcDbDxfHeaderReader'
 import { AcDbDxfObjectsReader } from './AcDbDxfObjectsReader'
 
+/**
+ * Cooperative-yield budget (ms) for DXF semantic parsing: one 60 Hz frame.
+ *
+ * Parse work runs in time slices and a slice must stay below one frame so the
+ * browser can paint and dispatch input between slices. Measured on a
+ * software-rendered Chromium with a 112MB / 434,083-entity DXF, lowering the
+ * budget from 50ms to one frame turned 37~40 long tasks into 0, raised the
+ * frame rate from ~20fps to ~48fps and cut the worst frame gap from 50.4ms to
+ * 20.9ms, for +0.2% (4.5ms/2500ms) wall clock.
+ *
+ * Deliberately *not* `ACCM_DEFAULT_UI_YIELD_BUDGET_MS`: that shared default
+ * also drives unrelated gates (e.g. the block-render cache), and a slice
+ * shorter than a frame would waste most of the wall clock waiting on vsync.
+ */
+export const ACDB_DXF_PARSE_YIELD_BUDGET_MS = 16
+
+/**
+ * Entity-count polling interval for the time-budgeted yield gate while
+ * streaming the ENTITIES section (also used for block definitions).
+ *
+ * The yield *boundary* is the time budget
+ * ({@link ACDB_DXF_PARSE_YIELD_BUDGET_MS}); this constant only decides how
+ * often the cheap budget check runs, and is intentionally independent of the
+ * caller's `minimumChunkSize`. That option used to be forwarded as the batch
+ * size, so a caller passing `minimumChunkSize: 1000` turned every parse slice
+ * into `50ms + 1000 entities`. 250 entities is ≈1ms of overrun at the
+ * measured per-entity parse cost, keeping a slice at ≈16~17ms.
+ */
+export const ACDB_DXF_PARSE_ENTITY_BATCH_SIZE = 250
+
 export interface AcDbDxfDocumentReaderOptions {
   /**
-   * How often to check parse progress / UI yield while streaming entities
-   * (entity count). Actual yields are time-budgeted via {@link yieldBudgetMs}.
+   * How often to poll parse progress / UI yield while streaming entities
+   * (entity count). Actual yields are time-budgeted via {@link yieldBudgetMs},
+   * so this is a polling interval rather than a yield boundary.
+   * Defaults to {@link ACDB_DXF_PARSE_ENTITY_BATCH_SIZE}.
    */
   entityBatchSize?: number
   /**
    * Minimum wall time between cooperative UI yields during parse.
-   * Defaults to {@link ACCM_DEFAULT_UI_YIELD_BUDGET_MS}.
+   * Defaults to {@link ACDB_DXF_PARSE_YIELD_BUDGET_MS} (one frame).
    */
   yieldBudgetMs?: number
   /**
@@ -80,7 +108,7 @@ export class AcDbDxfDocumentReader {
     private readonly _options: AcDbDxfDocumentReaderOptions = {}
   ) {
     this._yieldGate = new AcCmUiYieldGate(
-      this._options.yieldBudgetMs ?? ACCM_DEFAULT_UI_YIELD_BUDGET_MS
+      this._options.yieldBudgetMs ?? ACDB_DXF_PARSE_YIELD_BUDGET_MS
     )
   }
 
@@ -98,7 +126,11 @@ export class AcDbDxfDocumentReader {
     this._attributeMap.clear()
     filer.database = this._db
 
-    while (!filer.atEof) {
+    while (true) {
+      // A chunked wire can leave the filer between chunks here; `atEof` is
+      // only meaningful once the refill has been attempted.
+      await filer.ensurePairs()
+      if (filer.atEof) break
       const item = filer.readItem()
       if (!item) break
       if (Number(item.code) !== 0) continue
@@ -535,10 +567,15 @@ export class AcDbDxfDocumentReader {
   }
 
   private async readBlocksSection(filer: AcDbDxfFiler) {
-    const batchSize = Math.max(1, this._options.entityBatchSize ?? 200)
+    const batchSize = Math.max(
+      1,
+      this._options.entityBatchSize ?? ACDB_DXF_PARSE_ENTITY_BATCH_SIZE
+    )
     let sinceYield = 0
 
-    while (!filer.atEof) {
+    while (true) {
+      await filer.ensurePairs()
+      if (filer.atEof) break
       const item = filer.peekItem()
       if (!item) break
       if (Number(item.code) !== 0) {
@@ -579,7 +616,9 @@ export class AcDbDxfDocumentReader {
     const header = this.readBlockBeginFields(filer)
     const btr = this.ensureBlockTableRecord(header)
 
-    while (!filer.atEof) {
+    while (true) {
+      await filer.ensurePairs()
+      if (filer.atEof) break
       const item = filer.peekItem()
       if (!item) break
       if (Number(item.code) !== 0) {
@@ -748,11 +787,16 @@ export class AcDbDxfDocumentReader {
   }
 
   private async readEntitiesSection(filer: AcDbDxfFiler) {
-    const batchSize = Math.max(1, this._options.entityBatchSize ?? 200)
+    const batchSize = Math.max(
+      1,
+      this._options.entityBatchSize ?? ACDB_DXF_PARSE_ENTITY_BATCH_SIZE
+    )
     let sinceYield = 0
     const modelSpace = this._db.tables.blockTable.modelSpace
 
-    while (!filer.atEof) {
+    while (true) {
+      await filer.ensurePairs()
+      if (filer.atEof) break
       const item = filer.peekItem()
       if (!item) break
       if (Number(item.code) !== 0) {

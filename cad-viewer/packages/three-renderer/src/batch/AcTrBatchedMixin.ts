@@ -236,9 +236,7 @@ export function pushAvailableGeometryId(
  * @param availableGeometryIds - Heap-backed pool of freed ids.
  * @returns The smallest available id.
  */
-export function popAvailableGeometryId(
-  availableGeometryIds: number[]
-): number {
+export function popAvailableGeometryId(availableGeometryIds: number[]): number {
   const top = availableGeometryIds[0]
   const last = availableGeometryIds.pop() as number
   if (availableGeometryIds.length > 0) {
@@ -559,8 +557,13 @@ export function copyGeometryIndices(
  * @param geometry - Source geometry payload to write.
  * @param typeName - Batch class name included in error messages.
  * @param slotId - Geometry slot id written into the `slotId` vertex attribute.
+ * @param previousBounds - Bounds of the slot's packed content *before* this
+ *   write, for batches that no longer retain a lazily cached per-slot `Box3`
+ *   (see {@link AcTrBatchedLine}). When omitted, the cached
+ *   `geometryInfo.boundingBox` is used, which preserves the original behavior
+ *   for the remaining batch types.
  * @returns `false` when the slot's new vertex data produces the same local
- *   bounding box as the cached one (callers skip the frustum-bounds
+ *   bounding box as the previous one (callers skip the frustum-bounds
  *   invalidation); `true` otherwise.
  * @throws {Error} When the source geometry exceeds the slot's reserved capacity.
  */
@@ -569,7 +572,8 @@ export function applyGeometryAt<T extends AcTrBatchGeometryLike>(
   batchGeometry: THREE.BufferGeometry,
   geometry: THREE.BufferGeometry,
   typeName: string,
-  slotId: number
+  slotId: number,
+  previousBounds?: THREE.Box3 | null
 ) {
   const hasIndex = batchGeometry.getIndex() !== null
   const srcIndex = geometry.getIndex()
@@ -610,16 +614,24 @@ export function applyGeometryAt<T extends AcTrBatchGeometryLike>(
   }
 
   // Skip the frustum-bounds invalidation when the slot's new vertex data
-  // produces the same local box as the cached one (e.g. a rewrite that moves
-  // nothing). Identical positions yield bitwise-identical boxes, so exact
-  // equality is a sound cheap comparison. All other packing work still runs.
+  // produces the same local box as before (e.g. a rewrite that moves nothing).
+  // Identical positions yield bitwise-identical boxes, so exact equality is a
+  // sound cheap comparison. All other packing work still runs.
+  //
+  // `previousBounds` is supplied by batches that no longer retain a cached
+  // per-slot `Box3`; otherwise the cached box preserves the historical
+  // behavior (including the fact that it only applied once a box had been
+  // materialized).
   let boundsChanged = true
-  const cachedBox = geometryInfo.boundingBox
-  if (cachedBox != null) {
+  const referenceBox = previousBounds ?? geometryInfo.boundingBox
+  if (referenceBox != null) {
     // Always recompute: the source's own box may be stale (rebased in place
     // after it was first computed).
     geometry.computeBoundingBox()
-    if (geometry.boundingBox != null && geometry.boundingBox.equals(cachedBox)) {
+    if (
+      geometry.boundingBox != null &&
+      geometry.boundingBox.equals(referenceBox)
+    ) {
       boundsChanged = false
     }
   }
@@ -645,24 +657,34 @@ export function applyGeometryAt<T extends AcTrBatchGeometryLike>(
 /**
  * Computes global bounding box of all active geometry records in a batch.
  *
- * Unions lazily cached per-slot boxes; slots without computed bounds are skipped.
+ * When `getLocalBounds` is omitted the lazily cached per-slot boxes are unioned
+ * and slots without computed bounds are skipped. Batched classes whose per-slot
+ * bounds can be derived without materializing a cached `Box3` pass
+ * `getLocalBounds` instead.
  *
  * @typeParam T - Geometry-info record type extending {@link AcTrBatchGeometryLike}.
  * @param currentBoundingBox - Existing aggregate box to reuse, or `null` to allocate.
  * @param geometryInfo - Array of per-slot mapping records.
+ * @param getLocalBounds - Optional non-caching per-slot bounds provider.
  * @returns A bounding box containing all active sub-geometries with known bounds.
  */
 export function computeBoundingBox<T extends AcTrBatchGeometryLike>(
   currentBoundingBox: THREE.Box3 | null,
-  geometryInfo: T[]
+  geometryInfo: T[],
+  getLocalBounds?: (geometryId: number, target: THREE.Box3) => THREE.Box3 | null
 ) {
   const boundingBox = currentBoundingBox ?? new THREE.Box3()
   boundingBox.makeEmpty()
+  const scratch = new THREE.Box3()
 
   for (let i = 0, l = geometryInfo.length; i < l; i++) {
     const geometry = geometryInfo[i]
     if (!isBatchGeometryActive(geometry.flags)) continue
-    if (geometry.boundingBox != null) {
+    if (getLocalBounds) {
+      if (getLocalBounds(i, scratch) !== null) {
+        boundingBox.union(scratch)
+      }
+    } else if (geometry.boundingBox != null) {
       boundingBox.union(geometry.boundingBox)
     }
   }
@@ -900,6 +922,8 @@ export function createAcTrBatchedMixin<
     readonly _batchIntersects: THREE.Intersection[] = []
     /** Reused axis-aligned bounding box scratch object. */
     readonly _box = new THREE.Box3()
+    /** Reused scratch box for {@link _localSphereAt}. */
+    readonly _localBoundsScratch = new THREE.Box3()
     /** Reused bounding sphere scratch object. */
     readonly _sphere = new THREE.Sphere()
     /** Reused vector scratch object for ray/box tests. */
@@ -947,19 +971,59 @@ export function createAcTrBatchedMixin<
     /**
      * Recomputes the aggregate bounding box from all active sub-geometries.
      *
+     * Uses {@link _localBoundsAt}, so batches that scan their packed buffers
+     * never materialize a cached `Box3` per slot.
+     *
      * @returns This instance for chaining.
      */
     computeBoundingBox() {
       this.boundingBox = computeBoundingBox(
         this.boundingBox,
-        this._geometryInfo
+        this._geometryInfo,
+        (geometryId, target) => this._localBoundsAt(geometryId, target)
       )
     }
 
     /**
+     * Fills `target` with the batch-local bounds of one slot.
+     *
+     * The default implementation delegates to
+     * {@link AcTrBatchBounds.getBoundingBoxAt}, which lazily materializes and
+     * then permanently caches one `Box3` per slot. Concrete batches whose
+     * packed buffer can be scanned cheaply override this to fill `target`
+     * straight from the packed vertex array instead (see
+     * {@link AcTrBatchedLine} and {@link AcTrBatchedLine2}): every aggregate
+     * bounds query on a 400k-slot batch would otherwise retain ~400k `Box3`
+     * objects (~93MB at ~234B each) for the rest of the session.
+     *
+     * @param geometryId - Slot index to query.
+     * @param target - Reusable {@link THREE.Box3} that receives the result.
+     * @returns `target` when the id is valid, otherwise `null`.
+     */
+    _localBoundsAt(geometryId: number, target: THREE.Box3) {
+      return (this as unknown as AcTrBatchBounds).getBoundingBoxAt(
+        geometryId,
+        target
+      )
+    }
+
+    /**
+     * Per-slot bounding sphere derived from {@link _localBoundsAt}.
+     *
+     * @param geometryId - Slot index to query.
+     * @param target - Reusable {@link THREE.Sphere} that receives the result.
+     * @returns `target` when the id is valid, otherwise `null`.
+     */
+    _localSphereAt(geometryId: number, target: THREE.Sphere) {
+      const bounds = this._localBoundsAt(geometryId, this._localBoundsScratch)
+      return bounds === null ? null : bounds.getBoundingSphere(target)
+    }
+
+    /**
      * Unions axis-aligned bounds of every active, visible packed geometry slot
-     * into `target`. Uses lazily computed per-slot boxes derived from batch
-     * vertex buffers (not entity-level metadata boxes).
+     * into `target`. Uses {@link _localBoundsAt}, i.e. per-slot boxes derived
+     * from batch vertex buffers without retaining a cached `Box3` per slot when
+     * the concrete batch can scan its packed buffer.
      */
     unionActiveVisibleBoundingBoxInto(
       target: THREE.Box3,
@@ -989,10 +1053,7 @@ export function createAcTrBatchedMixin<
         ) {
           continue
         }
-        const bounds = (this as unknown as AcTrBatchBounds).getBoundingBoxAt(
-          i,
-          this._box
-        )
+        const bounds = this._localBoundsAt(i, this._box)
         if (bounds) {
           // Per-slot boxes are in batch-local space; translate by batch origin.
           this._box.applyMatrix4(self.matrixWorld)
@@ -1002,19 +1063,39 @@ export function createAcTrBatchedMixin<
     }
 
     /**
+     * Computes the aggregate batch-local bounding sphere in `target`.
+     *
+     * The default implementation unions one `_localSphereAt` per active slot,
+     * which is what this mixin has always done for mesh/point batches. Batches
+     * that can scan their packed vertex array in one pass override it to build
+     * a single aggregate bounds from that scan (see {@link AcTrBatchedLine} /
+     * {@link AcTrBatchedLine2}): the packed ranges are walked once with plain
+     * min/max comparisons instead of one `Box3` + `Sphere.union` per slot, and
+     * no per-slot bounds object is ever created.
+     *
+     * Both variants return a sphere that encloses every active slot's vertices,
+     * so frustum culling can never drop geometry that is actually in view.
+     *
+     * @param target - Sphere that receives the aggregate result.
+     * @returns `target`, or `null` when no aggregate could be computed.
+     */
+    _computeAggregateLocalSphere(target: THREE.Sphere): THREE.Sphere | null {
+      return computeBoundingSphere(
+        target,
+        this._geometryInfo,
+        (geometryId, sphere) => this._localSphereAt(geometryId, sphere)
+      )
+    }
+
+    /**
      * Recomputes the aggregate bounding sphere from all active sub-geometries.
      *
      * @returns This instance for chaining.
      */
     computeBoundingSphere() {
-      this.boundingSphere = computeBoundingSphere(
-        this.boundingSphere,
-        this._geometryInfo,
-        (geometryId, target) =>
-          (
-            this as unknown as AcTrBatchBaseObject & AcTrBatchBounds
-          ).getBoundingSphereAt(geometryId, target)
-      )
+      const sphere = this.boundingSphere ?? new THREE.Sphere()
+      sphere.makeEmpty()
+      this.boundingSphere = this._computeAggregateLocalSphere(sphere) ?? sphere
     }
 
     /**
@@ -1301,9 +1382,11 @@ export function createAcTrBatchedMixin<
       start: number,
       count: number
     ) {
-      const self = this as unknown as AcTrBatchBaseObject & AcTrBatchBounds
-      self.getBoundingBoxAt(index, this._box)
-      self.getBoundingSphereAt(index, this._sphere)
+      // Deriving the sphere from `_box` (instead of re-deriving the slot bounds)
+      // is numerically identical: `getBoundingSphereAt` also derived it from the
+      // very same slot box, and `_box` now already holds it.
+      this._localBoundsAt(index, this._box)
+      this._box.getBoundingSphere(this._sphere)
       setRaycastObjectInfo(raycastObject, start, count, this._box, this._sphere)
     }
 
@@ -1340,9 +1423,7 @@ export function createAcTrBatchedMixin<
       }
 
       if (geometryInfo.bboxIntersectionCheck) {
-        ;(
-          this as unknown as AcTrBatchBaseObject & AcTrBatchBounds
-        ).getBoundingBoxAt(geometryId, this._box)
+        this._localBoundsAt(geometryId, this._box)
         this._box.applyMatrix4((this as unknown as THREE.Object3D).matrixWorld)
         if (raycaster.ray.intersectBox(this._box, this._vector)) {
           const distance = raycaster.ray.origin.distanceTo(this._vector)

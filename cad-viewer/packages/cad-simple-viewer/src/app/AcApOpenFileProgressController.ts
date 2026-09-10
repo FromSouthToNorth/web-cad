@@ -1,7 +1,4 @@
-import {
-  accmYieldForPaint,
-  AcDbProgressdEventArgs
-} from '@hy/data-model'
+import { accmYieldForPaint, AcDbProgressdEventArgs } from '@hy/data-model'
 
 import { eventBus } from '../editor'
 import { AcApI18n } from '../i18n'
@@ -45,7 +42,13 @@ export class AcApOpenFileProgressController {
   constructor(host: HTMLElement) {
     this._progress = new AcApProgress({
       host,
-      overlayColor: AcApOpenFileProgressController.OVERLAY_DEFAULT
+      overlayColor: AcApOpenFileProgressController.OVERLAY_DEFAULT,
+      // The overlay is mounted on the whole viewer shell and can stay up for
+      // the entire progressive drain (seconds on a large drawing). Keep it
+      // see-through for pointer input so the user can still pan/zoom the
+      // canvas and use the ribbon while geometry arrives; only the centered
+      // spinner/progress wrapper remains a hit target.
+      passthroughPointer: true
     })
     this._progress.hide()
   }

@@ -60,7 +60,7 @@ pnpm format                   # prettier 格式化 packages/**/*.{ts,js,vue,json
 
 ## 架构要点
 
-- monorepo 位于 `cad-viewer/`：pnpm workspace + nx 20，`packages/*` 全部包。
+- monorepo 位于 `cad-viewer/`：pnpm workspace + nx 20，`packages/*` 全部包（共 20 个）。
 - 包依赖拓扑（自底向上）：
   `common` → `geometry-engine` → `graphic-interface` → `data-model` → `cad-simple-viewer` / `three-renderer` → `cad-viewer` / 插件包 → `cad-viewer-example` / `cad-simple-viewer-cli`。
 - 关键包：
@@ -69,7 +69,8 @@ pnpm format                   # prettier 格式化 packages/**/*.{ts,js,vue,json
   - `cad-viewer`：Vue 全功能查看器。
   - `cad-viewer-example`：全功能查看器示例应用。
   - `cad-simple-viewer-cli`：无头 CLI 工具。
-  - 插件：`cad-svg-plugin`、`cad-pdf-plugin`、`cad-html-plugin`、`cad-agent-plugin`、`cad-simple-ui-plugin`、`cad-invertsel-plugin`、`cad-layerctx-plugin`、`cad-search-plugin`。
+  - `vite-config`：共享 vite 构建配置（插件 rollup 产物等）。
+  - 插件：`cad-svg-plugin`、`cad-pdf-plugin`、`cad-html-plugin`、`cad-agent-plugin`、`cad-simple-ui-plugin`、`cad-invertsel-plugin`、`cad-layerctx-plugin`、`cad-search-plugin`、`cad-tunnel-plugin`（绘制巷道：GeoJSON → 巷道/立井/煤仓，根目录 `jsonData/tunnel.json` 为其测试数据）。
 - `cad-tools/`：Python DXF 预处理脚本（`process_dxf.py`），逻辑见 `docs/06-工具脚本/process_dxf处理逻辑分析.md`。
 
 ## 环境要求
@@ -87,6 +88,7 @@ pnpm format                   # prettier 格式化 packages/**/*.{ts,js,vue,json
 - `docs/04-开发规范/`：功能插件开发标准
 - `docs/05-使用手册/`：CAD 命令行命令说明
 - `docs/06-工具脚本/`：预处理脚本逻辑分析
+- `docs/07-更新日志/`：按日期归档的修改记录
 
 ## 注意事项
 
@@ -95,3 +97,4 @@ pnpm format                   # prettier 格式化 packages/**/*.{ts,js,vue,json
 3. 本工作区已移除 GPL-3.0 的 `@mlightcad/libredwg-converter` 依赖，仅保留 MIT 的 DXF 解析链路。
 4. `bootstrap.mjs` 是增量幂等的：已有 `node_modules` 或构建产物时会自动跳过对应步骤。
 5. 大图纸性能优化相关代码改动前，先阅读 `docs/02-性能优化/` 下文档，避免回归已修复热路径。
+6. README.md 中项目结构提到的 `cad/` 测试数据目录当前不存在；巷道插件测试数据在 `jsonData/`。

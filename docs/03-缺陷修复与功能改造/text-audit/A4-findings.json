@@ -1,0 +1,84 @@
+{
+  "unit": "A4 渲染映射、字体回退与中文准确性",
+  "summary": "字段映射逐项核对结果：text/height/width/position/attachmentPoint/drawingDirection/lineSpaceFactor/widthFactor 都如实透传（widthFactor 走 AcGiTextStyle，见 mtext-renderer 30677），AcTrMText.toPlanViewMTextData 只把 z 拍平、其余字段展开保留，属刻意的深度裁剪取舍而非丢字段；但 rotation 实际上被 directionVector 覆盖（渲染角度由方向向量重算），lineSpacingStyle(DXF 73) 与 extentsWidth 在 AcGiMTextData 中无字段而丢失。中文字形回退链为：样式字体 → bigFont → defaultFonts(hztxt/simsun) → symbolFonts → 任一已加载字体的 not-found 字形（bigfont 为全角\"？\"），只有在\"字体名缺失\"时才记 missedFonts 并发 fontNotFound，且默认 worker 渲染模式下该事件根本没有桥回主线程，缺字体提示与 missedData.fonts 都是空的；字体名存在但缺具体字形的情况完全静默。离线（无 CDN）时 worker 侧没有任何字体可加载，IndexedDB 里由主线程缓存的 hztxt.shx 也取不到，汉字退化为只占位的空白（不是空心方框），中文整段不可见。首次绘制时序：新建/编辑后的实体与开图走同一条 batchConvert → enqueueDeferredGeometry → asyncDraw 路径，awaitFontsBeforeDraw=true（AcApDocManager:475）确实会等字体，但结果通过后台 job 异步入库，截图前必须 waitUntilIdle；transient/jig 路径（AcTrView2d:1893）的 asyncDraw 未计入 _pendingGeometryJobs，waitUntilIdle 对它无效。空内容/纯空白 MTEXT 会得到空 Box3，updateSelectionBox 直接把它赋给 wcsBbox，选择框与缩放范围自然漏掉该实体，且 AcTrLayout.registerEntitySpatialIndex 未过滤就把 ±Infinity 倒置条目插入空间索引。宽度方面 CJK 按字体自身 pen advance 前进（无 1em 强算），widthFactor 全局乘到字形与 advance 上对中文同样生效，obliqueAngle 也作用到中文但单位契约自相矛盾。",
+  "findings": [
+    {
+      "id": "A4-1",
+      "title": "行距因子被写死 0.3：新建与编辑 MTEXT 的渲染行距只有单倍行距的 30%，多行中文行叠行",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/command/draw/AcApMTextCmd.ts",
+      "line": "63-65",
+      "evidence": "// AcApMTextCmd.ts:63-65\nmtext.width = result.width\nmtext.height = result.height\nmtext.lineSpacingFactor = result.lineSpacingFactor\n// AcEdMTextEditor.ts:541-543（result.lineSpacingFactor 的来源）\nlineSpacingFactor:\n  mtextInputBox.getLineSpacingFactor?.() ??\n  AcEdMTextEditor.defaultLineSpacingFactor   // = 0.3\n// @mlightcad/mtext-input-box/dist/viewer/viewer.js:1828-1829\n getLineSpacingFactor() { return this.editorLineSpaceFactor ?? MTextInputBox.DEFAULT_LINE_SPACE_FACTOR; }  // 71: DEFAULT_LINE_SPACE_FACTOR = 0.3\n// @mlightcad/mtext-renderer/dist/index.js:28723,29079（渲染器语义）\nconst D0 = 5 / 3, Ni = 1, bn = 0.3;\nreturn Math.max(this.defaultLineSpaceFactor, 0) * this.currentLayoutFontSize * D0;",
+      "impact": "DXF 44 组码语义是\"相对单倍行距(5/3 字高)的比值\"，默认 1.0。新建 MTEXT 时 AcApMTextCmd 把编辑器回传的 0.3 写进实体，渲染行距 = 0.3×字高×5/3 = 0.5 字高，而行本身高约 1 字高 → 多行中文（煤矿图纸标签/说明的常态）行与行直接叠压。且编辑器的实时预览在 editorLineSpaceFactor 为 null 时不设 lineSpaceFactor（viewer.js:1819 仅在非 null 时赋值），预览用渲染器默认 1.0，确认后行距突然收紧，用户看到的是\"提交后文字换行位置/行距突变\"。更严重的是 AcTrView2d.editMTextEntity:1563-1569 在打开编辑器之前就用 acapRunDatabaseEdit 把实体 lineSpacingFactor 强制改成 0.3，用户即使取消编辑也已经永久改掉了原图 DXF 44（典型 1.0）。",
+      "fix": "1) AcEdMTextEditorOptions 增加 lineSpacingFactor 入参，open() 时透传给 MTextInputBox.setLineSpacingFactor，未提供时用渲染器默认 1.0 而不是 0.3；2) 删除 AcTrView2d.editMTextEntity:1563-1569 的强制写入，改为把 mtext.lineSpacingFactor 作为编辑初值传入；3) AcApMTextCmd:65 写回前做 Number.isFinite(result.lineSpacingFactor) && > 0 校验，兜底 1.0。",
+      "confidence": "high",
+      "severity": "P1",
+      "category": "准确性",
+      "verifyIdea": "画一条 3 行中文 MTEXT 后导出 DXF，检查 44 组码是 1.0 还是 0.3，并量测像素行间距是否 ≈5/3×字高。"
+    },
+    {
+      "id": "A4-2",
+      "title": "默认 worker 渲染模式下缺字体告警链路完全断开：worker 只回传 fontLoaded，fontNotFound 与 missedFonts 永远为空；已加载字体缺具体字形则静默画成\"？\"",
+      "file": "cad-viewer/packages/three-renderer/src/renderer/AcTrRenderer.ts",
+      "line": "182-187",
+      "evidence": "// AcTrRenderer.ts:182-187（只桥接主线程 FontManager 的事件）\nFontManager.instance.events.fontNotFound.addEventListener(args => {\n  this.events.fontNotFound.dispatch(args)\n})\n// .../mtext-renderer/dist/mtext-renderer-worker.js:36062-36069（worker 只回传 fontLoaded，无 fontNotFound 分支）\nGt.events.fontLoaded.addEventListener((n) => {\n  self.postMessage({ type: \"fontLoaded\", id: \"\", success: !0, data: { fontName: n?.fontName } });\n});\n// .../mtext-renderer/dist/index.js:31115-31118（主线程只认 fontLoaded 消息）\nif (e.type === \"fontLoaded\") { ... ee.instance.events.fontLoaded.dispatch({ fontName: l }); return; }",
+      "impact": "AcApDocManager:468-472 默认设 'worker' 渲染模式（示例应用 App.vue:167 useMainThreadDraw=false），字形布局与字体装载全部发生在 worker 的独立 FontManager 实例里；recordMissedFonts 的 fontNotFound 事件（index.js:27145-27149）因此没有任何通道回到主线程。后果：AcTrView2d:400-405 的 'font-not-found' 通知不触发，shell 的\"找不到字体\"提示（useAntdCadShell.ts:161-172）不出现；AcTrView2d.missedData.fonts（= 主线程 FontManager.missedFonts，:999-1005）恒为空，\"缺失字体\"面板也空。另有独立的静默路径：字体名已加载但该字符在所有已加载字体/默认链里都没有字形时，resolveCharShape 落到 getNotFoundTextShape（index.js:30078-30082），SHX bigfont 会取全角\"？\"（index.js:26592-26594: fontType===BIGFONT ? \"？\" : \"?\"），既不计 missedFonts 也不发事件，仓库侧也从未消费 unsupportedChars / getUnsupportedChar（全仓仅 AcTrStyleManager.ts:67 与 AcTrMTextRenderer.ts:26 声明了 unsupportedTextStyles，无读取）。像素级验证会把\"缺字\"与\"本来就该画这个？\"混为一谈。",
+      "fix": "1) 在 @mlightcad/mtext-renderer 的 worker 主线程桥 handleWorkerMessage（index.js:31113）增加 fontNotFound 分支，转发到 FontManager.instance.events.fontNotFound，并在 worker.js:36062 旁同样监听 Gt.events.fontNotFound；2) 仓库侧可先落地可见性兜底：打开图纸后遍历 textStyleTable 的 font/bigFont 调 AcApFontUtil.isFontLoaded，对未加载项 emit 'fonts-not-found'，并把 FontManager.instance.getUnsupportedChar() 汇总进 AcTrView2d.missedData 供 UI/截图校验使用。",
+      "confidence": "high",
+      "severity": "P1",
+      "category": "准确性",
+      "verifyIdea": "用 worker 模式打开含缺失字体样式的 DXF，观察是否弹出\"找不到字体\"且 CANVAS 有字；再把 renderMode 切到 main 对比同一图纸是否弹提示。"
+    },
+    {
+      "id": "A4-3",
+      "title": "本地 hztxt.shx 只注册到主线程：默认 worker 渲染拿不到，离线（无 CDN）时 worker 无任何字体，汉字退化为空白占位且 IndexedDB 缓存的字库也取不到",
+      "file": "cad-viewer/packages/cad-viewer-example/src/App.vue",
+      "line": "175-185",
+      "evidence": "// App.vue:176-182\nconst fontResponse = await fetch('./fonts/hztxt.shx')\nconst fontData = await fontResponse.arrayBuffer()\nawait FontManager.instance.cacheFont(fontData, 'hztxt.shx')\nFontManager.instance.setDefaultFonts(['hztxt'])   // 只作用于主线程 FontManager\n// .../mtext-renderer/dist/mtext-renderer-worker.js:33674-33677,33720（worker 的加载入口）\nasync load(t) {\n  if (t == null || t.length === 0) return [];\n  await this.getAvailableFonts();   // 33656-33659: fetch fonts.json 失败即 throw\n  ...\n  if (await he.instance.loadFontFromCache(c)) { ... }   // 永远走不到\n// .../mtext-renderer/dist/index.js:29922-29925（无字形时按空白推进）\nif (!c) { this.processBlank(s, i); return; }\n// .../mtext-renderer/dist/index.js:27127-27132（not-found 字形也要求至少有一个已加载字体）\nfor (const [, n] of this.loadedFontMap) { const r = n.getNotFoundTextShape(e); if (r) return r; }",
+      "impact": "AcApDocManager:2033 只把 DEFAULT_FONTS_PRESET('modern' = hztxt/simsun) 作为\"字体名\"下发给 worker，字库字节从未下发（UnifiedRenderer 只有 worker→main 的 syncFontToWorkerPool，没有 main→worker 的 cacheFont）；主线程 cacheFont 写的 IndexedDB 是唯一共享介质，但 worker 的 DefaultFontLoader.load 先 await getAvailableFonts()，离线时该调用 throw（33656-33659），后面的 loadFontFromCache 分支（33720）不可达。于是离线 + 默认 worker 模式下 worker 的 loadedFontMap 为空：每个汉字 resolveCharShape 全链失败（默认字体未加载、not-found 字形也要求有已加载字体）→ processChar 走 processBlank，只前进不画字形；整段中文变成占位空白（不是空心方框），既无缺字体提示（见 A4-2）也不影响布局宽度，肉眼与像素 diff 都容易误判为\"这一段本来没内容\"。切到 mainThreadDraw（CLI 导出即如此，runner/main.ts:201）才能用上本地 hztxt.shx。",
+      "fix": "1) 让本地字库进入 worker：改为调用 UnifiedRenderer/AcTrMTextRenderer 暴露的 cacheFont 转发（或 App.vue 里同时 await AcTrMTextRenderer.getInstance().setDefaultFonts(['hztxt']) 并 POST 字体 buffer 给 worker）；2) 在 @mlightcad/mtext-renderer 的 DefaultFontLoader.load 中把 getAvailableFonts() 的失败降级为警告，先走 IndexedDB（loadFontFromCache / getAllFontsFromCache）再判定 NotFound，使离线可用本地已缓存字库；3) 仓库侧在 baseUrl 可配置为本地 ./fonts/ 时应保证 fonts.json 也随之本地化。",
+      "confidence": "medium",
+      "severity": "P1",
+      "category": "准确性",
+      "verifyIdea": "断网后用默认（worker）模式打开一条含中文 MTEXT 的 DXF，看汉字是显示、空心方框还是空白；再把渲染模式切到 mainThread 对比同一图纸。"
+    },
+    {
+      "id": "A4-4",
+      "title": "MTEXT 的 rotation 在渲染期被 directionVector 覆盖：属性面板改 rotation 不生效，而 geometricExtents 又按 rotation 计算，选择框与字形可能错位",
+      "file": "cad-viewer/packages/data-model/src/entity/AcDbMText.ts",
+      "line": "786-798",
+      "evidence": "// AcDbMText.ts:787-797（directionVector 恒为 this.direction，默认 (1,0,0)）\nconst mtextData: AcGiMTextData = {\n  text: this.contents, height: this.height, width: this.width, position: this.location,\n  rotation: this.rotation,\n  directionVector: this.direction,\n  ...\n}\n// @mlightcad/mtext-renderer/dist/index.js:30603-30607（渲染角度由方向向量重算，覆盖 rotation）\nlet f = n.rotation || 0;\nif (n.directionVector && s?.shxFontType !== J.SHAPES) {\n  const y = n.directionVector, g = new I.Vector3(y.x, y.y, y.z), b = g.clone().cross($i), v = $i.angleTo(g);\n  f = b.z > 0 ? -v : v;\n}\n// AcDbText.ts:828-830（同仓库 TEXT 的既有约定：不要传 directionVector，它会覆盖 rotation）\n// Please use 'rotation' and do not set value of 'directionVector' because it will overrides rotation value.",
+      "impact": "AcDbMText 把 rotation（DXF 50，弧度，:81/:266-271）与 direction（DXF 11/21/31，:376-381）作为两个独立字段存储，互不同步；渲染时只要传了 directionVector，渲染器就用方向向量与 (1,0,0) 的夹角取代 rotation。因此：(1) 属性面板可编辑的 rotation（:659-667）改了没有任何视觉变化，而 dxfOutFields:825 仍会按新值写 50 组码，导出后同一实体在别的 CAD 里角度又不一样；(2) 当 DXF 里 50 有角度而 11 组码为 (1,0,0)（或 direction 与 rotation 历史上被独立改过）时，渲染是水平的，但 geometricExtents（:457-481）同时把 rotation 与 direction 传给 acdbExpandBoxByOrientedTextRect，按旋转后矩形算包围盒 → 选择框/缩放范围与真实字形错位，旋转文字的框选命中率下降。",
+      "fix": "与 AcDbText.ts:822-834 保持一致：MTEXT 侧在 rotation 与 direction 不一致时以 rotation 为准（direction 为空或与 rotation 不符时不传 directionVector），或在 `set rotation` 里同步更新 `_direction`（transformBy:553-555 已经在做反向同步，补上正向同步即可），并在 geometricExtents 里只用一个真值来源。",
+      "confidence": "high",
+      "severity": "P2",
+      "category": "正确性",
+      "verifyIdea": "对一条 MTEXT 只设 rotation=30°（direction 保持 1,0,0）并重绘，看字形是否旋转；再用框选量测选择框与字形是否重合。"
+    },
+    {
+      "id": "A4-5",
+      "title": "文字样式 obliqueAngle 单位契约自相矛盾：文档写弧度、DXF 入按度原样存、dxfOut 又用 writeAngle 做弧度→度转换，倾斜角双转换且程序化赋值失效",
+      "file": "cad-viewer/packages/data-model/src/database/AcDbTextStyleTableRecord.ts",
+      "line": "319,353-355",
+      "evidence": "// AcDbTextStyleTableRecord.ts:319（写：把字段当弧度，再 ×180/π）\nfiler.writeAngle(50, this.obliquingAngle)\n// AcDbTextStyleTableRecord.ts:353-355（读：DXF 50 本身就是度，原样存入，未做 degToRad）\ncase 50:\n  this.obliquingAngle = Number(item.value)\n  break\n// AcDbDxfFiler.ts:656-659\nwriteAngle(code: number, radians?: number) {\n  if (radians == null || !Number.isFinite(radians)) return this\n  return this.writeDouble(code, (radians * 180) / Math.PI)\n}\n// 渲染端契约（度）：index.js:28972 `this._currentContext.oblique = e.obliqueAngle || 0`，index.js:29413-29421 `const c = s * Math.PI / 180; ... i = Math.tan(c) * r`\n// 对照 AcDbShape.ts:492-493 注释「MText renderer stores oblique in degrees on the text style.」",
+      "impact": "AcGiTextStyle.obliqueAngle 的实际渲染语义是\"度\"（AcDbShape.ts:492-493、AcDbProxyGraphic.ts:1261、AcSvgShapeUtil.ts:123 都按度处理，UI useTextStyle.ts:34 也注明 degrees），但 AcDbTextStyleTableRecord:87-98 的文档与示例写的是弧度（`record.obliquingAngle = Math.PI / 6; // 30 degrees`）。两个后果：(1) 按文档编程设 Math.PI/6 只会倾斜 0.52°，看起来完全没生效；(2) DXF 往返被二次转换——读入 50=15（度）→ 字段 15 → 写出 writeAngle(50,15) = 859.4°，tan 的符号与幅度都变了（正确应为 15° 写 15）。同一实体字段在 AcDbText.ts:1029-1034 是 `AcGeMathUtil.degToRad(n)`（弧度），两处 DXF 角度字段处理方式相反，说明是漏转换而不是有意设计。中文（SHX bigfont 整体倾斜）与西文同受影响，且这是\"斜体字看起来没斜/斜错方向\"的直接来源。",
+      "fix": "统一内部单位：把 AcGiTextStyle.obliqueAngle 明确为度（同步修正 AcDbTextStyleTableRecord:87-98 的文档与示例），dxfIn 保持原值、dxfOut 改用 writeDouble(50, this.obliquingAngle)（去掉 writeAngle 的 ×180/π）；若选择统一为弧度，则 dxfIn 补 `AcGeMathUtil.degToRad`、渲染端把 ×π/180 改为直接用弧度，两处必须同时改。",
+      "confidence": "high",
+      "severity": "P2",
+      "category": "一致性",
+      "verifyIdea": "写一条 DXF 的 STYLE 组码 50=15，导入再导出，检查输出仍是 15（当前会变成 859.4）并目视字形倾斜约 15°。"
+    },
+    {
+      "id": "A4-6",
+      "title": "MTEXT 选择框来源不可靠：字形缓存命中时克隆体的 box 未随新插入点重定位（box 实为绝对坐标），空几何实体的空 box 又被原样插入空间索引",
+      "file": "cad-viewer/packages/three-renderer/src/renderer/AcTrMTextGlyphCache.ts",
+      "line": "252-260",
+      "evidence": "// AcTrMTextGlyphCache.ts:252-260（只重定位 position，box 直接沿用模板的）\nif (template.box) {\n  clone.box = template.box.clone()\n}\nclone.position.set(position.x, position.y, position.z)\n// AcTrGlyphEntity.ts:293-304（用 rendered.box 与真实几何求交/并集）\nconst geometryBox = this.computeGeometryBox()\nif (geometryBox.isEmpty()) { this.wcsBbox = rendered.box; return }\nif (!rendered.box.isEmpty() && rendered.box.intersectsBox(geometryBox)) {\n  this.wcsBbox = geometryBox.clone().union(rendered.box); return\n}\n// 该 box 实际含插入点：index.js:30896-30904 `p.applyMatrix4(e.matrixWorld); this.box.union(p)`（matrixWorld 已含 finalizePlacement 设的 position/rotation），与 mtext.d.ts/30473 的\"不含变换矩阵\"注释不符\n// AcTrLayout.ts:1065-1072（空 box 未过滤就索引）\nrootBox = { minX: entity.wcsBbox.min.x, minY: entity.wcsBbox.min.y, maxX: entity.wcsBbox.max.x, maxY: entity.wcsBbox.max.y, id: entity.objectId }",
+      "impact": "① 内容级字形缓存第三处及其后每次命中都返回 `clone.box = 模板实例(第二个同内容实体)的 box`，而克隆体的几何在其新插入点：updateSelectionBox 会把这个陈旧 box 与真实几何求交，相交时 `wcsBbox = geometryBox ∪ 陈旧box`，选择/悬停框被撑到两个实例之间，同内容重复标签（图纸里成片重复的巷道名/标高）拾取范围偏大甚至跨到邻近元素；该 wcsBbox 同时进入空间索引（AcTrLayout.registerEntitySpatialIndex:1075），框选窗口会选中字形其实在窗口外的文字。② 空内容/纯空白/字形全缺的 MTEXT 得到空 Box3（min=+∞,max=-∞），updateSelectionBox:295-298 把它赋给 wcsBbox 后，registerEntitySpatialIndex 未做 isEmpty/有限性判断即插入倒置条目（对照 AcTrHierarchicalSpatialIndex.ts:227,347 用 isFiniteSpatialBBox 过滤子索引），使基于索引 all() 的\"全选\"类操作包含不可见实体。",
+      "fix": "① clonePlacedMTextTemplate 里按新旧插入点平移 box：`const d = clone.position.clone().sub(template.position); clone.box = template.box.clone().translate(d)`（旋转已在缓存键内，不会变），或干脆对缓存命中路径不比 rendered.box、只用 computeGeometryBox；② AcTrLayout.registerEntitySpatialIndex 与 registerSpatialIndexBox 插入前判 `!entity.wcsBbox.isEmpty()` 且各分量 Number.isFinite，否则跳过根索引插入。",
+      "confidence": "high",
+      "severity": "P2",
+      "category": "准确性",
+      "verifyIdea": "放 3 条同内容不同插入点的 MTEXT，选中第 3 条打印其 wcsBbox 是否等于其真实字形范围（当前会并上第 2 条的框）。"
+    }
+  ]
+}

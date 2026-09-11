@@ -69,6 +69,7 @@ import { registerInvertSelPlugin } from '@hy/cad-invertsel-plugin/register'
 import { registerLayerCtxPlugin } from '@hy/cad-layerctx-plugin/register'
 import { registerTunnelPlugin } from '@hy/cad-tunnel-plugin/register'
 import { useLocale } from '@hy/cad-viewer'
+import { AcTrMTextRenderer } from '@hy/three-renderer'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -172,13 +173,32 @@ const openViewMode = ref<AcApOpenViewMode | undefined>(undefined)
 const onViewerCreate = async () => {
   initialize()
 
-  // Load local hztxt.shx font for Chinese text rendering
+  // Load local hztxt.shx font for Chinese text rendering.
+  //
+  // The default draw path renders MTEXT in a web worker and the worker's face
+  // catalog comes from the font CDN plus the shared IndexedDB font cache. A
+  // face registered only on the main thread (FontManager.cacheFont) is invisible
+  // to that worker, which then draws placeholder or empty glyphs.
+  // AcTrMTextRenderer.cacheFont parses the face on the main thread *and* stores
+  // the binary in the IndexedDB cache the worker reads, so one call serves both
+  // paths.
   try {
     const fontResponse = await fetch('./fonts/hztxt.shx')
     const fontData = await fontResponse.arrayBuffer()
-    await FontManager.instance.cacheFont(fontData, 'hztxt.shx')
+    const status = await AcTrMTextRenderer.getInstance().cacheFont(
+      fontData,
+      'hztxt.shx',
+      ['hztxt'],
+      'gb2312'
+    )
+    if (status.status !== 'Success') {
+      console.warn(`Failed to register local hztxt.shx font: ${status.status}`)
+    }
 
-    // Set hztxt as the primary default font to avoid simsun fallback warnings
+    // hztxt becomes the primary face so Chinese text does not depend on the
+    // SimSun CDN download. `FontManager` stays the owner of the default chain:
+    // the unified renderer reads it whenever it hands the chain to the worker
+    // pool, so the main thread and the workers keep the same fallback order.
     FontManager.instance.setDefaultFonts(['hztxt'])
   } catch (error) {
     console.warn('Failed to load hztxt.shx font:', error)

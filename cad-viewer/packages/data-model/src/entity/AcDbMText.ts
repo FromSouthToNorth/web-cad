@@ -74,6 +74,8 @@ export class AcDbMText extends AcDbEntity {
   private _backgroundFill: boolean
   /** The background fill color */
   private _backgroundFillColor: number
+  /** Whether {@link _backgroundFillColor} was set explicitly (DXF group 63). */
+  private _hasExplicitBackgroundFillColor = false
   /** The background scale factor */
   private _backgroundScaleFactor: number
   /** The background fill transparency */
@@ -268,6 +270,15 @@ export class AcDbMText extends AcDbEntity {
   }
   set rotation(value: number) {
     this._rotation = value
+    // Keep the vector form in sync. Renderers and extents helpers prefer
+    // `direction` when it is non-zero, so writing only `_rotation` used to make
+    // this setter a no-op visually. Assign the vector directly rather than
+    // going through the `direction` setter: that would re-derive the angle
+    // through atan2 and shift the value the caller asked for (60 degrees came
+    // back as 56.3).
+    if (Number.isFinite(value)) {
+      this._direction.set(Math.cos(value), Math.sin(value), 0)
+    }
   }
 
   /**
@@ -303,7 +314,12 @@ export class AcDbMText extends AcDbEntity {
   }
   set backgroundFill(value: boolean) {
     this._backgroundFill = value
-    this._backgroundFillColor = 0xc8c8c8
+    // Only seed the default fill colour when nothing explicit is set yet.
+    // The previous unconditional assignment discarded a colour read from DXF
+    // group 63 or set through the property palette.
+    if (!this._hasExplicitBackgroundFillColor) {
+      this._backgroundFillColor = 0xc8c8c8
+    }
   }
 
   /**
@@ -314,6 +330,7 @@ export class AcDbMText extends AcDbEntity {
   }
   set backgroundFillColor(value: number) {
     this._backgroundFillColor = value
+    this._hasExplicitBackgroundFillColor = true
   }
 
   /**
@@ -370,14 +387,28 @@ export class AcDbMText extends AcDbEntity {
   }
 
   /**
-   * Represent the X axis ("horizontal") for the text. This direction vector is used to determine the text
-   * flow direction.
+   * The X axis ("horizontal") of the text.
+   *
+   * `rotation` (DXF group 50) and `direction` (DXF group 11/21/31) are the same
+   * degree of freedom expressed two ways. Both setters keep the two fields in
+   * sync, and assigning a zero vector keeps the current rotation, so the value
+   * read back is always the value that was written.
+   *
+   * @see {@link rotation}
    */
   get direction(): AcGeVector3d {
     return this._direction
   }
   set direction(value: AcGeVector3dLike) {
-    this._direction.copy(value)
+    const x = value.x
+    const y = value.y
+    // A zero vector carries no direction: keep the current rotation instead of
+    // producing NaN. Three's `angleTo` would otherwise report 90 degrees and
+    // rotate the glyphs, while the extents helper still used `rotation`.
+    if (x * x + y * y > 0) {
+      this._direction.copy(value)
+      this._rotation = Math.atan2(y, x)
+    }
   }
 
   get drawingDirection() {
@@ -784,6 +815,7 @@ export class AcDbMText extends AcDbEntity {
    * @returns The rendered entity, or undefined if drawing failed
    */
   subWorldDraw(renderer: AcGiRenderer, delay?: boolean) {
+    const style = this.getTextStyle()
     const mtextData: AcGiMTextData = {
       text: this.contents,
       height: this.height,
@@ -793,9 +825,13 @@ export class AcDbMText extends AcDbEntity {
       directionVector: this.direction,
       attachmentPoint: this.attachmentPoint,
       drawingDirection: this.drawingDirection,
-      lineSpaceFactor: this.lineSpacingFactor
+      lineSpaceFactor: this.lineSpacingFactor,
+      // Carry the style's width factor explicitly: the renderer resolves it as
+      // `data.widthFactor || style.widthFactor || 1`, so leaving it undefined
+      // forced MTEXT to render at 1.0 even when the text style is condensed.
+      widthFactor: style.widthFactor
     }
-    return renderer.mtext(mtextData, this.getTextStyle(), delay)
+    return renderer.mtext(mtextData, style, delay)
   }
 
   private encodeMTextContentsForDxf(contents: string): string {
@@ -820,7 +856,9 @@ export class AcDbMText extends AcDbEntity {
     // MTEXT contents use \P for paragraph breaks; raw newlines must not appear in DXF.
     // AutoCAD splits strings longer than 250 chars into group-3 chunks, with the
     // final remainder in group 1.
-    filer.writeMTextContents(this.encodeMTextContentsForDxf(this.contents ?? ''))
+    filer.writeMTextContents(
+      this.encodeMTextContentsForDxf(this.contents ?? '')
+    )
     filer.writeString(7, this.styleName)
     filer.writeAngle(50, this.rotation)
     filer.writeVector3d(11, this.direction)
@@ -1031,6 +1069,8 @@ export class AcDbMText extends AcDbEntity {
       this.contents = contentParts.join('')
     }
     this.location = { x: lx, y: ly, z: lz }
+    // `hasDirection` only records that a group was present; the setter itself
+    // ignores the (0, 0, 0) placeholders some writers emit.
     if (hasDirection) {
       this.direction = { x: dx, y: dy, z: dz }
     }

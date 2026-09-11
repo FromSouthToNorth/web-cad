@@ -762,7 +762,8 @@ export default {
     offsetFailed: 'Belirtilen taraf için bir öteleme eğrisi oluşturulamadı.'
   },
   mtext: {
-    point: 'Çok satırlı metin ekleme noktasını belirtin'
+    emptyContents: 'Metin girilmedi; çok satırlı metin oluşturulmadı.',
+    invalidHeight: 'Geçersiz metin yüksekliği; çok satırlı metin oluşturulmadı.'
   },
   pngout: {
     boundsFirstCorner: 'Sınırların ilk köşesini belirtin',

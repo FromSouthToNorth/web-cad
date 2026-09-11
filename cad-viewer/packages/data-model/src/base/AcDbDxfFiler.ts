@@ -1,8 +1,4 @@
-import {
-  AcCmColor,
-  AcCmTransparency,
-  AcCmTransparencyMethod
-} from '@hy/common'
+import { AcCmColor, AcCmTransparency, AcCmTransparencyMethod } from '@hy/common'
 import {
   AcGePoint2d,
   AcGePoint2dLike,
@@ -14,10 +10,7 @@ import {
 
 import type { AcDbDatabase } from '../database/AcDbDatabase'
 import { AcDbDwgVersion } from '../database/AcDbDwgVersion'
-import {
-  acdbDxfIsInt32Code,
-  acdbDxfValueType
-} from './AcDbDxfGroupCodeTypes'
+import { acdbDxfIsInt32Code, acdbDxfValueType } from './AcDbDxfGroupCodeTypes'
 import { acdbDxfKeywordUpper } from './AcDbDxfKeyword'
 import type { AcDbDxfPair } from './AcDbDxfPair'
 import {
@@ -571,13 +564,19 @@ export class AcDbDxfFiler {
   writeGroup(code: number, value: unknown) {
     this.assertWriteMode()
     if (value == null) return this
+    // An empty string means "no value for this group code" — skip the whole
+    // group (code line included). Emitting a placeholder '0' invents data: an
+    // empty style name (group 7) or empty MTEXT contents (group 1) would come
+    // back as the literal string '0' after a round trip.
+    if (value === '') return this
     if (this._outputFormat === 'binary') {
       return this.writeBinaryGroup(code, value)
     }
     this._lines.push(String(Math.trunc(code)))
     const text = this.formatValue(value)
     // Never emit an empty value line — it breaks DXF pairing (e.g. "70\n\n4") and
-    // strict readers like AutoCAD report a corrupted file.
+    // strict readers like AutoCAD report a corrupted file. Non-string values may
+    // still format to '' (see formatValue), so keep the fallback for them.
     this._lines.push(text === '' ? '0' : text)
     return this
   }
@@ -839,6 +838,9 @@ export class AcDbDxfFiler {
           typeof value === 'string'
             ? this.sanitizeStringForDxfLine(value)
             : this.formatValue(value)
+        // Reachable only when a non-string value formats to '' (empty strings
+        // are dropped by writeGroup); keep the fallback so no empty value is
+        // ever written.
         const encoded = new TextEncoder().encode(text === '' ? '0' : text)
         const withNul = new Uint8Array(encoded.length + 1)
         withNul.set(encoded)
@@ -873,11 +875,7 @@ export class AcDbDxfFiler {
       case 'double': {
         const buf = new Uint8Array(8)
         const n = Number(value)
-        new DataView(buf.buffer).setFloat64(
-          0,
-          Number.isFinite(n) ? n : 0,
-          true
-        )
+        new DataView(buf.buffer).setFloat64(0, Number.isFinite(n) ? n : 0, true)
         this.appendBinary(buf)
         break
       }
@@ -890,10 +888,7 @@ export class AcDbDxfFiler {
         break
       }
       case 'binary': {
-        const bytes =
-          value instanceof Uint8Array
-            ? value
-            : new Uint8Array(0)
+        const bytes = value instanceof Uint8Array ? value : new Uint8Array(0)
         const length = Math.min(255, bytes.length)
         const chunk = new Uint8Array(1 + length)
         chunk[0] = length
@@ -968,11 +963,7 @@ export class AcDbDxfFiler {
       )
       return undefined
     }
-    if (
-      pair.type === 'double' ||
-      pair.type === 'int' ||
-      pair.type === 'long'
-    ) {
+    if (pair.type === 'double' || pair.type === 'int' || pair.type === 'long') {
       const v = pair.value
       return typeof v === 'bigint' ? Number(v) : v
     }

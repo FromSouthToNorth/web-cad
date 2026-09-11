@@ -3,6 +3,7 @@ const mockRendererInstances: Array<{
   setDefaultMode: jest.Mock
   setDefaultFonts: jest.Mock
   setStyleManager: jest.Mock
+  cacheFont: jest.Mock
   destroy: jest.Mock
 }> = []
 
@@ -12,6 +13,9 @@ const mockUnifiedRenderer = jest.fn().mockImplementation(() => {
     setDefaultMode: jest.fn(),
     setDefaultFonts: jest.fn(() => Promise.resolve()),
     setStyleManager: jest.fn(),
+    cacheFont: jest.fn(() =>
+      Promise.resolve({ fontName: 'hztxt', url: '', status: 'Success' })
+    ),
     destroy: jest.fn()
   }
   mockRendererInstances.push(renderer)
@@ -20,6 +24,14 @@ const mockUnifiedRenderer = jest.fn().mockImplementation(() => {
 
 jest.mock('@mlightcad/mtext-renderer', () => ({
   UnifiedRenderer: mockUnifiedRenderer,
+  FontManager: {
+    instance: {
+      events: {
+        fontLoaded: { addEventListener: jest.fn() },
+        fontNotFound: { addEventListener: jest.fn() }
+      }
+    }
+  },
   createDefaultColorSettings: jest.fn(() => ({}))
 }))
 
@@ -140,5 +152,42 @@ describe('AcTrMTextRenderer', () => {
     expect(mockRendererInstances[0].setDefaultFonts).toHaveBeenCalledWith(
       'r12r14'
     )
+  })
+
+  it('registers a locally loaded face through the unified renderer', async () => {
+    const renderer = AcTrMTextRenderer.getInstance()
+    renderer.initialize('./assets/mtext-renderer-worker.js')
+
+    const data = new ArrayBuffer(8)
+    const status = await renderer.cacheFont(
+      data,
+      'hztxt.shx',
+      ['hztxt'],
+      'gb2312'
+    )
+
+    // Routing the binary through UnifiedRenderer is what makes the face reach
+    // the worker pool: it stores the face in the IndexedDB cache that the
+    // worker reads. A main-thread-only cacheFont would leave worker text blank.
+    expect(mockRendererInstances[0].cacheFont).toHaveBeenCalledWith(
+      data,
+      'hztxt.shx',
+      ['hztxt'],
+      'gb2312'
+    )
+    expect(status.status).toBe('Success')
+  })
+
+  it('reports a failed local face registration instead of throwing', async () => {
+    const renderer = AcTrMTextRenderer.getInstance()
+    // No initialize(): there is no renderer to forward to yet.
+
+    const status = await renderer.cacheFont(new ArrayBuffer(8), 'hztxt.shx')
+
+    expect(status).toEqual({
+      fontName: 'hztxt.shx',
+      url: '',
+      status: 'FailedToLoad'
+    })
   })
 })

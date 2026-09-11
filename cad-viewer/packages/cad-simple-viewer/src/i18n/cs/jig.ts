@@ -761,7 +761,8 @@ export default {
     offsetFailed: 'Nelze vytvořit offsetovou křivku na zadané straně.'
   },
   mtext: {
-    point: 'Zadejte bod vložení víceřádkového textu'
+    emptyContents: 'Nebyl zadán žádný text; víceřádkový text nebyl vytvořen.',
+    invalidHeight: 'Neplatná výška textu; víceřádkový text nebyl vytvořen.'
   },
   pngout: {
     boundsFirstCorner: 'Zadejte první roh rozsahu',

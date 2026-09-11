@@ -14,8 +14,7 @@ import {
  * (excluding the duplicate `name` property).
  */
 export interface AcDbTextStyleTableRecordAttrs
-  extends AcDbSymbolTableRecordAttrs,
-    Omit<AcGiTextStyle, 'name'> {}
+  extends AcDbSymbolTableRecordAttrs, Omit<AcGiTextStyle, 'name'> {}
 
 /**
  * Represents a record in the text style table.
@@ -78,17 +77,24 @@ export class AcDbTextStyleTableRecord extends AcDbSymbolTableRecord<AcDbTextStyl
   }
 
   /**
-   * Gets or sets the obliquing angle.
+   * Gets or sets the obliquing angle, in **degrees**.
    *
    * The obliquing angle is the angle from the text's vertical; that is, the
    * top of the text "slants" relative to the bottom. Positive angles slant
    * characters forward at their tops.
    *
-   * @returns The obliquing angle in radians
+   * Degrees (not radians) is the convention everywhere else in the pipeline:
+   * DXF group 50 is stored in degrees, the MTEXT renderer applies
+   * `tan(angle * PI / 180)`, the SVG exporter converts from degrees, and the
+   * property palette labels the field "in degrees". The previous JSDoc claimed
+   * radians, which made programmatic values such as `Math.PI / 6` slant by a
+   * barely visible 0.52 degrees.
+   *
+   * @returns The obliquing angle in degrees
    *
    * @example
    * ```typescript
-   * record.obliquingAngle = Math.PI / 6; // 30 degrees
+   * record.obliquingAngle = 30; // 30 degrees
    * ```
    */
   get obliquingAngle() {
@@ -316,7 +322,10 @@ export class AcDbTextStyleTableRecord extends AcDbSymbolTableRecord<AcDbTextStyl
     filer.writeInt16(70, this.getAttr('standardFlag'))
     filer.writeDouble(40, this.textSize)
     filer.writeDouble(41, this.xScale)
-    filer.writeAngle(50, this.obliquingAngle)
+    // DXF group 50 is already in degrees and the field stores degrees, so this
+    // must not go through `writeAngle` (which converts radians to degrees and
+    // turned a 15 degree slant into 859.44 on every round trip).
+    filer.writeDouble(50, this.obliquingAngle)
     filer.writeInt16(71, this.getAttr('textGenerationFlag'))
     filer.writeDouble(42, this.priorSize)
     filer.writeString(3, this.dxfFontFileName)
@@ -407,4 +416,3 @@ export class AcDbTextStyleTableRecord extends AcDbSymbolTableRecord<AcDbTextStyl
     }
   }
 }
-

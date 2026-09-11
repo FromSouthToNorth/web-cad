@@ -223,9 +223,14 @@ export function buildSvgMText(
   ctx: AcSvgStyleContext
 ): AcSvgMTextBuildResult {
   const box = new AcGeBox2d()
-  const { text, height, position } = mtext
+  const { text, position } = mtext
+  // Single-line TEXT and the three renderer both fall back to the style's
+  // fixed height when the entity carries none (`height || fixedTextHeight`).
+  // Dropping the glyphs here made the same entity export as nothing while it
+  // still rendered on canvas.
+  const height = positiveOrFallback(mtext.height, style.fixedTextHeight)
 
-  if (!text || height <= 0) {
+  if (!text || !(height > 0)) {
     return { localSvg: '', box }
   }
 
@@ -1013,13 +1018,22 @@ class MTextSvgLayout {
     return size * resolveSvgFontSizeScale(cadFont)
   }
 
+  /**
+   * Resolves the character width factor of the current run.
+   *
+   * The value is applied exactly once, by {@link measureCharWidth}: layout,
+   * wrapping and span bounds all use it through {@link measureText}, and
+   * {@link tspanAttributes} must not scale the run a second time. Absolute
+   * factors are returned as-is; the old unconditional `* 0.85` shrank every
+   * default MTEXT horizontally.
+   */
   private resolveWidthFactor(tokenCtx: MTextContext): number {
     const wf = tokenCtx.widthFactor
     if (wf.isRelative) {
       const ref = this.wrapWidth ?? this.baseHeight * 4
       return wf.value * ref
     }
-    return wf.value * 0.85
+    return wf.value
   }
 
   private resolveTracking(tokenCtx: MTextContext): number {
@@ -1076,22 +1090,18 @@ class MTextSvgLayout {
       attrs['font-style'] = 'italic'
     }
 
-    const widthFactor = this.resolveWidthFactor(tokenCtx)
     const tracking = this.resolveTracking(tokenCtx)
     if (tracking !== 1) {
       attrs['letter-spacing'] =
         `${((tracking - 1) * fontSize * 0.25).toFixed(3)}`
     }
 
+    // The width factor is already baked into every span x through
+    // measureCharWidth/measureText, so it must not be applied again here.
+    // Applying it twice squared the horizontal compression of an MTEXT.
     const oblique = tokenCtx.oblique
     if (oblique !== 0) {
-      const transforms: string[] = [`skewX(${-oblique})`]
-      if (widthFactor !== 1) {
-        transforms.unshift(`scale(${widthFactor},1)`)
-      }
-      attrs.transform = transforms.join(' ')
-    } else if (widthFactor !== 1) {
-      attrs.transform = `scale(${widthFactor},1)`
+      attrs.transform = `skewX(${-oblique})`
     }
 
     attrs.fill = resolveMTextFill(tokenCtx.color, this.traits, this.ctx)
@@ -1159,3 +1169,9 @@ export {
   setSvgFontMapping,
   setSvgFontSizeScales
 } from './AcSvgFontMap'
+
+/** Returns `value` when it is positive, otherwise `fallback` (coerced to 0). */
+function positiveOrFallback(value: number | undefined, fallback?: number) {
+  if (value != null && value > 0) return value
+  return fallback != null && fallback > 0 ? fallback : 0
+}

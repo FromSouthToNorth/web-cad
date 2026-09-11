@@ -110,7 +110,7 @@ jest.mock('../src/app', () => ({
           textstyle: 'Standard',
           tables: {
             textStyleTable: {
-              getAt: jest.fn(() => undefined)
+              resolveAt: jest.fn(() => undefined)
             }
           }
         }
@@ -212,6 +212,7 @@ describe('AcEdMTextEditor', () => {
       contents: 'typed text',
       location: { x: 1, y: 2, z: 3 },
       width: 10,
+      committedWidth: 10,
       height: 2,
       lineSpacingFactor: 0.3,
       attachmentPoint: 1
@@ -254,5 +255,44 @@ describe('AcEdMTextEditor', () => {
 
     inputBox.setCurrentFormat()
     expect(listener).toHaveBeenCalledTimes(3)
+  })
+
+  it('marks the WebGL scene dirty when the editor content changes', async () => {
+    const view = createView()
+    const resultPromise = new AcEdMTextEditor().open({
+      view: view as never,
+      location: { x: 0, y: 0, z: 0 },
+      width: 10,
+      textHeight: 2
+    })
+    await Promise.resolve()
+
+    const inputBox = mockMTextInputBoxInstances[0]
+    // Reset whatever the open sequence marked.
+    view.isDirty = false
+    view.isHtmlDirty = false
+
+    inputBox.emit('change')
+
+    // MTEXT glyphs live in iew.internalScene, so only isDirty triggers the
+    // WebGL pass. Setting isHtmlDirty alone left typed text invisible until a
+    // pan or zoom happened to dirty the scene.
+    expect(view.isDirty).toBe(true)
+
+    // Cursor and selection movement repaint for the same reason.
+    view.isDirty = false
+    inputBox.emit('cursorMove')
+    expect(view.isDirty).toBe(true)
+
+    view.isDirty = false
+    inputBox.emit('selectionChange')
+    expect(view.isDirty).toBe(true)
+
+    // Listeners must be released with the editor.
+    inputBox.emit('close')
+    await resultPromise
+    view.isDirty = false
+    inputBox.emit('change')
+    expect(view.isDirty).toBe(false)
   })
 })

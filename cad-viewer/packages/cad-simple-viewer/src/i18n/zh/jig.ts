@@ -753,7 +753,8 @@ export default {
     offsetFailed: '无法在指定侧创建偏移曲线。'
   },
   mtext: {
-    point: '指定多行文本插入点'
+    emptyContents: '未输入文字内容，未创建多行文本。',
+    invalidHeight: '文字高度无效，未创建多行文本。'
   },
   pngout: {
     boundsFirstCorner: '指定边界的第一个角点',

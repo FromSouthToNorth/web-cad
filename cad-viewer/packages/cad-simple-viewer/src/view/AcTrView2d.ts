@@ -64,6 +64,7 @@ import {
   readLayoutBackgroundColor
 } from '../editor/global/AcEdUiColor'
 import { isEffectiveSpatialQueryHit } from '../editor/view/AcEdSpatialQueryResult'
+import { AcApI18n } from '../i18n'
 import type { AcTrSpatialSearchOptions } from '../spatialIndex/AcTrSpatialIndex'
 import { AcTrGeometryUtil } from '../util'
 import { acapRunDatabaseEdit } from '../util/AcApDatabaseEdit'
@@ -91,6 +92,15 @@ import { AcTrLayoutViewManager } from './AcTrLayoutViewManager'
 import { sortPickResults } from './AcTrPickResultUtil'
 import { AcTrProgressiveOpenFitController } from './AcTrProgressiveOpenFitController'
 import { AcTrScene } from './AcTrScene'
+
+/**
+ * Layout width, in world units, handed to the MTEXT editor when the entity has
+ * no defined wrap width (`0` = no wrap, DXF group 41 optional).
+ *
+ * The editor needs a positive width for its own line breaking; this substitute
+ * is never written back to the entity.
+ */
+const MTEXT_EDITOR_MIN_LAYOUT_WIDTH = 1
 
 /**
  * Options to customize view
@@ -1560,18 +1570,10 @@ export class AcTrView2d extends AcEdBaseView {
   private async editMTextEntity(mtext: AcDbMText) {
     const db = mtext.database
 
-    if (mtext.lineSpacingFactor !== AcEdMTextEditor.defaultLineSpacingFactor) {
-      acapRunDatabaseEdit(db, 'Edit MText', () => {
-        const opened = db.openEntityForWrite(mtext)
-        if (!(opened instanceof AcDbMText)) return
-        opened.lineSpacingFactor = AcEdMTextEditor.defaultLineSpacingFactor
-      })
-    }
-
-    // Hide the in-scene MTEXT while the inline editor renders its own copy; otherwise
-    // both draw at once (double text) when the user double-clicks to edit.
-    // this.removeEntity(mtext)
-    this._isDirty = true
+    // Hide the in-scene MTEXT while the inline editor renders its own copy;
+    // otherwise both draw at once (double text) when the user double-clicks.
+    // Restored in the `finally` below so cancel (Esc) always brings it back.
+    this.removeEntity(mtext)
 
     const editor = new AcEdMTextEditor()
     let applied = false
@@ -1583,33 +1585,60 @@ export class AcTrView2d extends AcEdBaseView {
         textHeight: this.resolveMTextEditorTextHeight(mtext),
         initialText: mtext.contents,
         initialAttachmentPoint: mtext.attachmentPoint,
-        toolbarFontFamilies: this.getMTextToolbarFontFamilies()
+        toolbarFontFamilies: this.getMTextToolbarFontFamilies(),
+        // The entity's own width decides what is persisted; the editor may lay
+        // out with a substitute width for degenerate (0 = no wrap) entities.
+        committedWidth: mtext.width
       })
       if (!result) return
+
+      // Same rule as the create command: an empty editor payload must not
+      // overwrite the entity (it would leave an invisible empty MTEXT).
+      if (!result.contents.trim()) {
+        AcApDocManager.instance.editor.showMessage(
+          AcApI18n.t('jig.mtext.emptyContents'),
+          'warning'
+        )
+        return
+      }
 
       acapRunDatabaseEdit(db, 'Edit MText', () => {
         const opened = db.openEntityForWrite(mtext)
         if (!(opened instanceof AcDbMText)) return
         opened.location = result.location
         opened.contents = result.contents
-        opened.width = result.width
+        opened.width = result.committedWidth
         opened.height = result.height
         opened.lineSpacingFactor = result.lineSpacingFactor
         opened.attachmentPoint = result.attachmentPoint
       })
       applied = true
     } finally {
-      if (!applied) {
+      // Exactly one of the two restore paths may run: `addEntity` is
+      // fire-and-forget and the batched group *accumulates* geometry for an
+      // objectId instead of replacing it, so queueing it next to the synchronous
+      // `updateEntity` re-conversion would render the cancelled MTEXT (and its
+      // selection box) twice until something else evicted the id.
+      if (applied) {
+        this.addEntity(mtext)
+      } else {
         this.updateEntity(mtext)
         this._isDirty = true
       }
     }
   }
 
+  /**
+   * Width handed to the MTEXT editor for its own layout.
+   *
+   * `0` means "no wrap" (DXF group 41 optional) and is preserved as such when
+   * saving; the editor still needs a positive layout width, so a minimal
+   * preview width is substituted without touching the stored value.
+   */
   private resolveMTextEditorWidth(mtext: AcDbMText) {
     const width = Number(mtext.width)
     if (Number.isFinite(width) && width > 0) return width
-    return 1e-4
+    return MTEXT_EDITOR_MIN_LAYOUT_WIDTH
   }
 
   private resolveMTextEditorTextHeight(mtext: AcDbMText) {

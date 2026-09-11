@@ -1,0 +1,91 @@
+{
+  "unit": "A5",
+  "verdicts": [
+    {
+      "id": "A5-1",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P2",
+      "reason": "代码事实全部成立：AcApMTextCmd.spec.ts:68-99 mock 掉 ../src/app、../src/editor、../src/i18n、../src/view，:70 用 screenToWorld({y})=>({y:y*0.5}) 造出 textHeight=12，:92-99 mock open 返回 height:24，:118 断言 expect(entity.height).toBe(24)；被测源码 AcApMTextCmd.ts:64 `mtext.height = result.height`；真实编辑器 AcEdMTextEditor.ts:432 `const normalizedTextHeight = Math.max(1, textHeight)`、:540 `height: normalizedTextHeight`，且结果字段注释在 :101-102 为「Final text box height in world units」——即真实编辑器对入参 12 会返回 12，测试却冻结了 24，测试与真实行为不一致这一条成立。'唯一触及文字命令的单元测试'也成立：仓库内其余 Text 相关 spec（AcApMarkupTextEdit.spec.ts 属 markup/HTML 文本胶囊、AcDbText*.spec.ts 属 TEXT 实体与样式表）都不触达 mtext 命令。但 finding 的 verifyIdea「把 mock 的 height 改成 9999 后测试仍通过」是错的：entity.height 直接取自 result.height（:64），改成 9999 后 :118 必然失败，所以该断言确实锁死了'透传'，只是不锁'语义'；这属于对自身论据的误述，也说明 impact 中「该断言只证明透传」以外的部分（P1 级'字高语义被固化'）量级偏高。",
+      "reproducibleCheck": "把 AcApMTextCmd.spec.ts:96 的 height: 24 改为 9999 后运行 jest packages/cad-simple-viewer/__tests__/AcApMTextCmd.spec.ts，用例失败（证明断言锁定透传）；再把 mock 改成调用 Math.max(1,textHeight) 返回 12，用例同样失败（证明该断言与真实编辑器契约矛盾）。"
+    },
+    {
+      "id": "A5-2",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P1",
+      "reason": "成立部分：main-thread-mtext.spec.ts:8-13 使用 fixtures/minimal-line.dxf，该文件经逐行核对只有 1 个 LINE 实体（第 69-87 行）与 1 个 LAYER，无任何 MTEXT/TEXT；:71/:88 只统计 mtext-renderer worker 是否被创建，:117-141 的第三条用例只断言画布上 alpha>=200 且 r+g+b>60 的采样点 >20。'没有「框选→输入中文→回车→画布出现正确汉字」的用例'这一结论成立，draw-after-load.spec.ts:76-101 的交互基建（getByRole('textbox',{name:'Type command'}) + mouse.click 比例坐标）也确实存在。但 finding 的关键旁证是假的：'全量 e2e/fixtures（14 个 dxf）中不存在任何 MTEXT/TEXT 实体（block-color.dxf 仅含 $QTEXTMODE）'——实际 fixtures 有 15 个 dxf，且 block-color.dxf:2618/2652/2686/2720 共 4 个 MTEXT（AcDbMText，内容为「{图层：0\\P颜色：白色}」「{图层：TestLayer1\\P颜色：黄色}」等中文），smoke.spec.ts:141 正是加载该 fixture 并在 :23 截图。旁证错误不影响结论（smoke.spec.ts:151-154 只数白/黄/蓝/品红像素，不校验文字），但说明'全量 fixtures 无文字实体'的论证不成立；aci7-bylayer-background.spec.ts:17-20 的注释还自认 'headless CI cannot reliably wait for worker/main-thread font rendering in this fixture'，这是 finding 未引用的、更直接的 E2E 文字缺口证据。severity 由 P0 下调：同批 A1/A2/A4/A6 全部无 P0，测试缺口按惯例最高 P1。",
+      "reproducibleCheck": "Get-ChildItem e2e/fixtures/*.dxf 计 15 个；Select-String -Pattern '^MTEXT$','^AcDbMText$' block-color.dxf 命中 8 行；在 main-thread-mtext.spec.ts 内把断言改为 countNonBackgroundPixels 前后的墨迹包围盒比对，现有 fixture 无文字故无法失败。"
+    },
+    {
+      "id": "A5-3",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P2",
+      "reason": "核心结论成立：draw-after-load.spec.ts:19-50 的 countNonBackgroundPixels 逐字与引文一致（i+=8 采样、a<200 continue、r+g+b>60 计数），:68-101 断言 gainWithoutPan > 1000；对 cad-viewer-example 全仓 grep toHaveScreenshot|toMatchSnapshot|snapshotDir|maxDiffPixel|threshold|toMatchImageSnapshot 零命中；glob cad-viewer/**/__snapshots__/** 仅命中 node_modules/@jest/pattern 自带夹具，仓库自身无任何基准图；playwright.config.ts 全文 39 行确实未配置 snapshotDir 或 toHaveScreenshot 阈值，layerctx-menu.spec.ts:124-158 的 diffPixelCount（逐通道 >8）确为最强像素判据。两处事实偏差：(1) '全部 14 处 screenshot() 用法'错误，grep 'screenshot\\(' 在 e2e/ 下仅 7 处（smoke.spec.ts:23、invisible-entities.spec.ts:42、main-thread-mtext.spec.ts:117、aci7-bylayer-background.spec.ts:51、draw-after-load.spec.ts:21、layerctx-menu.spec.ts:102、shape-entity.spec.ts:29），且 layerctx-menu 用的是整页 page.screenshot 而非 canvas；(2) 引用的 'playwright.config.ts:18-24' 是 use 块，expect 配置在 :12-14，行号指错（结论不受影响）。severity P2：属像素判据基建缺口，且仓库已有可扩展的逐通道 diff 与纯 Node PNG 解码器。",
+      "reproducibleCheck": "在 cad-viewer 下运行 (Select-String -Path e2e/**/*.ts -Pattern 'screenshot\\(') 得 7 处；Select-String -Path playwright.config.ts -Pattern 'snapshotDir|toHaveScreenshot|maxDiffPixel' 零命中。"
+    },
+    {
+      "id": "A5-4",
+      "verdict": "confirmed",
+      "correctedSeverity": "P2",
+      "reason": "逐字核对通过：analyze-png.cjs:25-36 只累计 nonBg/colored/sum（判定条件 r>20||g>20||b>20 与 max-min>30），:37-43 只输出 nonBgPct/coloredPct/meanLuma，:70-77 的 diffOf 只做逐通道 |Δ|>24 计数，:96 基准图为 /^00-|^c0-|^a0-/ 命中的第一张，确无连通域、无墨迹包围盒、无期望区域内外墨迹比；png-view.cjs:11-83 的纯 Node 解码（zlib.inflateSync + Paeth 反滤波，:40-49）确实存在，:105-121 只打印占比统计与降采样 ASCII 亮度图，不含任何判据。影响成立：整图百分比量级下（单字 ≈24²=576 墨迹像素 / 1280×800=1.024e6 总像素 ≈0.056%）无法区分'字对/字错/无字'。唯一行号微差：finding 写 'png-view.cjs 的解码器 :11-60'，实际 decodePng 覆盖 :11-83（:60 只到滤波 switch 起始），不影响结论。",
+      "reproducibleCheck": "node bench/png-view.cjs <任意PNG>，输出仅 x/y、nonBg%、colored%、blue%、avgRGB 与 ASCII 图，无连通域/bbox 字段；grep 'components|bbox|inkBBox' bench/analyze-png.cjs bench/png-view.cjs 零命中。"
+    },
+    {
+      "id": "A5-5",
+      "verdict": "confirmed",
+      "correctedSeverity": "P1",
+      "reason": "全部 mock 事实核对无误：AcTrMText.spec.ts:4 jest.mock('../src/renderer')；AcTrMTextRenderer.spec.ts:21、AcTrMTextRendererGlyphCache.spec.ts:27、AcTrFontLoader.spec.ts:3 均 jest.mock('@mlightcad/mtext-renderer')；主链入口 AcTrMText.ts:74-80 renderSync 与 :85-91 renderAsync 调 syncRenderMText/asyncRenderMText（引文一致）。断言对象确为合成几何：AcTrMText.spec.ts:55/65/82 用 createBoxMesh（:269-277 自建 THREE.Mesh+BufferGeometry），:137/:154 用 mtextRaycast: jest.fn()，:252 直接赋 host._rendered——从不真实调用 mtext-renderer；@mlightcad/mtext-renderer@0.12.4 lib/renderer/mtext.d.ts:107-108 确声明 box 为不含变换矩阵的局部包围盒。data-model 侧核对：AcDbMText.ts:457-481 geometricExtents 用 acdbEstimatePlainTextWidth(:464)/acdbEstimateMTextHeight(:466)/acdbCountMTextLines(:465) 估算，AcDbMText.spec.ts 共 17 条 it 无一条断言真实字形度量。SVG 侧交叉基准核对：AcSvgMTextUtil.ts:99-105 resolveLineAdvance = baseHeight*max(factor,0)*LINE_SPACING_SCALE_FACTOR(:29 = 5/3)，AcSvgMText.spec.ts:137-138 断言 dy=\"16.6\"（10*1*5/3）——与 finding 所述一致。两处需修正的量级/表述：(1) 'SVG 侧 20 条断言'实际为 AcSvgMText.spec.ts 19 条 it（AcSvgEntity.spec.ts 另 5 条）；(2) fix 中建议的断言式 '两行 box 高度 ≈ height*(1+lineSpacingFactor*5/3)' 假设 cap height 等于 height，对 SHX 字体偏高，作为修复判据需按实测 capRatio 标定（finding 自身在 (1) 中已提出 capRatio 反推，前后略不自洽）。",
+      "reproducibleCheck": "grep -n \"jest.mock\" three-renderer/__tests__/AcTrMText*.spec.ts AcTrFontLoader.spec.ts 得 4 处；grep 'MTextObject|box' AcTrMText.spec.ts 中无任何来自 mtext-renderer 的真实实例；把 AcTrMText.spec.ts 的 createBoxMesh 高度翻倍，所有断言仍按新值通过（因为它们只校验被断言对象自身）。"
+    },
+    {
+      "id": "A5-6",
+      "verdict": "confirmed",
+      "correctedSeverity": "P1",
+      "reason": "SVG 侧核对：AcSvgMTextUtil.ts:31-32 LATIN_CHAR_WIDTH_FACTOR=0.6 / WIDE_CHAR_WIDTH_FACTOR=1，:972-983 measureCharWidth 返回 fontSize*baseFactor*widthFactor*tracking，:985-995 measureText 逐字符累加，:1070 attrs['font-family']=resolveSvgFontFamily(cadFont, this.defaultFont)；AcSvgFontMap.ts:13-44 的 CAD→CSS 映射、:84-86 未命中 .shx 回落 fallbackFamily、:47-53 DEFAULT_FONT_SIZE_SCALE 无 CJK 条目（resolveSvgFontSizeScale 对未命中返回 1）均与引文一致。PDF 侧核对：AcApPdfConvertor.ts:56-78 downloadAsPdf 把同一 SVG 交给 svg2pdf，全文（含整个 cad-pdf-plugin/src）无任何 addFont 调用，即不嵌入字体——grep 已确认。jsPDF 声称独立复现成功：jspdf@4.2.1 getFontList() 实测仅 {helvetica,Helvetica,courier,Courier,times,Times,zapfdingbats,ZapfDingbats,symbol,Symbol}；svg2pdf.js@2.7.0 dist/svg2pdf.es.js:977-979 `if (!fontIsAvailable) { firstAvailable = 'times' }`。我另用 jsPDF times 写 '测试中文ABC' 生成 PDF：输出流为 `(mKÕN-e\\u0000A\\u0000B\\u0000C) Tj`（CJK 被按 UTF-16BE 字节写入单字节标准字体的字符串），UTF-8 中文串确实不存在，故'导出 PDF 的中文不是中文'结论成立。表述需精确化：机制不是'找不到 UTF-8 串'，而是标准 14 字体+WinAnsi 编码无法承载 CJK；另外 SVG→PDF 时 font-family 会经 svg2pdf 的 generic 别名（fontAliases 中 serif/cursive/fantasy→times）再次落到 times，与 finding 描述同向。AcSvgMText.spec.ts:160-177 对 CJK 仅断言 dy>0 的情况也核对无误。",
+      "reproducibleCheck": "node -e \"const {jsPDF}=require('<...>/jspdf@4.2.1/node_modules/jspdf');console.log(Object.keys(new jsPDF().getFontList()))\"；再 d.setFont('times');d.text('测试中文',10,20);d.output('arraybuffer') 后在 latin1 串中检索 '测试'（0 命中）、检索 Buffer.from([0x6d,0x4b])（命中，即 U+6D4B 的 UTF-16BE）。"
+    },
+    {
+      "id": "A5-7",
+      "verdict": "confirmed",
+      "correctedSeverity": "P1",
+      "reason": "机制逐环核对通过：AcSvgEntity.ts:147-149 fastDeepClone(){return this}；:126-133 applyMatrix 以 matrix.clone().multiply(this._matrix) 累乘并就地 transformBox(this._box)；AcSvgGroup.ts:6 与 AcSvgMText.ts:14 均 extends AcSvgEntity 且全仓 fastDeepClone 仅 AcSvgEntity.ts:147 一处定义（grep 确认无覆写），故文字块同样受影响；AcDbRenderingCache.ts:663-678 miss 路径 prepareCacheTemplate(block)→this.set(key, block)→block=block.fastDeepClone()（SVG 下仍是同一对象），:593-604 hit 路径 block=this.get(key) 完全不克隆，:694-703 对返回对象 applyMatrix(_tmpWorldTransform) 就地改写；可达性确认：AcDbBlockReference.ts:822-830 与 :844-852 把 blockTransform 传给 AcDbRenderingCache.instance.draw，AcSvgRenderer.ts:4 引入 AcDbRenderingCache、:46-48 prepareExport 调 clear、:183-186 group 返回 AcSvgGroup；导出只在开始清缓存（AcApSvgConvertor.ts:20、AcApPdfConvertor.ts:30），结束无 clear。测试缺口亦核实：AcSvgEntity.spec.ts（19-93、含 5 条 it）全部手工 new AcSvgLine/AcSvgGroup 或 renderer.lines/group，不经 AcDbRenderingCache。本 finding 与 docs/code-review/raw/plugins-heavy.json 第 1 条为同一缺陷（该条 verdict=confirmed、correctedSeverity=P1），其 note 对症状的修正应采纳：hit 路径不调 renderer.group()，故导出中同名块只出现 1 次、变换为各实例矩阵连乘——A5-7 原文'块内文字的位置（以及块副本数量）与画布不一致'方向正确但偏轻，实为副本塌缩+矩阵连乘。",
+      "reproducibleCheck": "构造同一命名块（内含 MTEXT）的两处 INSERT（矩阵 T1、T2），用 AcSvgRenderer 导出后正则取 <g transform> 数量（期望 2，实际 1）与矩阵（实际为 T2*T1）；或单测断言 AcSvgRenderer.group([line]).fastDeepClone() === 该 group（当前为 true，即缓存模板被共享）。"
+    },
+    {
+      "id": "A5-8",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P3",
+      "reason": "成立的事实：AcApMTextCmd.ts:60-66 确实只赋 location/contents/width/height/lineSpacingFactor/attachmentPoint，未设 styleName；AcDbMText.ts:83-84/:137/:342-347 确认 _styleName 默认 ''；AcEdMTextEditor.spec.ts:104-121 把 textStyleTable.getAt mock 成 ()=>undefined（:113）——核对无误。但 finding 的因果链与影响基本不成立：(1) AcDbTextStyleTable.resolveAt（:73-104）在 addCandidate 中显式跳过空串（`if (trimmed && !candidates.includes(trimmed))`），随后依次回落 database.textstyle → DEFAULT_TEXT_STYLE('Standard') → 'STANDARD' → 大小写不敏感匹配 → 表内第一条，且入口先调 database.ensureTextStyleDefaults()；AcDbDatabase.ts:2546-2565 会在缺少 Standard 时自动补建一条（font:'SimKai'）。因此 resolveAt('') 实际会解析到 $TEXTSTYLE/Standard，AcDbMText.ts:771-773 的 'No valid text style found' 分支在正常库里不可达，'新建文字的字体解析完全依赖 \"\" 的解析结果'与'取不到样式即抛错'均被高估。(2) '测试与真实行为相反'亦不准确：AcEdMTextEditor.spec.ts 的两条用例分别断言'toolbar 禁用时宿主保活'（:187）与'格式变更监听通知'（:223），getAt→undefined 只是环境搭建，并非对字体解析分支的断言。(3) 仍真实存在的是：编辑器用 getAt(database.textstyle)（AcEdMTextEditor.ts:429，精确匹配、取不到就传 textStyle:undefined）而实体用 resolveAt(styleName)（带多重回落），两者查找策略不对称，且'新建 MTEXT 最终用什么字体'全仓无任何断言——这才是本条的残余价值，故由 P2 下调为 P3。",
+      "reproducibleCheck": "直接调用 new AcDbTextStyleTable(database).resolveAt('')，断言返回记录非 undefined（回落 Standard）；再断言 resolveAt('不存在的样式名') 同样非 undefined（说明 throw 分支不可达）。"
+    },
+    {
+      "id": "A5-9",
+      "verdict": "confirmed",
+      "correctedSeverity": "P3",
+      "reason": "引文逐字核对无误：drawingVerifier.ts:29-30 两行规则原文一致（'Ignore dimensions...'、'Ignore missing annotations or labels unless the user explicitly asked for text entities.'），:31-32 通过条件与失败条件原文一致；:44-91 verifyDrawing 仅把 userRequest/referenceImages/drawingImage 交给 generateObject，schema 只有 passed/feedback 两个字段，无任何文字机器判据；createCadAgent.ts:287 确为唯一调用点。捕获侧核对：drawingPreviewCapture.ts:35 `await view.waitUntilIdle(timeoutMs)`、:14 SCENE_READY_TIMEOUT_MS=15000、:49-51 未就绪返回 {ok:false,reason:'scene-not-ready'}、:53 getModelSpaceEntityIds 只取模型空间实体（:17-21），与 finding 描述一致。作为'对照'通路、severity P3 的定位恰当。",
+      "reproducibleCheck": "在 cad-agent-plugin 中断言 VERIFICATION_SYSTEM_PROMPT 不含任何字形/连字/汉字相关校验项；把 drawingImage 换成全空画布调用 verifyDrawing，LLM 仍可按'形状与布局'返回 passed=true（提示词无文字判据）。"
+    }
+  ],
+  "missedFindings": [
+    {
+      "title": "双击编辑既有 MTEXT 时，仅打开编辑器（甚至取消）就会把 lineSpacingFactor 静默改写为 0.3 并提交入库，改变多行文字的实际行距",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/view/AcTrView2d.ts",
+      "line": "1563-1569（配合 1590-1600；AcEdMTextEditor.ts:155、:541-543；AcDbMText.ts:796）",
+      "evidence": "editMTextEntity 在 await editor.open() 之前先执行：`if (mtext.lineSpacingFactor !== AcEdMTextEditor.defaultLineSpacingFactor) { acapRunDatabaseEdit(db, 'Edit MText', () => { const opened = db.openEntityForWrite(mtext); if (!(opened instanceof AcDbMText)) return; opened.lineSpacingFactor = AcEdMTextEditor.defaultLineSpacingFactor }) }`。AcEdMTextEditor.defaultLineSpacingFactor = 0.3（AcEdMTextEditor.ts:155），而 AcDbMText 构造默认 _lineSpacingFactor = 1.0（AcDbMText.ts:130，即 DXF 44 的规范默认值），故任何由 DXF 导入的多行文字只要双击就会命中该分支。acapRunDatabaseEdit 直接转调 db.runDatabaseEdit（AcApDatabaseEdit.ts:16-27）＝立即提交，且发生在编辑器打开之前，用户按取消也无法回滚；AcEdMTextEditor.open() 的注释自认 'resolves to null only when future cancel flows are introduced'（:385-386），即 result 永不为 null，编辑路径的写回（:1590-1599）总会执行。lineSpacingFactor 直接进入渲染（AcDbMText.ts:796 lineSpaceFactor: this.lineSpacingFactor）与 geometricExtents 估算，故 0.3 与 1.0 的差异会真实改变行距/换行与选择框。全仓 grep 'editMTextEntity' 只命中 AcTrView2d.ts:1530/1560，零测试覆盖。",
+      "severity": "P1"
+    },
+    {
+      "title": "同一双击编辑路径把 height 归一化为 Math.max(1, height)，使任何 0<height<1 的既有 MTEXT 仅打开一次编辑器就被放大约 1/height 倍",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/view/AcTrView2d.ts",
+      "line": "1596（配合 1615-1619；AcEdMTextEditor.ts:432、:540）",
+      "evidence": "resolveMTextEditorTextHeight（:1615-1619）在 mtext.height>0 时原样返回该值作为编辑器入参 textHeight；AcEdMTextEditor.open 内 `const normalizedTextHeight = Math.max(1, textHeight)`（:432）并在关闭时回填 `height: normalizedTextHeight`（:540）；编辑路径随后无条件写回 `opened.height = result.height`（:1596），不与原值比较。故 height=0.5 的既有文字（米制/大坐标图纸常见）双击后即变为 1，用户未做任何修改、甚至取消也会提交（同前，result 永不为 null）。该缺陷与 A5-1 属于同一根因（编辑器把 max(1,·) 的归一化结果当作 height 返回），但 A5-1 只把它写成'单测未锁定契约'的测试缺口，未指出它对既有图纸的字高是破坏性写回；全仓无任何测试覆盖编辑既有 MTEXT 的 height 往返。",
+      "severity": "P1"
+    },
+    {
+      "title": "mtext 命令在内容为空时静默 return：不建实体、不提示用户，且该路径无任何测试",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/command/draw/AcApMTextCmd.ts",
+      "line": "57-58",
+      "evidence": "`const contents = result.contents.trim()` / `if (!contents) return` —— 用户框选后打开编辑器却未输入任何内容（或只输入空白）时，命令直接返回：无 AcApI18n 提示、无 appendEntity、无任何反馈；而该命令的 execute 全程运行在 AcEdCommand.ts:240-249 已打开的 undo mark/transaction 内（框选与编辑器交互期间事务边界一直开着）。注意 :57 用 trim 结果做判空，:62 却赋值未 trim 的 `result.contents`，即'空白内容'与'内容'的判定口径不一致。既有唯一单测 AcApMTextCmd.spec.ts 只覆盖 contents='Hello' 的正常路径，空内容分支零覆盖。",
+      "severity": "P3"
+    }
+  ]
+}

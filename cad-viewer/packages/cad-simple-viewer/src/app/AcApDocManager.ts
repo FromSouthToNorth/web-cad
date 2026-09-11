@@ -98,14 +98,12 @@ import {
   AcEdCalculateSizeCallback,
   AcEdCommand,
   AcEdCommandStack,
-  AcEdOpenMode
+  AcEdOpenMode,
+  closeActiveInlineEditor
 } from '../editor'
 import { AcApPluginManager } from '../plugin/AcApPluginManager'
 import { AcApDrawStyleToolbar } from '../ui/AcApDrawStyleToolbar'
-import {
-  isScriptQuitCommand,
-  parseScriptLines
-} from '../util/AcApScriptParser'
+import { isScriptQuitCommand, parseScriptLines } from '../util/AcApScriptParser'
 import { acapWithSecondaryDatabase } from '../util/AcApSecondaryDatabase'
 import { AcTrView2d } from '../view'
 import type { AcTrLayout } from '../view/AcTrLayout'
@@ -138,6 +136,23 @@ import {
 } from './defaultNewDrawingTemplate'
 
 const DEFAULT_BASE_URL = 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data'
+
+/**
+ * Drops the MTEXT renderer's per-document glyph state (pending promotion counts
+ * and cached templates).
+ *
+ * That state belongs to one drawing: keyed by text content, it never shrinks on
+ * its own, so opening drawing after drawing in one session made it grow without
+ * bound. The method is optional on purpose — the viewer must keep working when
+ * it is linked against a `@hy/three-renderer` build that predates the contract.
+ */
+function clearMTextRendererDocumentState() {
+  const renderer: AcTrMTextRenderer & { clearDocumentState?: () => void } =
+    AcTrMTextRenderer.getInstance()
+  if (typeof renderer.clearDocumentState !== 'function') return
+  renderer.clearDocumentState()
+}
+
 /**
  * Built-in command alias table used when users do not provide explicit alias overrides.
  *
@@ -640,6 +655,14 @@ export class AcApDocManager {
    * to keep using the viewer must create a new instance with a fresh container.
    */
   async destroy() {
+    // An open inline MTEXT editor has no exit point of its own: its `mtext`
+    // command is parked on the editor's promise and the editor's listeners live
+    // on `window` and on the view. Tearing this manager down without closing it
+    // would leave the session, its input box and its window keydown listener
+    // alive until the page unloads while its promise never settles. Close it
+    // first, while the view it renders into is still intact, exactly as
+    // `onBeforeOpenDocument` does before it replaces the document.
+    closeActiveInlineEditor()
     await this._pluginManager.unloadAllPlugins()
     this.context.doc.destroy()
     // Overlay/reference drawings are parsed into their own databases and are only
@@ -668,6 +691,9 @@ export class AcApDocManager {
     // pin the previous drawing.
     view.bindDrawDatabase?.(undefined)
     acapUninstallOpenFileDialog()
+    // Release the cached glyph templates before the renderer singleton itself:
+    // they are scene objects from the drawing that is being torn down.
+    clearMTextRendererDocumentState()
     AcTrMTextRenderer.resetInstance()
     resetWebworkerReadinessCache()
     AcApDocManager._instance = undefined
@@ -1379,7 +1405,11 @@ export class AcApDocManager {
       'markuphighlight',
       new AcApMarkupHighlightCmd()
     )
-    addSystemCommand('markupcallout', 'markupcallout', new AcApMarkupCalloutCmd())
+    addSystemCommand(
+      'markupcallout',
+      'markupcallout',
+      new AcApMarkupCalloutCmd()
+    )
     addSystemCommand('markupstamp', 'markupstamp', new AcApMarkupStampCmd())
     addSystemCommand('markupvis', 'markupvis', new AcApMarkupVisibilityCmd())
     addSystemCommand('clearmarkups', 'clearmarkups', new AcApClearMarkupsCmd())
@@ -1678,6 +1708,15 @@ export class AcApDocManager {
    * @protected
    */
   protected onBeforeOpenDocument(options?: AcApOpenDatabaseOptions) {
+    // An open inline MTEXT editor belongs to the document being replaced: close
+    // it so the pending command settles instead of appending its entity to the
+    // database that is about to be loaded.
+    closeActiveInlineEditor()
+    // The glyph templates cached for the previous drawing are unreachable once
+    // this open replaces it; dropping them here keeps the renderer state
+    // bounded across repeated opens and lets the new drawing lay out against
+    // the fonts that are current for it.
+    clearMTextRendererDocumentState()
     this.events.documentToBeOpened.dispatch({
       doc: this.context.doc,
       mode: this.getDocumentEventMode(options)

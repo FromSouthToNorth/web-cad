@@ -1,0 +1,84 @@
+{
+  "unit": "A2 MTEXT 落库契约与数据正确性",
+  "summary": "契约结论：AcDbMText.height 是字高（字符高度），AcDbMText.ts:61/:187-203 注释与三处消费方一致——geometricExtents 把它当字高（:466-470 → acdbEstimateMTextHeight）、subWorldDraw 把它填进 AcGiMTextData.height（:789）、@mlightcad/mtext-renderer 用它作 fontSize（dist/index.js:30677-30678 `fontSize: o`，o = e.height）、SVG 导出用它作 font-size（AcSvgMTextUtil.ts:291）。因此 AcApMTextCmd.ts:64 `mtext.height = result.height` 在类型上不是「文本框高赋给字高」，但返回值被 AcEdMTextEditor.ts:432 `Math.max(1, textHeight)` 夹到下限 1 世界单位（命令侧下限却是 1e-4），而该字段在编辑器侧注释仍写作「Final text box height」（:99-102），语义标注错位、数值被改写。width 的语义是换行参考宽度（软上界）：渲染器 processWord 在整词放不下时换行、processChar 仍逐字摆放（dist/index.js:29643、:29926），超宽词会溢出；选择/命中框取自真实字形几何（dist/index.js:30476、:30894-30920），所以不会出现「bbox 超出用户框」，但 data-model 侧的 geometricExtents 在 extentsWidth=0 时用整框宽（AcDbMText.ts:459-464），新建 MTEXT 的 API 包围盒比实际绘制宽。contents 无需额外规范化：编辑器 getText() 走 AST 序列化，换行输出为 \\\\P、\\\\ 与花括号均被转义（mtext-input-box dist/model/ast.js:143-182），AcDbMText.encodeMTextContentsForDxf 只兜底真实换行（AcDbMText.ts:801-803），且 line 57 的 trim() 只做空判、写库用的是未裁剪的 result.contents，不存在丢空白的问题。attachmentPoint 的 1..12 取值域与 DXF 71 一致，acGiAttachmentToMText 越界兜底 TopLeft、mTextAttachmentToAcGi 为恒等强转，实际取值只可能 1..9，无语义错位。落库缺省字段有两个真实副作用：lineSpacingFactor 被编辑器强制成 0.3（既覆盖已有图纸行距、又写成 AutoCAD 非默认值），direction 默认 (1,0,0) 使 rotation 在 SVG 与 canvas 两条渲染路径中被静默忽略。appendEntity 无需再包 acapRunDatabaseEdit：AcEdCommand.trigger 已在 execute 外层开 undo mark + transaction（AcEdCommand.ts:240-244），appendEntity 会 recordAppend（AcDbBlockTableRecord.ts:533-539），空的 undo mark 也不会入栈（AcDbDatabaseTransactionManager.ts:234-236），仅在 openMode<Review 时 shouldRecordUndoStack 为 false 的窄路径下才缺事务。测试方面，命令侧 spec 全量 mock 编辑器（AcApMTextCmd.spec.ts:15-46、:92-99），编辑器侧 spec 的 MTextInputBox 为 virtual mock 且从不触发 close（AcEdMTextEditor.spec.ts:68-74），落库后的 height/width/lineSpacingFactor/attachmentPoint/styleName/layer 均无断言。",
+  "findings": [
+    {
+      "id": "A2-1",
+      "title": "mtext.height 是字高：命令写入的是被编辑器 Math.max(1, …) 改写过的高度，且该字段在编辑器侧被标注为「文本框高」",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/command/draw/AcApMTextCmd.ts",
+      "line": "57-66",
+      "evidence": "// AcApMTextCmd.ts:64（新实体只赋这几个字段）\n    mtext.height = result.height\n// AcEdMTextEditor.ts:432（返回值被硬下限改写）\n    const normalizedTextHeight = Math.max(1, textHeight)\n// AcEdMTextEditor.ts:99-102（该字段的注释）\n  /** Final text box height in world units. */\n// AcEdMTextEditor.ts:540（close 时回填）\n          height: normalizedTextHeight,\n// AcDbMText.ts:789 → 渲染器 dist/index.js:30677-30678（按字高消费）\n      height: this.height,\n    const o = e.height || n.fixedTextHeight || 0, … fontSize: o\n// cad-svg-plugin/src/AcSvgMTextUtil.ts:291\n    'font-size': String(baseHeight)\n// AcDbMText.ts:466-470（按字高估算多行总高）\n    const height = acdbEstimateMTextHeight(lineCount, this.height, this.lineSpacingFactor)",
+      "impact": "没有「字高被放大到框高」这条链路：编辑器回传的确实是要用作字高的值。真实缺陷是数值被静默改写上限/下限：命令侧 textHeight 下限是 1e-4（AcApMTextCmd.ts:74），编辑器侧下限是 1 世界单位（AcEdMTextEditor.ts:432），于是当 24 屏幕像素折合不到 1 个世界单位时（大坐标小单位图纸或高倍缩放），实体 DXF 40 落库为 1 而不是用户框选时的 0.416——在线预览（用同一个 normalizedTextHeight 建 MTextInputBox，:437-438）与最终渲染一致，却与用户屏幕上刚画的框不一致（文本比框高约 2.4 倍）；下游按 height 计量的路径（SVG 'font-size'、多行总高估算 lineSpacingFactor×5/3×height、外部 CAD）拿到的是被改写后的值。同一字段在编辑器侧仍标注为「text box height」，后续维护者极易把框高写进 DXF 40。",
+      "fix": "1) 把 AcEdMTextEditorResult.height 的注释改为「Text character height in world units (DXF group 40)」（AcEdMTextEditor.ts:99-102），消除字段双语义；2) 去掉 :432 的 `Math.max(1, textHeight)` 硬下限，改为跟随调用方：`const normalizedTextHeight = textHeight > 0 ? textHeight : AcEdMTextEditor.defaultTextHeight`，下限与 AcApMTextCmd.pixelsToWorldY 的 1e-4 对齐；3) 命令侧落库前显式拒绝非正高度并及时返回（避免 DXF 40 = 0 的实体）；4) 补一条断言：把 AcEdMTextEditor.spec.ts:68-74 的 virtual mock 换成真实模块后，open({textHeight: 0.4}) 的返回值 height 必须等于 0.4。",
+      "confidence": "high",
+      "severity": "P1",
+      "category": "准确性",
+      "verifyIdea": "用 textHeight=0.4 调 AcEdMTextEditor.open 并触发 close，断言返回 result.height === 0.4（当前实现返回 1）。"
+    },
+    {
+      "id": "A2-2",
+      "title": "lineSpacingFactor 被编辑器默认值 0.3 强制覆盖：新建 MTEXT 落库行距远紧于 AutoCAD 默认 1.0，双击编辑已有文字即使取消也会改写源图纸行距",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/editor/input/ui/AcEdMTextEditor.ts",
+      "line": "155, 541-543",
+      "evidence": "// AcEdMTextEditor.ts:155\n  static readonly defaultLineSpacingFactor = 0.3\n// AcEdMTextEditor.ts:541-543（close 时回填该值）；AcApMTextCmd.ts:65 直接落库\n          lineSpacingFactor:\n            mtextInputBox.getLineSpacingFactor?.() ??\n            AcEdMTextEditor.defaultLineSpacingFactor,\n// AcTrView2d.ts:1563-1567（双击编辑时无条件先改写并提交，用户取消也回不来）\n    if (mtext.lineSpacingFactor !== AcEdMTextEditor.defaultLineSpacingFactor) {\n      acapRunDatabaseEdit(db, 'Edit MText', () => {\n        const opened = db.openEntityForWrite(mtext)\n        if (!(opened instanceof AcDbMText)) return\n        opened.lineSpacingFactor = AcEdMTextEditor.defaultLineSpacingFactor\n// AcDbMText.ts:130 / :273-278（AutoCAD 语义默认值）\n    this._lineSpacingFactor = 1.0\n// 上游同源默认值 mtext-input-box dist/viewer/viewer.js:71: static DEFAULT_LINE_SPACE_FACTOR = 0.3;",
+      "impact": "两点可见后果：(1) 本查看器新建的多段 MTEXT 落库 lineSpacingFactor=0.3，而 AutoCAD 默认 1.0，按 acdbEstimateMTextHeight（AcDbTextExtentsHelpers.ts:107-117，单倍行距 = 5/3×字高）计算，行距只有标准值的 0.3/1.0 = 30%，导出的 DXF 在 AutoCAD/其他查看器中行距明显偏紧，而且与本仓库内部默认值不一致；(2) 双击编辑已有 MTEXT 时，:1563-1569 在用户尚未看到编辑器之前就把源实体 lineSpacingFactor 改成 0.3 并提交，即使用户随后按 Esc 取消编辑（AcEdMTextEditor.ts:530-548 仍会 resolve 结果、AcTrView2d.ts:1590-1599 会在 try 内重新赋一次 result.lineSpacingFactor），源图纸的行距也被永久改写——undo 只能靠用户自己再撤销一次这个隐藏的编辑步。",
+      "fix": "1) AcApMTextCmd 落库时不要无条件采用编辑器默认值：`mtext.lineSpacingFactor = result.lineSpacingFactor > 0 ? result.lineSpacingFactor : 1.0`，并让 AcEdMTextEditor 的 fallback 与 AcDbMText 默认值统一为 1.0（或把 0.3 明确定义为「本查看器 UI 默认行距」并在导出处换算为 DXF 44 语义）；2) 删除 AcTrView2d.ts:1563-1569 的强制改写，或至少把它移入 :1590 的同一 acapRunDatabaseEdit 中，使「取消编辑」不产生任何数据库写入；3) 补测试：lineSpacingFactor=1.0 的 MTEXT 进入 editMTextEntity 后 Esc 取消，断言数据库内 lineSpacingFactor 仍为 1.0。",
+      "confidence": "high",
+      "severity": "P1",
+      "category": "一致性",
+      "verifyIdea": "对 lineSpacingFactor=1.0 的已有 MTEXT 调 AcTrView2d.editMTextEntity 并让 open 返回 null，断言实体的 lineSpacingFactor 仍为 1.0（当前被改成 0.3）。"
+    },
+    {
+      "id": "A2-3",
+      "title": "新建 MTEXT 的 direction 恒为默认 (1,0,0)，使 rotation 在 SVG 与 canvas 两条渲染路径中被静默忽略",
+      "file": "cad-viewer/packages/data-model/src/entity/AcDbMText.ts",
+      "line": "140, 787-797",
+      "evidence": "// AcDbMText.ts:140（命令 AcApMTextCmd.ts:60-66 未覆盖 direction/rotation）\n    this._direction = new AcGeVector3d(1, 0, 0)\n// AcDbMText.ts:792-793（subWorldDraw 两者同时下传）\n      rotation: this.rotation,\n      directionVector: this.direction,\n// cad-svg-plugin/src/AcSvgMTextUtil.ts:129-135（direction 优先）\nfunction resolveRotation(mtext: AcGiMTextData): number {\n  const dir = mtext.directionVector\n  if (dir && (dir.x !== 0 || dir.y !== 0)) {\n    return Math.atan2(dir.y, dir.x)\n  }\n  return mtext.rotation ?? 0\n}\n// mtext-renderer dist/index.js:30603-30607 同规则\nlet f = n.rotation || 0; if (n.directionVector && …) { … f = b.z > 0 ? -v : v; }",
+      "impact": "用户在属性面板把 rotation 改成 45°（AcDbMText.ts:659-668 暴露为可编辑 rotation）后，实体内部 rotation 变了、DXF 50 也写了 45°，但画面（canvas 主链与 SVG 插件导出）仍按 direction=(1,0,0) 水平绘制，且多次修改 rotation 都不生效；反过来，若下游改为写 direction 而忽略 rotation，则已按 rotation 落库的实体（例如 transformBy 只更新 rotation，见 :552-560）会突然转向。这是「数据模型双字段 + 渲染方向优先级」不一致导致的绘制不准。",
+      "fix": "1) 命令落库时保持两字段自洽：设置 rotation 的同时把 direction 同步为 `new AcGeVector3d(Math.cos(r), Math.sin(r), 0)`，或显式声明 direction=(1,0,0) 表示「未设置」并让 getTextAxes/resolveRotation 只认 rotation；2) 更彻底的做法是在 AcDbMText 内提供 `setRotation(rad)` / `get effectiveRotation()`，并在 subWorldDraw 中只下传其中之一（例如 direction 为空时下传 rotation 而不下传 directionVector），与 AcDbText.ts:828-831 的既有约定（「Please use 'rotation' and do not set value of 'directionVector' because it will overrides rotation value」）保持一致；3) 补测试：new AcDbMText() 只设 rotation=π/4，断言 SVG 输出含 rotate(-45) 且 renderer 入参 directionVector 不覆盖 rotation。",
+      "confidence": "high",
+      "severity": "P1",
+      "category": "准确性",
+      "verifyIdea": "构造 mtext（默认 direction=(1,0,0)）后设 rotation=π/4，检查 buildSvgMText 输出的 transform 是否含 rotate(-45)（当前不含）。"
+    },
+    {
+      "id": "A2-4",
+      "title": "新建 MTEXT 不设置 extentsWidth，data-model 的 geometricExtents 退化为整框宽（DXF 41），与实际绘制宽度和渲染器 bbox 不一致",
+      "file": "cad-viewer/packages/data-model/src/entity/AcDbMText.ts",
+      "line": "457-481",
+      "evidence": "// AcDbMText.ts:457-481\nconst width =\n  this.extentsWidth > 0\n    ? this.extentsWidth\n    : this.width > 0\n      ? this.width\n      : acdbEstimatePlainTextWidth(this.contents, this.height)\nconst height = acdbEstimateMTextHeight(acdbCountMTextLines(this.contents), this.height, this.lineSpacingFactor)\nreturn acdbExpandBoxByOrientedTextRect(box, this._location, width, height, …)\n// AcDbMText.ts:908-910（extentsWidth 只在 DXF 读入时被赋值）\n        case 42:\n          if (n > 0) this.extentsWidth = n\n// 命令只写 width=用户框宽 AcApMTextCmd.ts:63；渲染侧选择框却取自真实字形几何：mtext-renderer dist/index.js:30476 get box()、:30894-30920 updateBoxFromObject，three-renderer AcTrGlyphEntity.ts:293-304 updateSelectionBox。",
+      "impact": "新建 MTEXT 的 API 包围盒宽度恒等于用户框宽：框选得越宽，geometricExtents 越虚胖（例如框宽 100、实际单字宽 2 的 MTEXT 返回 100 宽的包围盒），而屏幕上选择框/命中判定只有 2 宽。凡是用 geometricExtents 的功能都会跟着偏：XAttach/AcDbXAttachCmd.ts:117 的插入范围、MLeader/AcDbMLeader.ts:3054 与 AcDbBlockReference.ts:797 的包围盒并集、AcDbTable.ts:436 等；同时对同样内容，导入的图纸（有 DXF 42）与新建实体走两条宽度解析分支，结果不一致。",
+      "fix": "1) 命令落库时用渲染/度量结果回填 extentsWidth（例如复用 mtext-renderer 的 MTextObject.box 宽度，或在 data-model 侧用 acdbEstimatePlainTextWidth(contents, height) 作为下限），使新建实体与导入实体走同一分支；2) 若坚持「width 优先」，则把 geometricExtents 的宽度按 acdbEstimatePlainTextWidth(contents, height) 与 width 取 min，避免虚胖包围盒污染 XAttach/关联计算；3) 把与 AcDbTextExtentsHelpers.ts:316-352 acdbResolveMTextLayoutMetrics 中逐字重复的宽度/高度解析（:327-337）收敛到该 helper，防止两处逻辑再分叉；4) 补测试：contents='A'、height=2、width=100 时断言 geometricExtents 宽度接近 2 而非 100。",
+      "confidence": "high",
+      "severity": "P2",
+      "category": "正确性",
+      "verifyIdea": "新建 mtext（contents='A'、height=2、width=100）断言 geometricExtents.max.x - min.x 远小于 100（当前恰好等于 100）。"
+    },
+    {
+      "id": "A2-5",
+      "title": "落库未设置 styleName 与 layer：渲染走隐式回退，DXF 组码 7 写出空字符串、组码 8 由保存时刻的 CLAYER 决定",
+      "file": "cad-viewer/packages/data-model/src/entity/AcDbMText.ts",
+      "line": "137, 824",
+      "evidence": "// AcDbMText.ts:137（命令未设置 styleName）\n    this._styleName = ''\n// AcDbMText.ts:824（导出组码 7 写出空串）\n    filer.writeString(7, this.styleName)\n// AcDbTextStyleTable.ts:73-103（'' 时的回退链：$TEXTSTYLE → Standard → 表内第一条）\n    addCandidate(name)\n    addCandidate(this.database.textstyle)\n    addCandidate(DEFAULT_TEXT_STYLE)\n// AcDbEntity.ts:186-190 / :661-664（layer 惰性取当次 CLAYER）\n  get layer() {\n    if (this._layer == null) {\n      this._layer = this.database.clayer ?? '0'\n// AcDbEntity.ts:530（导出时无条件取 layer）\n    filer.writeString(8, this.layer)",
+      "impact": "(1) 导出的 MTEXT 组码 7 为空字符串：本查看器读回时 resolveAt('') 会回退到当前 $TEXTSTYLE，看不出问题；但其他 CAD 系统对空 STYLE 名的处理是实现相关的，等于把「文字样式」变成外部系统的隐式默认，跨系统打开可能出现字体/字宽差异（对比 AcDbText 也是同样默认，属于既有行为，但新建实体的样式未被固化）。(2) layer 不是创建时快照，而是首次访问/保存时刻的 $CLAYER：命令执行期间用户若切换当前图层，落库的实体属于新图层，导出 DXF 组码 8 随之不同，用户预期（在 A 图层画的字）与实际（写到 B 图层）不一致。",
+      "fix": "1) AcApMTextCmd 落库前显式固化样式与图层：`mtext.styleName = database.tables.textStyleTable.resolveAt()?.name ?? database.textstyle`；`mtext.layer = database.clayer`（在 appendEntity 之前赋值，避免依赖惰性解析时机）；2) 若确实想表达「跟随当前样式/图层」，则应在 resbuf/扩展数据里显式记录，而不是靠空字符串传播；3) 补测试：命令执行后断言实体的 styleName 非空且等于数据库当前文字样式名、layer 等于执行时刻的 clayer，并断言 dxfOut 的组码 7/8 与之一致。",
+      "confidence": "medium",
+      "severity": "P2",
+      "category": "一致性",
+      "verifyIdea": "执行 AcApMTextCmd 后断言 appendEntity 收到的实体 styleName === database.textstyle 且 layer === 执行时的 database.clayer（当前 styleName 为 ''）。"
+    },
+    {
+      "id": "A2-6",
+      "title": "落库字段无断言：命令 spec 全量 mock 编辑器，编辑器 spec 的输入框为 virtual mock 且从不触发 close",
+      "file": "cad-viewer/packages/cad-simple-viewer/__tests__/AcApMTextCmd.spec.ts",
+      "line": "92-118",
+      "evidence": "// AcApMTextCmd.spec.ts:92-99、:117-118：编辑器返回值全量 mock，落库前无任何夹取\n    mockOpenMTextEditor.mockResolvedValue({\n      contents: 'Hello',\n      location: { x: 10, y: 70, z: 0 },\n      width: 100,\n      height: 24,\n      lineSpacingFactor: 0.25,\n      attachmentPoint: 1\n    })\n    expect(entity.width).toBe(100)\n    expect(entity.height).toBe(24)\n// AcApMTextCmd.spec.ts:15-46：'../src/editor' 整体 mock，AcEdMTextEditor.open 恒为 jest.fn\njest.mock('../src/editor', () => { class AcEdMTextEditor { open = mockOpenMTextEditor } … })\n// AcEdMTextEditor.spec.ts:68-74：真实输入框从不构造，也没有 emit('close') 触发 :530-548 回填\njest.mock('@mlightcad/mtext-input-box', () => ({ MTextInputBox: MockMTextInputBox }), { virtual: true })",
+      "impact": "A2-1/A2-2 这类缺陷正是落在这个盲区：命令 spec 直接喂一个理想 result，因此 24 像素→文本高度的那条链路（pixelsToWorldY → AcEdMTextEditor.ts:432 夹取 → 落库）完全没有覆盖；编辑器 spec 用 virtual mock 且不触发 close，open() 返回的 height/width/location/lineSpacingFactor/attachmentPoint 与 normalizedTextHeight 语义从未被断言；attachmentPoint/lineSpacingFactor 在命令 spec 中也未断言。回归时会静默通过。",
+      "fix": "1) 新增一个不 mock AcEdMTextEditor 的命令级测试：注入 fake view（screenToWorld 返回 0.5 比例）后直接调用 AcEdMTextEditor.open，收到实例后手动 `emit('close')`，断言返回的 height 等于命令传入 textHeight（不被 Math.max(1,…) 改写）、width 等于框宽、lineSpacingFactor 为 0.3、attachmentPoint 为 1；2) 在 AcApMTextCmd.spec.ts 现有用例上补 `expect(entity.lineSpacingFactor).toBe(0.25)`、`expect(entity.attachmentPoint).toBe(1)`、`expect(entity.styleName).not.toBe('')`、`expect(entity.layer).toBe('0')`；3) 由于该 spec 把 '@mlightcad/mtext-input-box' 设为 virtual，可在 moduleNameMapper 中提供一层轻量 fake 以便在 node 下真实构造（当前包已安装，仅缺 DOM）。",
+      "confidence": "high",
+      "severity": "P3",
+      "category": "测试缺口",
+      "verifyIdea": "删掉 AcApMTextCmd.spec.ts 对 AcEdMTextEditor 的 mock 后运行该用例，看是否因缺少 height/attachmentPoint 断言而仍然通过。"
+    }
+  ]
+}

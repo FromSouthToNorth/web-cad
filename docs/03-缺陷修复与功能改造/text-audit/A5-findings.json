@@ -1,0 +1,123 @@
+{
+  "unit": "A5 可视化产物与准确性验证缺口",
+  "summary": "现有全部测试与 E2E 断言都停在「对象被创建」层面，没有任何一条能发现「画出来的中文是错的」。唯一触及文字命令的单元测试 AcApMTextCmd.spec.ts 把整个 editor 与 view mock 掉，断言 entity.height === 24（该值来自 mock 而非真实编辑器归一化结果），固化了未经校验的字高语义；唯一名称含 mtext 的 E2E（main-thread-mtext.spec.ts）使用无任何 TEXT/MTEXT 实体的 minimal-line.dxf，其像素断言只证明线框被画出来。E2E 截图一律只做「非背景像素计数」，仓库内不存在 toHaveScreenshot/__snapshots__/基准图或容差目录（已 grep 与 glob 确认为零命中）。bench/analyze-png.cjs 只产出 nonBgPct/coloredPct/meanLuma 与全局逐像素 diff，缺少连通域、墨迹包围盒、期望区域内外墨迹比等文本定位量，无法判定错字/豆腐块/偏移/裁切。导出链路上，SVG 用独立的逐字符估宽布局（Latin 0.6em、CJK 1.0em）重排文字，与画布的真实字形引擎必然不一致；PDF 复用该 SVG 且不嵌入任何字体，经实测 jsPDF 只内置 14 种标准字体，CJK 字体族全部落到 times 回退，中文在导出 PDF 中丢失。建议按「字面量层 / 几何层 / 像素层 / 端到端层」四层补齐验证。",
+  "findings": [
+    {
+      "id": "A5-1",
+      "title": "AcApMTextCmd 唯一单测把整个 editor/view mock 掉并断言 entity.height===24，固化了未被校验的字高语义",
+      "file": "cad-viewer/packages/cad-simple-viewer/__tests__/AcApMTextCmd.spec.ts",
+      "line": "68-118（mock 68-99，断言 103-118）",
+      "evidence": "const context = {\n      view: {\n        screenToWorld: ({ y }: { y: number }) => ({ x: 0, y: y * 0.5 })\n      },\n ...\n    mockOpenMTextEditor.mockResolvedValue({\n      contents: 'Hello',\n      location: { x: 10, y: 70, z: 0 },\n      width: 100,\n      height: 24,\n ...\n    expect(mockOpenMTextEditor).toHaveBeenCalledWith(\n      expect.objectContaining({ location: { x: 10, y: 80, z: 0 }, width: 100, textHeight: 12 })\n ...\n    expect(entity.height).toBe(24)\n// 对照被测源码 cad-viewer/packages/cad-simple-viewer/src/command/draw/AcApMTextCmd.ts:64\n    mtext.height = result.height",
+      "impact": "该断言只证明「命令把编辑器返回值原样搬运」，不证明这个值是字高。真实路径里编辑器返回的 height 是 AcEdMTextEditor.open() 的 normalizedTextHeight = Math.max(1, textHeight)（AcEdMTextEditor.ts:432、:540），而该字段在编辑器类型注释中是「Final text box height in world units」（:101-102）——测试把一个已知语义冲突的字段当作正确的字高冻结下来。更关键的是 mock 的 open 直接回给 24，与同一测试用 screenToWorld(0,24)→Δy*0.5=12 造出的入参 textHeight 不一致，说明「编辑器返回值与入参字高是否同量纲」这条唯一的跨模块契约从未被断言；一旦编辑器归一化改变（例如把 Math.max(1,...) 下限去掉、或改成按框高返回），本测试仍会通过。",
+      "fix": "把断言从「透传」升级为「契约」：(1) 让 mockOpenMTextEditor 使用真实归一化函数（import 并调用 AcEdMTextEditor 暴露的纯函数，或新增 export normalizeTextHeight(textHeight)）返回 height，并断言 entity.height === normalizeTextHeight(12)，从而把 1e-4/1 下限差异与量纲一致性纳入断言，而不是硬编码 24；(2) 补一条断言 entity.height 单位与入参 textHeight 相同（同值），任何把文本框高写回 height 的回归立刻失败；(3) 断言 width/location.z/attachmentPoint/lineSpacingFactor 与入参—返回值的关系（当前 width 只断言等于 mock 值 100，未验证「编辑器把框宽原样回传」这一已知行为 AcEdMTextEditor.ts:539）。",
+      "confidence": "high",
+      "severity": "P1",
+      "category": "测试缺口",
+      "verifyIdea": "把 mock 的 height 改成 9999 后测试仍通过，即证明该断言只覆盖透传、不覆盖语义。"
+    },
+    {
+      "id": "A5-2",
+      "title": "E2E 层完全没有「画文字」用例：main-thread-mtext.spec.ts 用无 TEXT/MTEXT 的 fixture，像素断言只能证明线框被画出",
+      "file": "cad-viewer/packages/cad-viewer-example/e2e/tests/main-thread-mtext.spec.ts",
+      "line": "1-13（fixture）、106-141（像素断言）",
+      "evidence": "const fixturePath = path.resolve(currentDir, '..', 'fixtures', 'minimal-line.dxf')\n ...\n  await expect(page.locator('.ml-cad-container canvas').first()).toBeVisible()\n  await page.waitForTimeout(1500)\n ...\n  const pngBase64 = (await canvas.screenshot()).toString('base64')\n ...\n    for (let i = 0; i < data.length; i += 8) {\n      const alpha = data[i + 3]\n      if (alpha < 200) continue\n      if (data[i] + data[i + 1] + data[i + 2] > 60) count++\n    }\n    return count\n  }, pngBase64)\n\n  expect(pixelCount).toBeGreaterThan(20)",
+      "impact": "两条前置用例只统计 mtext-renderer worker 是否被创建（:71、:88），第三条名为「web worker mode loads the worker script and renders linework」——它验证的是 worker 脚本无错与「画布上存在 >20 个亮点」。全量 e2e/fixtures（14 个 dxf）中不存在任何 MTEXT/TEXT 实体（block-color.dxf 仅含 $QTEXTMODE、shape-entity.dxf 仅含 $TEXTSTYLE），每条 spec 也只做「非背景像素计数」级断言。因此「真实交互：框选→输入中文→回车→画布出现正确汉字」这条唯一能暴露用户核心问题的用例在仓库中不存在：错字、豆腐块、位置偏移、字高不对、被裁切、整块空白全部不会被任何现有测试捕获。draw-after-load.spec.ts:76-101 已经具备「命令行 + canvas 鼠标点击」的完整交互基建（getByRole('textbox',{name:'Type command'}) 与 mouse.click 比例坐标），说明缺口不是基建缺失而是用例缺失。",
+      "fix": "新增 e2e/tests/mtext-command.spec.ts，复用 draw-after-load.spec.ts 的交互模式：(1) 新建含 1 条 MTEXT（中文内容如「测试文字」、height=20、layer 0）的 fixture mtext-cjk.dxf（也可在用例内用 mtext 命令绘制，避免新增 fixture）；(2) 断言 CLI 提示符进入「指定第一个角点/第二角点」（AcApI18n main.inputManager.firstCorner/secondCorner）；(3) 框选两点后断言编辑器 MTextInputBox 出现在 DOM 中，向其 contenteditable 键入中文并以 Escape/提交关闭（AcEdMTextEditor 的 close 回填路径）；(4) 断言画布出现墨迹：用现有 countNonBackgroundPixels 断言 gain > 单字预估墨迹（中文 1 字≈height² 像素，height=24px 时 ≈576，故阈值取 300）；(5) 关键补充：断言新增墨迹的包围盒不与既有线框重合，且不贴画布边缘。该用例在软件渲染（SwiftShader）下可跑，风险是字体 CDN 不可用时的回退字形——应同时允许以本地 hztxt（App.vue:172-186 已 cacheFont 并 setDefaultFonts）作为默认，避免假失败。",
+      "confidence": "high",
+      "severity": "P0",
+      "category": "测试缺口",
+      "verifyIdea": "在该用例中把要键入的中文改成随机 3 个汉字，若断言仍全绿则说明它没真正区分字形内容。"
+    },
+    {
+      "id": "A5-3",
+      "title": "E2E 截图只取 base64 做非背景像素计数，仓库无基准图/容差目录，无任何像素基准比对",
+      "file": "cad-viewer/packages/cad-viewer-example/e2e/tests/draw-after-load.spec.ts",
+      "line": "19-50、68-101",
+      "evidence": "async function countNonBackgroundPixels(page: Page) {\n  const canvas = page.locator('.ml-cad-container canvas').first()\n  const pngBase64 = (await canvas.screenshot()).toString('base64')\n ...\n      if (a < 200) continue\n      if (r + g + b > 60) count++\n ...\n  const afterDrawNoPan = await countNonBackgroundPixels(page)\n  const gainWithoutPan = afterDrawNoPan - beforeDraw\n\n  expect(gainWithoutPan).toBeGreaterThan(1000)",
+      "impact": "对 cad-viewer-example 全仓 grep toHaveScreenshot|toMatchSnapshot|snapshotDir|maxDiffPixel|threshold|toMatchImageSnapshot 零命中，glob **/__snapshots__/** 与 **/e2e/**/*-snapshots*/** 同样零命中，playwright.config.ts:18-24 也未配置 expect.toHaveScreenshot 的阈值或 snapshotDir。全部 14 处 screenshot() 用法（invisible-entities/draw-after-load/layerctx-menu/aci7-bylayer-background/main-thread-mtext/shape-entity/smoke）都是「取 base64→在页面内用 canvas 2D 数像素」。layerctx-menu.spec.ts:124-158 的 diffPixelCount（逐通道 >8 计数）是目前最强的像素判据，仍只是「变化了多少像素」，没有基准图、没有期望区域。后果：任何「画出来是错的但确实有墨迹」的情况（画成别的字、豆腐块、位置偏 200px、字被裁掉一半）在所有 E2E 中都是绿色的。",
+      "fix": "引入两层像素判据而非整图基准：(1) 区域化断言——不新增基准图，改为断言「期望墨迹区域内有墨迹、区域外无墨迹」，即从数据库读取该 MTEXT 的 geometricExtents（AcDbMText.geometricExtents，AcDbMText.ts:457-481），经 view.worldToScreen 换算成画布像素框，断言框内墨迹占框面积 8%-40%、框外 0.5*height 扩边带内墨迹 <5%、框外墨迹为 0；(2) 若确需基准图，用 Playwright 的 toHaveScreenshot 并把 maxDiffPixelRatio 设为 0.01（配合 per-pixel threshold 0.2），且基准图必须由本地 hztxt 字体渲染生成，避免 CI 字体差异。若暂不引入基准图，至少要把 countNonBackgroundPixels 升级为 inkBBox+连通域（见 A5-4）。",
+      "confidence": "high",
+      "severity": "P1",
+      "category": "测试缺口",
+      "verifyIdea": "把 fixture 里的文字高度乘 3 后跑 E2E，若所有用例仍通过即证明现有断言与文字几何无关。"
+    },
+    {
+      "id": "A5-4",
+      "title": "bench/analyze-png.cjs 只有全局占比/均值/diff，缺少判定文字准确性所需的连通域、墨迹包围盒与期望区域墨迹比",
+      "file": "cad-viewer/packages/cad-viewer-example/bench/analyze-png.cjs",
+      "line": "25-44、47-80",
+      "evidence": "    let nonBg = 0\n    let colored = 0\n    let sum = 0\n    const n = d.length / 4\n    for (let i = 0; i < d.length; i += 4) {\n      const r = d[i]\n      const g = d[i + 1]\n      const b = d[i + 2]\n      sum += (r + g + b) / 3\n      if (r > 20 || g > 20 || b > 20) nonBg++\n      if (Math.max(r, g, b) - Math.min(r, g, b) > 30) colored++\n    }\n    return { w, h, nonBgPct, coloredPct, meanLuma }\n ...\n      if (Math.abs(da[i] - db[i]) > 24 || Math.abs(da[i+1] - db[i+1]) > 24 || Math.abs(da[i+2] - db[i+2]) > 24) changed++",
+      "impact": "单行文字在 1280x800 画布上的墨迹占比约 0.05%（24px 字高、单字≈576 墨迹像素 / 1.02e6 总像素），任何一个基于整图百分比的阈值都无法把「字对/字错/无字」分开；diffOf 的 changedPct 基准是 00-/c0-/a0- 前缀截图（:96），同样是全局量。缺少的量化维度：连通域数量（缺字/豆腐块会显著改变）、墨迹包围盒与期望框的相对关系（偏移/裁切）、期望区域内外墨迹比（多余字形/溢出）、孤立噪点数（回退字形残渣）。bench/png-view.cjs 已有可复用的纯 Node PNG 解码（zlib inflate + Paeth 反滤波，:11-60），但只打印降采样 ASCII 亮度图，不含任何判据。",
+      "fix": "在 analyze-png.cjs 增加 textStats(page, file, expected) 并给出可落地阈值（依据：单字墨迹≈height² 像素，抗锯齿边缘约 2px，画布对角线 D）：(1) inkBBox：像素级判据用 luma<128 或 |RGB-bg|>40 二值化，取最小外接矩形；(2) components：4 连通域，面积≥4px 才算（滤掉抗锯齿孤点），断言 components ≥ 0.7*N_char（N_char=CJK 字符数；拉丁取 ≥0.5*N_char），且 components ≤ 3*N_char+2；(3) bbox 判据：期望框由 MTEXT geometricExtents 经 worldToScreen 得到，断言 |bbox.center-expected.center| ≤ max(2px, 0.05*height_px)、|bbox.w-expected.w| ≤ 0.12*expected.w、|bbox.h-expected.h| ≤ 0.15*expected.h；(4) 区域墨迹比：内区 inkRatio ∈ [0.06,0.40]（CJK 笔画较密；低于 0.06 视为空白/豆腐块，高于 0.40 视为实心块或溢出），0.5*height_px 扩边带 inkRatio < 0.02，外圈 == 0；(5) 孤立噪点：面积<4px 的连通域数 ≤ 0.05*总连通域数。所有这些量都能由现有 png-view.cjs 的解码器在纯 Node 中计算，不依赖浏览器。",
+      "confidence": "high",
+      "severity": "P2",
+      "category": "测试缺口",
+      "verifyIdea": "用两个只差一个汉字的 PNG 跑新判据，若 components/bbox 指标不动则说明判据无效。"
+    },
+    {
+      "id": "A5-5",
+      "title": "几何层验证缺口：three-renderer 全部 MText spec 都 mock 掉 mtext-renderer，没有任何断言检查字形 bbox/基线/附着点",
+      "file": "cad-viewer/packages/three-renderer/__tests__/AcTrMText.spec.ts",
+      "line": "1-20（mock 第 4 行）、52-232",
+      "evidence": "jest.mock('../src/renderer', () => { ... })\n// 文件内其它 spec 同样全量 mock：\n// AcTrMTextRenderer.spec.ts:21  jest.mock('@mlightcad/mtext-renderer', ...)\n// AcTrMTextRendererGlyphCache.spec.ts:27  jest.mock('@mlightcad/mtext-renderer', ...)\n// AcTrFontLoader.spec.ts:3  jest.mock('@mlightcad/mtext-renderer', ...)\n// 被断言的对象只是 mock 出来的占位：\n    rendered: MTextObject\n ... expect(...box...)/raycast/批层级/fastDeepClone 保型\n// 对照真实字形入口 cad-viewer/packages/three-renderer/src/object/AcTrMText.ts:74-91\n    return renderer.syncRenderMText(this.toPlanViewMTextData(), this._style, this._colorSettings)",
+      "impact": "三个渲染器内部量从未被真实调用或断言：字形 bbox（MText.box，mtext-renderer types.d.ts:107-108 声明为不含变换的局部包围盒）、基线 y（LayerLayout.y / CharBox.box）、附着点（attachmentPoint 1-12 的锚定偏移）。data-model 侧 AcDbMText.spec.ts 只用估算函数 acdbEstimatePlainTextWidth/acdbEstimateMTextHeight 验证 geometricExtents（AcDbMText.ts:457-481），不是真实字形度量；SVG 侧 20 条断言测的是另一套实现（AcSvgMTextUtil）。结果是「height 是否被当作字高使用」「附着点是否落在插入点」「行距是否按 lineSpacingFactor*5/3*height」这类纯几何事实在整仓无任何断言，而它们恰好是错位与字高不对的直接原因。AcTrMTextGlyphCache.spec.ts 虽验证了 Box3 原型恢复与几何隔离，但用的也是 mock 出的几何。",
+      "fix": "新增几何层 spec（node 可跑，无需 GPU）：直接用 AcTrMTextRenderer.syncRenderMText（main 模式）对 MTextData{text:'中A',height:10,position:(100,200,0),attachmentPoint:TopLeft} 构造真实 MTextObject，断言 (1) box 局部高度 ≈ 10*capRatio（capRatio 由同字体下 'A' 的 box 高度/height 反推，避免硬编码），(2) box.min.y ≤ 0 ≤ box.max.y 的基线关系符合附着点定义，(3) 对 attachmentPoint=TopLeft/MiddleCenter/BaselineLeft 三个值，根节点世界坐标 = position 与 (3) 中局部锚点之差 ≤ 1e-6，(4) 两行文本 'A\\PB' 的 box 高度 ≈ height*(1 + lineSpacingFactor*5/3)（SVG 侧同公式见 AcSvgMTextUtil.ts:99-105 与 AcSvgMText.spec.ts:137-138 的 16.6 断言，可作为交叉基准）。若 mtext-renderer 在 node 下不可用（缺 worker/字体），退路是把它在 Playwright 页面内调用（浏览器有真实 shx 字体与 worker），断言同一组量。",
+      "confidence": "medium",
+      "severity": "P1",
+      "category": "测试缺口",
+      "verifyIdea": "在新增 spec 中把 height 从 10 改成 20，若 box 高度不随之翻倍即说明几何层没有真正验证字高。"
+    },
+    {
+      "id": "A5-6",
+      "title": "导出 SVG/PDF 的文字与画布渲染必然不一致：SVG 用逐字符估宽布局，PDF 不嵌入任何字体（实测中文落到 times 回退）",
+      "file": "cad-viewer/packages/cad-svg-plugin/src/AcSvgMTextUtil.ts",
+      "line": "967-995（估宽）、1059-1094（font-family/font-size）；PDF 侧 cad-viewer/packages/cad-pdf-plugin/src/AcApPdfConvertor.ts:56-81",
+      "evidence": "  private measureCharWidth(char: string, fontSize: number, tokenCtx: MTextContext): number {\n    const baseFactor = isWideCharacter(char) ? WIDE_CHAR_WIDTH_FACTOR : LATIN_CHAR_WIDTH_FACTOR\n    return fontSize * baseFactor * widthFactor * tracking\n  }\n  private measureText(value, fontSize, tokenCtx) { let width = 0; for (const char of value) width += this.measureCharWidth(...); return width }\n ...\n    attrs['font-family'] = resolveSvgFontFamily(cadFont, this.defaultFont)\n// AcSvgFontMap.ts:13-44 把 hztxt/simsun 等映射到本机/通用字体族，:84-86 未命中的 .shx 一律回落 sans-serif\n// PDF：AcApPdfConvertor.ts:73-78 直接把这段 SVG 交给 svg2pdf\n    await svg2pdf(svgEl, pdf, { x: 0, y: 0, width: vbWidth, height: vbHeight })",
+      "impact": "画布通过 @mlightcad/mtext-renderer 用真实 SHX/TTF 字形度量，SVG 导出走完全独立的逐字符估宽（Latin 0.6em、CJK 1.0em、宽度因子 0.85 硬编码），因此换行点、居中对齐、缩进、tab、堆叠居中都会与画布不同；字高又按 resolveSvgFontSizeScale 的逐字体表缩放（AcSvgFontMap.ts:47-53，CJK 无条目→1），与画布的字形度量无一致性保证。PDF 更进一步：本机实测 jsPDF 4.2.1 只内置 helvetica/courier/times/zapfdingbats/symbol（getFontList 输出），svg2pdf 的 findFirstAvailableFontFamily 对所列族逐个查 getFontList 后统一回落 'times'，用 times 写 '测试中文' 生成的 PDF 中找不到 UTF-8 中文串——即导出 PDF 的中文不是中文。SVG 侧测试（AcSvgMText.spec.ts:160-177）对 CJK 只断言「dy 值里有 >0 的」（发生了换行），错字与错位的换行都不会被发现。",
+      "fix": "(1) 在 PDF 转换前把 <text>/<tspan> 用同源字体（hztxt/SimSun）在离屏 canvas 上光栅化并替换为 <image>，或改为把 SVG 整段光栅化为位图页后嵌入 PDF——彻底避开 jsPDF 字体回退；(2) 若坚持矢量文字，需 jsPDF addFont 嵌入字体并在 convert 前注册，注册失败时必须显式报警而不是静默回落 times；(3) SVG 侧把 measureText 换成与画布同源的度量（复用 mtext-renderer 的 CharBox 宽度或 canvas measureText + FontFace 加载同一字体文件），否则至少新增「导出 SVG 的 <tspan> 文本内容拼接 === 用户输入的 contents」断言，把字面错误与布局误差分开拦截。",
+      "confidence": "high",
+      "severity": "P1",
+      "category": "一致性",
+      "verifyIdea": "对同一 '测试中文' 的 MTEXT 分别取画布截图与导出的 PDF 首页渲染图，若中文区域墨迹连通域数量或 bbox 差异 >15% 即证明不一致。"
+    },
+    {
+      "id": "A5-7",
+      "title": "SVG 导出中块内文字的实例位置/副本数不可信：fastDeepClone 返回 this 令缓存模板被就地变换，而现有 SVG 测试未覆盖缓存路径",
+      "file": "cad-viewer/packages/cad-svg-plugin/src/AcSvgEntity.ts",
+      "line": "147-149（配合 126-133;AcDbRenderingCache.ts:663-678、697-700）",
+      "evidence": "  fastDeepClone() {\n    return this\n  }\n ...\n  applyMatrix(matrix: AcGeMatrix3d) {\n    if (!this._matrix) { this._matrix = matrix.clone() }\n    else { this._matrix = matrix.clone().multiply(this._matrix) }\n    AcSvgMatrixUtil.transformBox(this._box, matrix)\n  }\n// 调用方 cad-viewer/packages/data-model/src/misc/AcDbRenderingCache.ts:667/670\n            this.set(key, block)      // 模板按引用入缓存\n            block = block.fastDeepClone()   // SVG 侧返回同一对象\n// :697  block.applyMatrix(_tmpWorldTransform)\n// 而导出只在开始时清缓存：cad-viewer/packages/cad-svg-plugin/src/AcApSvgConvertor.ts:20\n    AcSvgRenderer.prepareExport()",
+      "impact": "AcSvgMText 继承 AcSvgEntity 且未覆写 fastDeepClone，因此含文字的命名块（图框标题栏、块化标注）同样受影响：同名块第 1 次 INSERT 走 miss 后拿到的是缓存模板本身，applyMatrix 就地改写它；第 2 次 INSERT 命中 get() 又返回同一对象并再次 applyMatrix，得到 M2*M1 的累积变换，_box 也被反复变换。后果是导出 SVG/PDF 中块内文字的位置（以及块副本数量）与画布不一致，且导出后未清缓存会污染 three 渲染路径。这条机制已在 docs/code-review/raw/plugins-heavy.json 第 1 条确认（finding 1，含 note），本单元补充的是「文字准确性验证缺口」这一侧：现有 SVG 测试 AcSvgEntity.spec.ts:19-93 只用手工 new AcSvgLine/group 构造实体，完全绕开 AcDbRenderingCache，所以即便缓存契约被破坏，SVG 侧 20 条 MText 断言与 5 条实体变换断言全绿。",
+      "fix": "(1) 实现真正的 fastDeepClone（新建 AcSvgEntity/AcSvgMText，复制 _localSvg、_box、_matrix、basePoint），并在 AcApSvgConvertor.convert 与 AcApPdfConvertor.buildSvg 的 finally 中再调一次 AcDbRenderingCache.instance.clear()；(2) 新增回归测试：连续两次 worldDraw 同一个含 MTEXT 的命名块引用（矩阵分别为 T1、T2），断言导出字符串中出现两个 <g transform>，且第二个块的矩阵等于 T2（不等于 T2*T1），同时断言两次导出结果字节相同（缓存污染回归）；该测试可在 node 下用 AcSvgRenderer 直接跑。",
+      "confidence": "high",
+      "severity": "P1",
+      "category": "正确性",
+      "verifyIdea": "同一含文字块以 T1、T2 两次引用导出后，用正则取出两处 matrix(...) 并比较是否出现 T2*T1 的连乘。"
+    },
+    {
+      "id": "A5-8",
+      "title": "AcApMTextCmd 未设置 styleName，文字样式落入 resolveAt('') 分支——该分支在单测中被覆盖为 undefined，测试与真实行为相反",
+      "file": "cad-viewer/packages/cad-simple-viewer/__tests__/AcEdMTextEditor.spec.ts",
+      "line": "104-121（mock getAt -> undefined）；对照 cad-viewer/packages/data-model/src/entity/AcDbMText.ts:768-775",
+      "evidence": "jest.mock('../src/app', () => ({\n  AcApDocManager: { instance: { curDocument: { database: { clayer: '0', textstyle: 'Standard',\n          tables: { textStyleTable: { getAt: jest.fn(() => undefined) } } } }, ...\n// 真实绘制期解析：\n  private getTextStyle(): AcGiTextStyle {\n    const style = this.database.tables.textStyleTable.resolveAt(this.styleName)\n    if (!style) {\n      throw new Error('No valid text style found in text style table.')\n    }\n    return style.textStyle\n  }\n// 而命令从不设置 styleName：AcApMTextCmd.ts:60-66 只赋 location/contents/width/height/lineSpacingFactor/attachmentPoint",
+      "impact": "编辑器测试把 textStyleTable.getAt 固定 mock 成 undefined（即「取不到样式」这一分支），断言的是「取不到时也不崩」；但绘制期走的是 resolveAt(styleName) 且失败即 throw（AcDbMText.ts:771-773）。命令创建实体时 styleName 保持默认 ''（AcDbMText.ts:83-84、:339-347），因此新建文字的字体解析完全依赖 '' 在样式表中的解析结果——「中文字体来自哪个样式、是否命中 hztxt」这条直接决定字面对错的链路，既没有单测也没有 E2E。同一文件还 mock 了 @mlightcad/mtext-input-box 与 mtext-renderer（:68-79），所以连「编辑器实际用了什么字体渲染预览」也无从验证：预览与最终入库实体的字体可能不同源。",
+      "fix": "(1) 在 AcApMTextCmd 中显式设置 styleName（取 database.textstyle 或用户所选样式），并在单测中断言 entity.styleName 非空且能被 textStyleTable 解析；(2) 新增一条「新命令文字在真实样式表下可 worldDraw」的测试：用 AcDbDatabase + AcDbTextStyleTable 构造含 Standard 样式的库，创建实体后调用 getTextStyle/worldDraw（renderer 可用 spy），断言不抛 'No valid text style found'；(3) 编辑器 spec 增加一条 getAt 返回真实样式的用例，覆盖字体族传递（toolbarFontFamilies → defaultFont）。",
+      "confidence": "medium",
+      "severity": "P2",
+      "category": "准确性",
+      "verifyIdea": "把编辑器 spec 的 getAt mock 从 undefined 改成返回真实样式表记录，若用例开始失败即证明当前覆盖的是错误分支。"
+    },
+    {
+      "id": "A5-9",
+      "title": "agent 自动验证提示词显式忽略缺失的注释/标签，对文字准确性零覆盖（对照用）",
+      "file": "cad-viewer/packages/cad-agent-plugin/src/agent/drawingVerifier.ts",
+      "line": "23-32、44-91",
+      "evidence": "- Ignore dimensions, dimension lines, and dimension text in reference images. The drawing tools cannot create dimensions, so do not require them in the output drawing.\n- Ignore missing annotations or labels unless the user explicitly asked for text entities.\n- Pass when the drawing reasonably captures the requested shape and layout.\n- Fail only when important geometry is missing, wrong, or clearly misaligned.",
+      "impact": "这是仓库内唯一的「渲染结果自动校验」通路（createCadAgent.ts:287 → verifyDrawing → 截图 + LLM），其提示词明确指示忽略缺失注释与标注，且只以「形状与布局大体正确」为通过条件。即使文字被画成豆腐块、错字或整块空白，只要线框形状合理就会 passed=true；反过来，视觉模型也无法稳定判断汉字字形是否正确。捕获侧 drawingPreviewCapture.ts:30-54 用 waitUntilIdle 等字体几何（这点是对的），但预览只覆盖模型空间实体，且 15s 未就绪即返回 {ok:false,reason:'scene-not-ready'}（无重试断言）。结论：不能把这条通路当作文字准确性的保障，它是「对照」，不是覆盖。",
+      "fix": "在提示词之外补机器判据：agent 生成文字后，用 A5-4 的 inkBBox/连通域判据在 captureDrawingPreview 的同一张图上做本地校验（不需要 LLM），失败时把具体量（组件数、bbox 偏差、区域墨迹比）写入 feedback；若用户请求明确包含文字，则在 VERIFICATION_SYSTEM_PROMPT 里删去「忽略缺失注释」一条并追加「逐字核对截图中的文字内容与用户要求是否一致」。",
+      "confidence": "high",
+      "severity": "P3",
+      "category": "测试缺口",
+      "verifyIdea": "构造一张只含错字（或空文字）的截图调用 verifyDrawing，若返回 passed=true 即证明该通路对文字零覆盖。"
+    }
+  ]
+}

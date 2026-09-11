@@ -763,7 +763,8 @@ export default {
     offsetFailed: 'Unable to create an offset curve for the specified side.'
   },
   mtext: {
-    point: 'Specify mtext insertion point'
+    emptyContents: 'No text entered; no multiline text was created.',
+    invalidHeight: 'Invalid text height; no multiline text was created.'
   },
   pngout: {
     boundsFirstCorner: 'Specify first corner of bounds',

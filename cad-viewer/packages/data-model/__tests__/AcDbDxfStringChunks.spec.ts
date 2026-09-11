@@ -57,7 +57,9 @@ describe('AcDbDxfStringChunks', () => {
     expect(chunks).toHaveLength(3)
     expect(chunks[0]!.byteLength).toBe(ACDB_DXF_XDATA_BINARY_MAX_BYTES)
     expect(chunks[1]!.byteLength).toBe(ACDB_DXF_XDATA_BINARY_MAX_BYTES)
-    expect(chunks[2]!.byteLength).toBe(300 - ACDB_DXF_XDATA_BINARY_MAX_BYTES * 2)
+    expect(chunks[2]!.byteLength).toBe(
+      300 - ACDB_DXF_XDATA_BINARY_MAX_BYTES * 2
+    )
   })
 })
 
@@ -106,5 +108,16 @@ describe('AcDbDxfFiler XData chunking', () => {
     expect(group3[0]).toBe('C'.repeat(250))
     expect(group3[1]).toBe('C'.repeat(250))
     expect(group1).toEqual(['C'.repeat(20)])
+  })
+
+  it('omits the contents group entirely for empty MTEXT contents', () => {
+    // Regression (P2-19 / M-A2-1): the empty group used to be written as the
+    // placeholder `1\n0`, which read back as the literal text "0".
+    const filer = new AcDbDxfFiler()
+    filer.writeMTextContents('')
+
+    expect(acdbChunkDxfMTextContents('')).toEqual([{ code: 1, value: '' }])
+    expect(filer.toString()).toBe('\n')
+    expect(filer.toString()).not.toContain('1\n0')
   })
 })

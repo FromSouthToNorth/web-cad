@@ -1,0 +1,297 @@
+[
+  {
+    "text": "中文标注测试",
+    "height": 10,
+    "lineSpaceFactor": 1,
+    "widthFactor": 1,
+    "attachmentPoint": 1,
+    "charCount": 6,
+    "lineCount": 1,
+    "lines": [
+      {
+        "y": -1.272966,
+        "height": 16.666667,
+        "breakIndex": null
+      }
+    ],
+    "box": {
+      "min": [
+        0,
+        -10
+      ],
+      "max": [
+        58.89764,
+        0
+      ]
+    }
+  },
+  {
+    "text": "中文AB测试",
+    "height": 10,
+    "lineSpaceFactor": 1,
+    "widthFactor": 1,
+    "attachmentPoint": 1,
+    "charCount": 6,
+    "lineCount": 1,
+    "lines": [
+      {
+        "y": -1.272966,
+        "height": 16.666667,
+        "breakIndex": null
+      }
+    ],
+    "box": {
+      "min": [
+        0,
+        -10
+      ],
+      "max": [
+        58.89764,
+        0
+      ]
+    }
+  },
+  {
+    "text": "中 A",
+    "height": 10,
+    "lineSpaceFactor": 1,
+    "widthFactor": 1,
+    "attachmentPoint": 1,
+    "charCount": 3,
+    "lineCount": 1,
+    "lines": [
+      {
+        "y": -1.272966,
+        "height": 16.666667,
+        "breakIndex": null
+      }
+    ],
+    "box": {
+      "min": [
+        0,
+        -10
+      ],
+      "max": [
+        21.259843,
+        0.393701
+      ]
+    }
+  },
+  {
+    "text": "中文\\PAB",
+    "height": 10,
+    "lineSpaceFactor": 1,
+    "widthFactor": 1,
+    "attachmentPoint": 1,
+    "charCount": 4,
+    "lineCount": 2,
+    "lines": [
+      {
+        "y": -1.272966,
+        "height": 16.666667,
+        "breakIndex": 2
+      },
+      {
+        "y": -17.939633,
+        "height": 16.666667,
+        "breakIndex": null
+      }
+    ],
+    "box": {
+      "min": [
+        0,
+        -26.666667
+      ],
+      "max": [
+        17.795277,
+        0
+      ]
+    }
+  },
+  {
+    "text": "A\\P\\PB",
+    "height": 10,
+    "lineSpaceFactor": 1,
+    "widthFactor": 1,
+    "attachmentPoint": 1,
+    "charCount": 2,
+    "lineCount": 3,
+    "lines": [
+      {
+        "y": 0.931759,
+        "height": 16.666667,
+        "breakIndex": 1
+      },
+      {
+        "y": -15.734908,
+        "height": 16.666667,
+        "breakIndex": 1
+      },
+      {
+        "y": -32.401575,
+        "height": 16.666667,
+        "breakIndex": null
+      }
+    ],
+    "box": {
+      "min": [
+        0,
+        -41.12861
+      ],
+      "max": [
+        6.929134,
+        0
+      ]
+    }
+  },
+  {
+    "text": "A\\PB\\PC",
+    "height": 10,
+    "lineSpaceFactor": 2,
+    "widthFactor": 1,
+    "attachmentPoint": 1,
+    "charCount": 3,
+    "lineCount": 3,
+    "lines": [
+      {
+        "y": 9.265092,
+        "height": 33.333333,
+        "breakIndex": 1
+      },
+      {
+        "y": -24.068241,
+        "height": 33.333333,
+        "breakIndex": 2
+      },
+      {
+        "y": -57.401575,
+        "height": 33.333333,
+        "breakIndex": null
+      }
+    ],
+    "box": {
+      "min": [
+        0,
+        -74.461942
+      ],
+      "max": [
+        6.929134,
+        0
+      ]
+    }
+  },
+  {
+    "text": "中A",
+    "height": 10,
+    "lineSpaceFactor": 1,
+    "widthFactor": 1,
+    "attachmentPoint": 5,
+    "charCount": 2,
+    "lineCount": 1,
+    "lines": [
+      {
+        "y": 3.727034,
+        "height": 16.666667,
+        "breakIndex": null
+      }
+    ],
+    "box": {
+      "min": [
+        -8.110236,
+        -5
+      ],
+      "max": [
+        8.110236,
+        5
+      ]
+    }
+  },
+  {
+    "text": "中A",
+    "height": 10,
+    "lineSpaceFactor": 1,
+    "widthFactor": 1,
+    "attachmentPoint": 9,
+    "charCount": 2,
+    "lineCount": 1,
+    "lines": [
+      {
+        "y": 8.727034,
+        "height": 16.666667,
+        "breakIndex": null
+      }
+    ],
+    "box": {
+      "min": [
+        -16.220472,
+        0
+      ],
+      "max": [
+        0,
+        10
+      ]
+    }
+  },
+  {
+    "text": "A\\PB\\PC",
+    "height": 20,
+    "lineSpaceFactor": 1,
+    "widthFactor": 1,
+    "attachmentPoint": 1,
+    "charCount": 3,
+    "lineCount": 3,
+    "lines": [
+      {
+        "y": 1.863517,
+        "height": 33.333333,
+        "breakIndex": 1
+      },
+      {
+        "y": -31.469816,
+        "height": 33.333333,
+        "breakIndex": 2
+      },
+      {
+        "y": -64.803149,
+        "height": 33.333333,
+        "breakIndex": null
+      }
+    ],
+    "box": {
+      "min": [
+        0,
+        -82.25722
+      ],
+      "max": [
+        13.858268,
+        0
+      ]
+    }
+  },
+  {
+    "text": "AB中",
+    "height": 10,
+    "lineSpaceFactor": 1,
+    "widthFactor": 0.5,
+    "attachmentPoint": 1,
+    "charCount": 3,
+    "lineCount": 1,
+    "lines": [
+      {
+        "y": -1.272966,
+        "height": 16.666667,
+        "breakIndex": null
+      }
+    ],
+    "box": {
+      "min": [
+        0,
+        -10
+      ],
+      "max": [
+        14.133858,
+        0
+      ]
+    }
+  }
+]

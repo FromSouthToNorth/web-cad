@@ -215,7 +215,7 @@ const annotationPanel: RibbonPanelDef = {
   id: 'annotation',
   title: 'Annotation',
   items: [
-    btn('mtext', 'mtext', iconMtext, 'MText', 'large', 'MT'),
+    btn('mtext', 'mtext', iconMtext, 'MText', 'large', 'T'),
     btn('hatch', '-hatch', iconHatch, 'Hatch', 'large', 'H'),
     btn('dimLinear', 'dimlinear', ToolOutlined, 'Dimension', 'large', 'DLI'),
     btn('textStyle', 'style', FontSizeOutlined, 'Text Style', 'small'),

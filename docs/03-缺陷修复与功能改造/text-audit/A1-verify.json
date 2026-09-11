@@ -1,0 +1,77 @@
+{
+  "unit": "A1",
+  "verdicts": [
+    {
+      "id": "A1-1",
+      "verdict": "confirmed",
+      "correctedSeverity": "P1",
+      "reason": "逐行核对成立。AcApMTextCmd.ts:36-39 中 width 取框选世界宽度、textHeight 取 this.pixelsToWorldY(view, 24)（:71-75 = view.screenToWorld({0,0}) 与 {0,pixels} 的 Δy，下限 1e-4），location 为框左上角；AcEdMTextEditor.ts:432 normalizedTextHeight = Math.max(1, textHeight) 确实把 <1 的折算值静默抬到 1，:540 onClose 回填 height: normalizedTextHeight。折算链路核实为「像素→世界」：view.screenToWorld（AcTrView2d.ts:1357-1362 → AcTrLayoutView → AcTrBaseView.ts:107-108）调用 AcTrCamera.screenToWorld(point, this._width, this._height)（AcTrCamera.ts:91-97，NDC 反投影），而 _width/_height 来自 canvas.clientWidth/Height（AcEdBaseView.ts:1085-1087），故字高随缩放线性漂移；全仓 grep 'TEXTSIZE|textSize' 在 command 目录零命中，仅 data-model 样式表与 DXF fixture 出现，证实创建路径从不读文字样式字高。『height 真的决定可见字高』也已闭环：AcDbMText.ts:786-798 把 height 塞进 AcGiMTextData，mtext-renderer dist/index.js:30677 用 `t.height || fixedTextHeight`，即实体 height 优先于样式字高，故预览/入库字高确由 24px 决定。仅『AutoCAD 中第二角点只决定宽度/方向』一句措辞略偏（ACAD 框选拖动本可给文字框定尺寸），不影响结论；另其修复建议引用的 AcDbTextStyleTableRecord 字段名应为 textSize/priorSize（:115-139，底层属性 fixedTextHeight/lastHeight），属建议层笔误。",
+      "reproducibleCheck": "读 AcApMTextCmd.ts:36-39 与 :71-75、AcEdMTextEditor.ts:432；同一 DXF 分别在 zoomAll 与放大 100 倍后各画一次 mtext，断言写入实体的组 40（AcDbMText.ts:815）相差约 100 倍；或在 AcApMTextCmd.ts:38 下断点，断言 textHeight 只随 view 缩放变化、与 box.max.y-box.min.y 无关。"
+    },
+    {
+      "id": "A1-2",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P1",
+      "reason": "事实链逐点核对成立。AcEdMTextEditor.ts:488-555 的 Promise 中唯一 finish 调用点是 :530-548 的 onClose，注册于 :550 mtextInputBox.on('close', onClose)；:508-521 cleanup 无取消分支；:385-386 文档注释自认返回值仅在『future cancel flows』下为 null。undo/事务边界：AcEdCommand.ts:240-244 在 await execute(context) 之前 startUndoMark+startTransaction，:249 才 await execute，MTEXT 的 execute 在 AcApMTextCmd.ts:48-54 await 编辑器，故从框选到编辑器关闭全程持有 undo mark 与事务（AcEdCommand.ts:259-266 的 commit/endUndoMark 在其后）。调度吊住：AcApDocManager.ts:1609 await this._commandManager.cancelActive()，AcEdCommandStack.ts:441-458 中 view?.editor.cancelActiveInput() 后 `await promise`，而 AcEdInputManager.ts:214-219 的 cancelActiveInput 在没有 _activeRejector 时直接 return（编辑期间确无活动 prompt）。点击 Ribbon 也走同一路径：AntdRibbon.vue:493 sendStringToExecute → AcApDocManager.ts:1509-1515 executeCommandString → :1538/:1609，且 CommandQueue 只在文档打开时阻塞（commandQueue.ts:79-88，isBlocked=disabled），MTEXT 编辑期间不阻塞，故直线命令确会卡在 :1609。另核实底层 MTextInputBox 具备公开 closeEditor()（node_modules/.pnpm/@mlightcad+mtext-input-box@.../dist/viewer/viewer.d.ts:183，viewer.js:937-944 会 emit('close')），即『缺取消入口』的修复成本比审计描述更低，但缺口本身成立。仅『永久悬住』措辞偏重：Escape/点击画布会走 closeEditor()（viewer.js:766-767、:199-213），故实际是阻塞至关闭而非永久死锁；『Open/新建同样被卡』不准确——AcApDocManager.ts:965-986 的 openDocument 并不调用 cancelActive，不会被卡（只是会把编辑器与 undo mark 一起带过文档切换，见 missedFindings）。",
+      "reproducibleCheck": "浏览器执行 mtext → 框选 → 编辑器弹出后点 Ribbon「直线」，断言直到按 Esc/点画布才出现「指定第一个点」提示；或单测/断点验证 AcEdCommandStack.ts:444 处 _activeCommand 为 mtext、:446 的 cancelActiveInput() 因 AcEdInputManager.ts:215-216 无 rejector 而 no-op。"
+    },
+    {
+      "id": "A1-3",
+      "verdict": "confirmed",
+      "correctedSeverity": "P2",
+      "reason": "事实全部核实。AcApMTextCmd.ts:60-68 只赋 location/contents/width/height/lineSpacingFactor/attachmentPoint，未写 styleName；AcDbMText.ts:137 构造默认 _styleName=''。渲染回落链核实：AcDbMText.ts:768-775 getTextStyle() → AcDbTextStyleTable.ts:73-104 resolveAt(name='') 按 name→database.textstyle→DEFAULT_TEXT_STYLE→'STANDARD'→首个记录回落，故空样式名实体会跟着『当前文字样式』走，用户切样式后已画文字字形会变；而预览用的是 AcEdMTextEditor.ts:429 getAt(database.textstyle)（预览侧字高被 :437-438 覆盖、样式名却是当时那条记录），确为所见≠所得。持久化核实：AcDbMText.ts:824 filer.writeString(7, this.styleName)，AcDbDxfFiler.ts:602-605 `if (!value && value !== '') return this` 对空串不跳过，即写出空的组 7（不是不写组），其它 CAD 打开后同样回落到默认样式。量级是样式名元数据/字形来源问题，不改字高也不影响几何，P2 恰当。",
+      "reproducibleCheck": "读 AcApMTextCmd.ts:60-68 与 AcDbMText.ts:137、:824、AcDbDxfFiler.ts:602-605；用当前样式 HZTXT 画一段文字 → 把当前文字样式切到 STANDARD，断言已画文字字形随之改变；再 cdxf 导出并在文本编辑器中确认该 MTEXT 的组 7 为空串。"
+    },
+    {
+      "id": "A1-4",
+      "verdict": "confirmed",
+      "correctedSeverity": "P2",
+      "reason": "行号与文本逐字核对一致：en.ts:115 `mtext: 'Text'`、:146 `markupText: 'Text'`（zh.ts:114 '文字' / :145 '文字批注'），同在 shell.ribbon.button 下，经 AntdRibbonPanel.vue:164-167 labelFor(id) → `shell.ribbon.button.${id}` 渲染，英文下两处均为 'Text'（te() 命中即不再回落内置 'MText'）；按钮定义 ribbonModel.ts:218（mtext, annotationPanel）与 :292（markupText, markupPanel）也核对无误。产物差异核实：mtext 走 AcApMTextCmd.ts:60-68 appendEntity(modelSpace)；markuptext 走 AcApMarkupTextCmd.ts:41-52 只在 htmlTransientManager.add(AcTrHtmlBadge, layer=MARKUP_LIVE_LAYER) + :72 commitMarkup 写 markup 记录，不进模型空间、不参与 DXF 导出。唯一可替代区分手段是 tooltip 的命令行（AntdRibbonPanel.vue:39-41）。属术语/可用性歧义，P2 合理。",
+      "reproducibleCheck": "界面切 English，断言 Home>Annotation 与 Review>Markups 两个大按钮的可视标签都为 'Text'；或断言 useI18n().te('shell.ribbon.button.mtext') && te('shell.ribbon.button.markupText') 且两者 t() 值相等。"
+    },
+    {
+      "id": "A1-5",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P2",
+      "reason": "四语言死键核实：zh/jig.ts:755-757、en/jig.ts:765-767、tr/jig.ts:764-766、cs/jig.ts:763-765 均为 mtext.point；全仓 grep 'jig\\.mtext|mtext\\.point' 零命中（638 条 'jig.' 命中中无此项），AcApMTextCmd.ts:26-29 用的是 main.inputManager.firstCorner/secondCorner 且无任何 jig 预览，确为死文案。lint 现状我实测复核：在 cad-viewer/packages/cad-viewer-example 执行仓库 eslint 的 `eslint src/` → 退出码 1、'17 problems (13 errors, 4 warnings)'，其中 AntdRibbonPanel.vue:166:20 报 \"'key' dynamic key is used\"（对应 :165 const key = `shell.ribbon.button.${id}`），且无任何 no-unused-keys 报告；在 cad-simple-viewer 执行 `eslint src/` 仅 3 个 simple-import-sort 错误、无 i18n 报告。原因核实：eslint.config.js:81 localeDir='./**/locales/*.{json,json5,ts,js,yaml,yml}'，而实际目录是 src/i18n/<lang>/*.ts 与 src/locale/*.ts（仓库内不存在 locales 目录，仅 node_modules 里有），故 no-unused-keys 形同虚设。仅『修好 AntdRibbonPanel 那一行即可让 pnpm lint 转绿』被夸大：13 个错误分散在 AntdQat.vue:24/77、AntdRibbon.vue:44/103、AntdDropdownButton.vue:92、AntdPropertiesPanel.vue:108、以及 6 处 simple-import-sort，动态 key 已是全仓模式，单点修复不足以转绿。",
+      "reproducibleCheck": "在 cad-viewer/packages/cad-viewer-example 执行 `<repo>/cad-viewer/node_modules/.bin/eslint src/`，断言退出码 1、13 errors，包含 AntdRibbonPanel.vue:166 'key' dynamic key，且全输出不含 unused key；再断言仓库内 glob('**/locales/*.ts') 在 packages 下无命中。"
+    },
+    {
+      "id": "A1-6",
+      "verdict": "confirmed",
+      "correctedSeverity": "P3",
+      "reason": "三段逻辑逐行核对成立：AntdRibbon.vue:339-346 的 keytipTargets 只取当前选项卡中 size==='large' 且有 keyTip 的项；:365-376 层级 1 先精确匹配选项卡（ribbonModel.ts:357-361 measure 的 keyTip='M'），命中即 activateTab 并置 keytipLevel=2，且 :415 resetKeytips() 会清空 buffer；:384-392 层级 2 同样先精确匹配后立即 run，ribbonModel.ts:205 move 的 keyTip='M' 与 :218 mtext 的 'MT' 同时在同一 Home 页 keytipTargets 集合内，故键入 'M' 必然先命中 move（或先跳到 Measure 页），'MT' 永无拼全机会，'T' 后缀没有输入窗口；而 AntdRibbonPanel.vue:35-37 的 tooltip 会显示 (MT)、:52 写 aria-keyshortcuts='Alt+MT'，宣传与可达性不符。用户照提示操作的最坏结果是误启动 MOVE，属可用性小缺陷，P3 恰当。",
+      "reproducibleCheck": "浏览器中按 Alt → 键入 M → 观察先跳到 Measure 选项卡；回到 Home 再按 Alt → 键入 M，断言触发 MOVE 而非 MText；断言 Alt 键提示模式在键入单字符后立即执行、不存在超时/回车确认分支（AntdRibbon.vue:365-402）。"
+    }
+  ],
+  "missedFindings": [
+    {
+      "title": "MTEXT 编辑器无单实例/取消管理：调度被阻塞期间编辑器一旦遗弃，后续所有命令永久卡在 await cancelActive()",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/editor/input/ui/AcEdMTextEditor.ts",
+      "line": "486（open 装填 activeInputBox）、509-510（cleanup），配合 AcEdCommandStack.ts:441-458",
+      "evidence": "open() 在 :485-486 无条件 attachFormatBridge + setActiveInputBox(mtextInputBox)，既不检查也不关闭已存在的 activeInputBox（静态字段 :157，全仓仅 :201 getActiveInputBox 只读使用，无任何兜底 close 调用：grep 'closeEditor' 在产品源码零命中）。Promise 只在 :550 'close' 事件结算，:508-521 cleanup 无其它触发点。由于 AcEdCommandStack.ts:444-457 的 cancelActive() 在 _activeCommand 存在时会 `await promise`，一旦编辑器所在视图被销毁/容器被替换（onBeforeOpenDocument 会 curView.clear() 并 bindDrawDatabase，AcApDocManager.ts:1688-1700）而 'close' 不再可能触发，_activePromise 永不 settle，则此后每次 executeNamedCommand 都停在 AcApDocManager.ts:1609，整个命令层死锁。底层其实已提供出口：MTextInputBox.closeEditor()（@mlightcad/mtext-input-box dist/viewer/viewer.d.ts:183，viewer.js:937-944 emit('close')），AcEdMTextEditor 未暴露它，也没在命令栈里调用。",
+      "severity": "P2"
+    },
+    {
+      "title": "MTEXT 编辑期间打开新图纸：undo mark / 事务跨文档存活，提交被记到新数据库",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/app/AcApDocManager.ts",
+      "line": "965-986（openDocument 不取消活动命令）、1680-1703（onBeforeOpenDocument）",
+      "evidence": "AcEdCommand.ts:240-244 的 startUndoMark/startTransaction 在 mtext 命令进入编辑器后被长时间持有；openDocument（:965-986）与 onBeforeOpenDocument（:1680-1703）只做 clearAll/clearOverlays/curView.clear()/beginOpen，既未调用 _commandManager.cancelActive() 也未关闭 AcEdMTextEditor.getActiveInputBox()（该静态量只在 :509-510 cleanup 里清空）。AcApMTextCmd.ts:68 的 `context.doc.database.tables.blockTable.modelSpace.appendEntity(mtext)` 在编辑器关闭时才执行，此时 context.doc 已被 destroy/重读（:1729-1730），新文字与 undo 记录会落到新打开图纸的模型空间与事务里（ACAD 语义下应在新命令/新文档前结算或取消）。",
+      "severity": "P2"
+    },
+    {
+      "title": "框选高度被完全丢弃：入库 MTEXT 的 height 取屏幕折算值，而非用户框出的世界高度",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/command/draw/AcApMTextCmd.ts",
+      "line": "36-39（只取 max.x-min.x 与 24px 折算）、AcEdMTextEditor.ts:540（回填 height: normalizedTextHeight）",
+      "evidence": "box.max.y - box.min.y 在 AcApMTextCmd.ts:36-39 从未参与计算：width 只取 x 跨度，textHeight 取 pixelsToWorldY(view,24)，onClose（AcEdMTextEditor.ts:530-548）回填的 height 也是 normalizedTextHeight（:432 Math.max(1, textHeight)）。结果用户按视觉高度框出的文字框尺寸对字高无任何影响，且在放大视图下被静默抬到 1 个世界单位。该字段并非纯装饰：AcDbMText.ts:466-481 用 height 估算 geometricExtents（影响 zoomToFit/包围盒/框选命中），:789 还会作为 AcGiMTextData.height 传给渲染器并被 mtext-renderer 优先采用（dist/index.js:30677 `t.height || fixedTextHeight`）。",
+      "severity": "P3"
+    },
+    {
+      "title": "MTEXT 内容为空时静默丢弃，无任何提示且已付出一次编辑器+undo mark 代价",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/command/draw/AcApMTextCmd.ts",
+      "line": "57-58",
+      "evidence": "`const contents = result.contents.trim(); if (!contents) return` 直接返回，既不 showMessage 也不提示，与同层命令普遍给出反馈的写法不一致（如 AcApLayerUnlockCmd.ts:53-63、AcApOffsetCmd.ts:408）。用户按 Esc 或未输入即关闭编辑器后，界面上没有任何『未创建文字』的反馈；同时该次执行已走完 AcEdCommand.ts:240-244 的 startUndoMark+startTransaction（AcEdDatabaseTransactionManager.ts:234-236 因 pendingChanges 为空不产生 undo 记录，故不会污染撤销栈，但事务与命令占用直至此处才释放）。",
+      "severity": "P3"
+    }
+  ]
+}

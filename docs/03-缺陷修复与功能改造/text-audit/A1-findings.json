@@ -1,0 +1,84 @@
+{
+  "unit": "A1 入口与命令层",
+  "summary": "入口链路本身是通的：Ribbon `shell.ribbon.button.mtext` → AntdRibbonPanel.labelFor（AntdRibbonPanel.vue:164-167）→ AntdRibbon.run（:515-523）→ sendStringToExecute → executeNamedCommand 精确查找 `mtext`（AcApDocManager.ts:1581-1592，注册于 :1355，别名 T 见 :171），无查找歧义，Read 模式由 :1599-1603 显式报错拦下。框选的返回值语义是安全的：getBox 用两次 getPoint 后 `new AcGeBox2d().expandByPoint(p1).expandByPoint(p2)`，expandByPoint 内部走 AcGeVector2d.min/max 逐分量归一化，min/max 不可能反序，因此 `location = {box.min.x, box.max.y}` 恒为框左上角（与默认 attachmentPoint=TopLeft 一致）；attachmentPoint 变化时插入点也不会漂——mtext-input-box 的 setAttachmentPoint 会按新旧锚点差值补偿 position（viewer.js:669-703），getMTextInsertionPoint 返回补偿后的 position。取消路径也不会产生空撤销步：endUndoMark 在 pendingChanges 为空时直接 return（AcDbDatabaseTransactionManager.ts:228-242）。真正的问题集中在「字高的来源」和「编辑器打开期间的命令调度/撤销事务」两处，另有英文文案撞名与 i18n key 治理失效。",
+  "findings": [
+    {
+      "id": "A1-1",
+      "title": "MTEXT 字高取自「屏幕 24 像素」而非图纸文字样式，字高随缩放漂移、量级可失控",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/command/draw/AcApMTextCmd.ts",
+      "line": "38（及 71-75）",
+      "evidence": "    const width = Math.max(Math.abs(box.max.x - box.min.x), 1e-4)\n    const view = context.view as AcTrView2d\n    const textHeight = this.pixelsToWorldY(view, 24)\n    const location = { x: box.min.x, y: box.max.y, z: 0 }\n...\n  private pixelsToWorldY(view: AcTrView2d, pixels: number) {\n    const p0 = view.screenToWorld({ x: 0, y: 0 })\n    const p1 = view.screenToWorld({ x: 0, y: pixels })\n    return Math.max(Math.abs(p1.y - p0.y), 1e-4)\n  }",
+      "impact": "width 用用户框选的世界宽度，height 却用当前视图 24 CSS px 折算出的世界长度（AcTrBaseView.screenToWorld 用 canvas.clientWidth/Height 做反投影，见 AcEdBaseView.ts:1086-1087 → AcTrCamera.ts:91-97），于是同一张图在不同缩放级别下创建的 MTEXT 字高差几个数量级；框选的高度信息被完全丢弃（AutoCAD 中第二角点只决定宽度/方向，字高应来自当前文字样式，此处两者都没做到）。仓库内从未把 TEXTSIZE 或样式字高用于创建路径（全仓仅 DXF fixture 出现 $TEXTSIZE）。放大到每世界单位 >24 px 时 pixelsToWorldY < 1，随后被编辑器 `Math.max(1, textHeight)`（AcEdMTextEditor.ts:432）抬到 1，用户框选后得到几乎不可见的字；若命令在视图完成布局前执行（width/height 落到底限 1），Δy 还会被异常放大。",
+      "fix": "字高改为优先取当前文字样式：`const rec = database.tables.textStyleTable.getAt(database.textstyle); const textHeight = rec?.textStyle.fixedTextHeight || rec?.textStyle.lastHeight || this.pixelsToWorldY(view, 24)`（并把 rec.name 写入 mtext.styleName，见 A1-3），同时把 AcEdMTextEditor.ts:432 的 `Math.max(1, ...)` 下限改为与命令侧一致或删除，避免 24px 折算结果被静默改写。",
+      "confidence": "high",
+      "severity": "P1",
+      "category": "准确性",
+      "verifyIdea": "同一张图分别「缩放到全图」和「放大 100 倍」各画一次文字框，比较两条 MTEXT 的 DXF 组 40 是否相差数十倍（预期应与文字样式一致、与缩放无关）。"
+    },
+    {
+      "id": "A1-2",
+      "title": "MTEXT 编辑器没有取消/结算路径，编辑期间 undo mark 与命令调度被一起吊住",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/editor/input/ui/AcEdMTextEditor.ts",
+      "line": "488（配套 AcEdCommandStack.ts:441-458、AcEdInputManager.ts:214-219）",
+      "evidence": "// AcEdMTextEditor.ts:488-550（唯一结算点是 'close'）\n    return new Promise(resolve => {\n      const finish = (result: AcEdMTextEditorResult | null) => {\n        if (done) return\n        done = true\n        cleanup()\n        resolve(result)\n      }\n      const onClose = () => { ... finish({ ... }) }\n      mtextInputBox.on('close', onClose)\n// AcEdCommandStack.ts:441-449\n  async cancelActive(): Promise<void> {\n    if (!this._activeCommand) return\n    view?.editor.cancelActiveInput()\n    if (promise) { try { await promise } catch { /* 吞掉 */ } }",
+      "impact": "open() 唯一的结算路径是 MTextInputBox 的 'close' 事件（Escape 或点击画布其它位置，viewer.js:937-943 / 199-213），没有任何 cancel 或超时分支（:385-386 注释自认 cancel 属 future work）；而 trigger 把整个 execute 包在 startUndoMark/startTransaction 内（AcEdCommand.ts:240-249），所以从框选到用户关闭编辑器这段时间 undo mark 一直开着。更严重的是 cancelActive() 会 await 上一个命令的 trigger promise，而它唯一的取消手段 cancelActiveInput() 在没有活动 prompt 时是 no-op（AcEdInputManager.ts:214-219），MTEXT 编辑期间恰好没有 prompt：于是用户点 Ribbon 的「直线」或在命令行敲命令时，executeNamedCommand 会卡在 AcApDocManager.ts:1609 的 await cancelActive()，直到用户按 Escape / 点回画布关闭编辑器，之前发出的命令才在文字提交之后才开始（那一次点击被丢弃）；若用户一直不关编辑器，调度与 undo mark 会一直悬着（「打开/新建」同样被卡）。",
+      "fix": "给 AcEdMTextEditor 增加显式取消入口（如 `static closeActiveInputBox()` → `activeInputBox.closeEditor()`），并在 AcEdCommandStack.cancelActive() 中当活动命令正等待非 prompt 交互时调用它，使 trigger 的 finally 能走完 commitTransaction/endUndoMark；同时把 undo mark 的开启点移到真正产生 DB 改动之前（或加超时释放），避免长交互窗口持有事务。",
+      "confidence": "high",
+      "severity": "P1",
+      "category": "健壮性",
+      "verifyIdea": "浏览器中执行 mtext → 框选 → 编辑器弹出后不输入任何内容，直接点 Ribbon「直线」：若直到按 Esc 才出现「指定第一个点」提示，即命中。"
+    },
+    {
+      "id": "A1-3",
+      "title": "命令不写 styleName：预览用当前文字样式，入库与 DXF 只写空样式名",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/command/draw/AcApMTextCmd.ts",
+      "line": "60-68",
+      "evidence": "    const mtext = new AcDbMText()\n    mtext.location = result.location\n    mtext.contents = result.contents\n    mtext.width = result.width\n    mtext.height = result.height\n    mtext.lineSpacingFactor = result.lineSpacingFactor\n    mtext.attachmentPoint = result.attachmentPoint\n\n    context.doc.database.tables.blockTable.modelSpace.appendEntity(mtext)",
+      "impact": "编辑器预览用的样式是 `database.tables.textStyleTable.getAt(database.textstyle)`（AcEdMTextEditor.ts:428-440），但 AcEdMTextEditorResult 不回传样式名，实体 styleName 保持构造默认 ''（AcDbMText.ts:137）。渲染期 getTextStyle() 走 resolveAt('')，按「当时的 $TEXTSTYLE → Standard/STANDARD → 表内第一条」回落（AcDbTextStyleTable.ts:73-104）：用户随后切换当前文字样式，已画好的文字字形会跟着变，所见（预览）≠ 所得（入库）。持久化同样丢：dxfOutFields 写 `filer.writeString(7, this.styleName)`（AcDbMText.ts:824），而 writeString 对空串并不跳过（AcDbDxfFiler.ts:602-605），导出的 MTEXT 组 7 为空串，在其它 CAD 里同样回落到默认样式。",
+      "fix": "在命令里显式写样式名：`const rec = database.tables.textStyleTable.getAt(database.textstyle); mtext.styleName = rec?.name ?? ''`（或在 AcEdMTextEditorResult 增加 styleName 字段，使预览与入库共用同一条记录）。",
+      "confidence": "high",
+      "severity": "P2",
+      "category": "一致性",
+      "verifyIdea": "用当前样式 HZTXT 画一段中文 → 把当前文字样式切成 STANDARD → 观察已画文字字形是否自行变化；再 cdxf 导出检查该 MTEXT 的组 7 是否为空。"
+    },
+    {
+      "id": "A1-4",
+      "title": "英文界面下 mtext 与 markuptext 按钮同名 \"Text\"，二者产物语义完全不同",
+      "file": "cad-viewer/packages/cad-viewer-example/src/locale/en.ts",
+      "line": "115（与 :146；按钮定义 ribbonModel.ts:218、:292）",
+      "evidence": "// src/locale/en.ts:115 与 :146（同在 shell.ribbon.button 下）\n        mtext: 'Text',\n...\n        markupText: 'Text',\n\n// src/shell/ribbon/ribbonModel.ts:218 / :292\n    btn('mtext', 'mtext', iconMtext, 'MText', 'large', 'MT'),\n    btn('markupText', 'markuptext', FontSizeOutlined, 'Text', 'large'),",
+      "impact": "中文靠 zh.ts:114「文字」与 :145「文字批注」区分，英文两个按钮都渲染成 \"Text\"（labelFor 命中 locale 后就不再使用内置回退 'MText'）。二者结果完全不同：mtext 在模型空间 appendEntity 出真正的 DXF MTEXT 实体（AcApMTextCmd.ts:60-68）；markuptext 只在 htmlTransientManager 上加一个 HTML overlay 徽标（AcApMarkupTextCmd.ts:42-51，layer=MARKUP_LIVE_LAYER）并写 markup 记录，不进模型空间、不随 DXF 导出。英文用户按图标点错会得到「屏幕上像画了字、导出后消失」的结果，事后只能从 tooltip 里的 `命令：markuptext` 一行区分（AntdRibbonPanel.vue:39-41）。",
+      "fix": "英文文案区分并贴近 AutoCAD 术语：`mtext: 'Multiline Text'`、`markupText: 'Text Markup'`；同时给 markuptext 所在面板/按钮加上批注语义标识，避免与绘图工具混淆。",
+      "confidence": "high",
+      "severity": "P2",
+      "category": "可用性",
+      "verifyIdea": "界面切到 English，对比 Home>Annotation 与 Review>Markups 两个按钮的可视标签是否都为 \"Text\"。"
+    },
+    {
+      "id": "A1-5",
+      "title": "i18n key 治理未生效：jig.mtext.point 四语言全为死键，且 Ribbon 的动态 key 让 lint 真实失败",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/i18n/zh/jig.ts",
+      "line": "755-757（配置见 eslint.config.js:59-65、81）",
+      "evidence": "// src/i18n/zh/jig.ts:755（en/tr/cs 同结构，位于 en:765 / tr:764 / cs:763）\n  mtext: {\n    point: '指定多行文本插入点'\n  },\n\n// eslint.config.js:59-65 与 :81\n      '@intlify/vue-i18n/no-dynamic-keys': 'error',\n      '@intlify/vue-i18n/no-unused-keys': [ 'error', { extensions: ['.js', '.ts', '.vue'] } ],\n...\n        localeDir: './**/locales/*.{json,json5,ts,js,yaml,yml}',",
+      "impact": "`jig.mtext.point` 在 zh/en/tr/cs 均存在，但全仓（含 __tests__）零引用：AcApMTextCmd 用的是 `main.inputManager.firstCorner/secondCorner`，命令也没有任何 jig/预览提示，属于死文案。CLAUDE.md 声称「vue-i18n 禁止动态 key 和未使用 key」，但 eslint.config.js:81 的 localeDir 指向 `**/locales/**`，实际目录是 `src/i18n/<lang>/*.ts` 与 `src/locale/*.ts`（含 `src/locale/<lang>/`），规则并不覆盖本单元文件——实测在 cad-viewer/packages/cad-viewer-example 下执行 `npx eslint src/`：没有任何 unused-key 报告，反而在 AntdRibbonPanel.vue:166 报 `'key' dynamic key is used` 硬错误（`shell.ribbon.button.${id}`），整包 13 errors / 退出码 1。也就是说「静态引用」这道闸门当前既没覆盖这些 locale 文件，也无法通过 lint。",
+      "fix": "删除死键 jig.mtext.point（或让命令真正使用它作为第一角点提示）；把 localeDir 改成能匹配包内实际路径（如 `packages/*/src/{i18n,locale}/**/*.{ts,js,json}`）；把 AntdRibbonPanel.labelFor 的动态 key 换成显式映射（`{ mtext: 'shell.ribbon.button.mtext', ... }[id]`）或对该行做定向 disable 并注明原因，使 `pnpm lint` 由红转绿。",
+      "confidence": "high",
+      "severity": "P2",
+      "category": "测试缺口",
+      "verifyIdea": "在 cad-viewer/packages/cad-viewer-example 执行 `npx eslint src/`：确认既无 jig.mtext.point 的 unused 报告，又在 AntdRibbonPanel.vue:166 报 dynamic key 错误且退出码为 1。"
+    },
+    {
+      "id": "A1-6",
+      "title": "Ribbon 键提示 \"MT\" 不可达，且按 M 会直接触发 move",
+      "file": "cad-viewer/packages/cad-viewer-example/src/shell/ribbon/ribbonModel.ts",
+      "line": "218（逻辑见 AntdRibbon.vue:339-346、366-399）",
+      "evidence": "// ribbonModel.ts:218\uff08mtext 大按钮，keyTip 'MT'\uff09\n    btn('mtext', 'mtext', iconMtext, 'MText', 'large', 'MT'),\n\n// AntdRibbon.vue:339-346\uff08层级 2 仅取当前选项卡的大按钮\uff09\nconst keytipTargets = computed(() =>\n  (activeTab.value?.panels ?? [])\n    .flatMap(panel => panel.items)\n    .filter(item => (item.size ?? 'large') === 'large' && item.keyTip !== undefined)\n)\n\n// AntdRibbon.vue:385-391\uff08精确匹配即执行，前缀匹配无机会\uff09\n    const exact = keytipTargets.value.find(item => item.keyTip.toLowerCase() === buffer)\n    if (exact) { exitKeytips(); run(exact.command); return }",
+      "impact": "层级 1 只比对选项卡且先精确匹配：Alt 后按 M 精确命中 Measure 选项卡（ribbonModel.ts:358 keyTip 'M' → AntdRibbon.vue:366-375 置 keytipLevel=2），因此 tooltip 与 aria-keyshortcuts 宣传的 Alt+MT（AntdRibbonPanel.vue:35-37、:52）永远走不到；即便已停在 Home 页，层级 2 也是先精确匹配，按 M 会命中 modify 面板的 move（keyTip 'M'，ribbonModel.ts:205）并立即执行，'T' 后缀没有输入机会。用户照提示操作会误启动 MOVE。",
+      "fix": "为 mtext 选用不与单字母冲突的键提示（例如改成 'MT'→'TX' 或直接用 'T'，同时确认不与任何大按钮 keyTip 前缀冲突），或把层级 2 的执行时机改为「无更长候选项 / 超时 / 回车」后再 run，保证展示的键提示可达且不被单字母提示抢先。",
+      "confidence": "medium",
+      "severity": "P3",
+      "category": "可用性",
+      "verifyIdea": "浏览器中按 Alt → 键入 M → 再键入 T，观察是停在 Measure 选项卡（或触发 MOVE），而非启动 mtext。"
+    }
+  ]
+}

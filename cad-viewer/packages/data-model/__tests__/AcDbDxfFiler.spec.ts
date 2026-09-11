@@ -1,10 +1,7 @@
 import { AcCmColor, AcCmTransparency } from '@hy/common'
 
 import { AcDbDwgVersion } from '../src/database/AcDbDwgVersion'
-import {
-  AcDbDxfFiler,
-  AcDbDxfFilerStatus
-} from '../src/base/AcDbDxfFiler'
+import { AcDbDxfFiler, AcDbDxfFilerStatus } from '../src/base/AcDbDxfFiler'
 import type { AcDbDxfPair } from '../src/base/AcDbDxfPair'
 import { AcDbResultBuffer } from '../src/base/AcDbResultBuffer'
 import {
@@ -13,6 +10,73 @@ import {
   acdbMakeUtf8AsciiDxfPairReader
 } from '../src/base/AcDbDxfPairReader'
 import type { AcDbTypedValue } from '../src/base/AcDbTypedValue'
+
+/**
+ * Regression tests for empty string values.
+ *
+ * An empty string means "no value for this group code": writer used to emit a
+ * placeholder '0' value so the pair stayed present, which turned an empty style
+ * name (group 7) into a *style named "0"* and empty MTEXT contents (group 1)
+ * into the literal text "0" after a round trip. The whole group must be skipped
+ * instead — while numeric 0 stays a legal, emitted value.
+ */
+describe('AcDbDxfFiler empty string groups', () => {
+  it('skips an empty string group entirely', () => {
+    const filer = new AcDbDxfFiler()
+
+    // No group code and no value line: `toString()` only adds its terminator.
+    filer.writeString(7, '')
+    expect(filer.toString()).toBe('\n')
+
+    // Direct writeGroup callers (e.g. XData group 1000 chunking) get the same
+    // treatment; undefined/null were already skipped.
+    filer.writeGroup(1, '')
+    filer.writeString(7, undefined)
+    filer.writeString(7, null as unknown as string)
+    expect(filer.toString()).toBe('\n')
+
+    filer.writeString(7, 'Standard')
+    expect(filer.toString()).toBe('7\nStandard\n')
+  })
+
+  it('still writes numeric 0 and values that stringify to "0"', () => {
+    const filer = new AcDbDxfFiler()
+
+    filer.writeInt16(70, 0)
+    filer.writeDouble(40, 0)
+    filer.writeBoolean(290, false)
+    filer.writeInt16(71, 0.9)
+    filer.writeString(1, '0')
+
+    expect(filer.toString()).toBe('70\n0\n40\n0\n290\n0\n71\n0\n1\n0\n')
+  })
+
+  it('keeps the no-empty-value-line guard for values that format to empty', () => {
+    // Stringification happens through `formatValue`, which is a different layer
+    // than the empty-string check. A value whose string form is empty (and that
+    // is therefore not caught by the `value === ''` check, which does not
+    // stringify) must still fall back to '0' rather than leaving a blank line.
+    const filer = new AcDbDxfFiler()
+    filer.writeGroup(70, { toString: () => '' })
+
+    const out = filer.toString()
+    expect(out).toBe('70\n0\n')
+    // No line may be empty — an empty line would desynchronize code/value
+    // pairing for every strict reader.
+    expect(out).not.toMatch(/\n\n/)
+  })
+
+  it('keeps the no-empty-value-line guard for whitespace-only strings', () => {
+    // Only a fully empty string is skipped; a blank-looking value is still a
+    // value and must be written (never dropped, never left as an empty line).
+    const filer = new AcDbDxfFiler()
+    filer.writeString(1, ' ')
+
+    const out = filer.toString()
+    expect(out).toBe('1\n \n')
+    expect(out).not.toMatch(/\n\n/)
+  })
+})
 
 describe('AcDbDxfFiler', () => {
   it('writes and formats DXF groups through helper methods', () => {
@@ -157,15 +221,28 @@ describe('AcDbDxfFiler', () => {
 
     expect(filer.atEndOfObject).toBe(true)
     // readItem returns the underlying pair directly (carries its `type` field).
-    expect(filer.readItem()).toEqual({ code: 0, type: 'string', value: 'ENDSEC' })
+    expect(filer.readItem()).toEqual({
+      code: 0,
+      type: 'string',
+      value: 'ENDSEC'
+    })
     expect(filer.atEof).toBe(true)
     expect(filer.filerStatus).toBe(AcDbDxfFilerStatus.Ok)
   })
 
   it('supports pushBackItem and order-independent field reading', () => {
-    const dxf = ['100', 'AcDbLine', '11', '3', '21', '4', '10', '1', '20', '2'].join(
-      '\n'
-    )
+    const dxf = [
+      '100',
+      'AcDbLine',
+      '11',
+      '3',
+      '21',
+      '4',
+      '10',
+      '1',
+      '20',
+      '2'
+    ].join('\n')
     const filer = AcDbDxfFiler.fromString(dxf)
     expect(filer.atSubclassData('AcDbLine')).toBe(true)
 

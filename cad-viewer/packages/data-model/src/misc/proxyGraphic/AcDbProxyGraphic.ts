@@ -1249,7 +1249,8 @@ export class AcDbProxyGraphic {
       width: Infinity,
       widthFactor: options.widthFactor,
       position: options.insert,
-      rotation: (rotation * 180) / Math.PI,
+      // AcGiMTextData.rotation is in radians (DXF group code 50).
+      rotation,
       drawingDirection: AcGiMTextFlowDirection.BOTTOM_TO_TOP,
       attachmentPoint: AcGiMTextAttachmentPoint.BaselineLeft
     }

@@ -2,6 +2,7 @@
 // stack does not transitively pull in the editor's DOM-heavy input UI through
 // AcEdBaseView. Keeps unit tests for the stack runnable in the Node Jest env.
 // Type-only import — needed solely for typing markActive/cancelActive parameters.
+import { closeActiveInlineEditor } from '../input/AcEdInlineEditorRegistry'
 import type { AcEdBaseView } from '../view/AcEdBaseView'
 import { AcEdOpenMode } from '../view/AcEdOpenMode'
 import { AcEdCommand } from './AcEdCommand'
@@ -400,11 +401,7 @@ export class AcEdCommandStack {
    * @param view - View bound to the command's execution context
    * @param promise - Promise returned by the command's `trigger()` call
    */
-  markActive(
-    command: AcEdCommand,
-    view: AcEdBaseView,
-    promise: Promise<void>
-  ) {
+  markActive(command: AcEdCommand, view: AcEdBaseView, promise: Promise<void>) {
     this._activeCommand = command
     this._activeView = view
     this._activePromise = promise
@@ -441,6 +438,11 @@ export class AcEdCommandStack {
   async cancelActive(): Promise<void> {
     const view = this._activeView
     const promise = this._activePromise
+    // The inline MTEXT editor owns no prompt, so `cancelActiveInput()` below
+    // cannot reach it. Close it first, otherwise a running `mtext` command
+    // stays parked on its `open()` promise and every later command queues
+    // behind it until the user acts.
+    closeActiveInlineEditor()
     if (!this._activeCommand) return
 
     view?.editor.cancelActiveInput()

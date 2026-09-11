@@ -1,0 +1,84 @@
+{
+  "unit": "A3",
+  "verdicts": [
+    {
+      "id": "A3-1",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P2",
+      "reason": "代码事实逐条核对成立：AcEdMTextEditor.ts:388 的 open() 返回的 Promise 只有一条 resolve 分支 onClose（530-533 finish({ contents: mtextInputBox.getText(), ... })，539 width，540 height），385-386 JSDoc 原文 'resolves to `null` only when future cancel flows are introduced' 确为自认；viewer.js:766-769 Escape → closeEditor()，viewer.js:937-944 closeEditor() 内 this.emit('close')；viewer.js:207-213 画布上框外 mousedown 同样 closeEditor()；AcApMTextCmd.ts:55-68 拿到结果即 appendEntity。全仓 packages 非 node_modules 代码里 closeEditor/cancelEditor 零调用（grep 仅命中 viewer.js 自身与 node_modules）也成立。空内容静默丢弃成立：AcApMTextCmd.ts:57-58 `const contents = result.contents.trim()` + `if (!contents) return`，无任何 showMessage/日志。但量级被夸大，下调为 P2：(1)『Esc 是 CAD 约定的取消手势』并非无争议——AutoCAD 就地 MTEXT 编辑器用 Esc 是关闭并保留文字，Enter/点击外部也是提交，因此 Esc→提交本身不算明显违背约定；(2) 不想要的实体可撤销：该命令受 AcEdCommand.trigger 的 undo mark 包裹（AcEdCommand.ts:240-244 startUndoMark/startTransaction、260-266 commit），关闭编辑器后一次 Ctrl+Z 即可删除，不存在数据损坏；(3) 真正残留的缺陷是『没有任何显式取消手势（连 closeEditor(reason) 都不存在）+ 空内容提交后 0 反馈』，属可用性中等缺陷。另 evidence 括注有误：AcTrView2d 编辑路径没有 trim 守卫（见 missedFindings），它反而会把空串写入实体。",
+      "reproducibleCheck": "浏览器：执行 mtext → 框选 → 输入 'a' → 按 Esc，断言模型空间新增 1 个 MTEXT 且 contents='a'（按 CAD 语义期望可取消）；再执行 mtext → 框选 → 只敲空格 → Esc，断言无新实体且 editor.showMessage 全程未被调用。代码断言：`AcEdMTextEditor.open()` 返回的 Promise 在任何输入序列下都不会 resolve(null)（现有 AcEdMTextEditor.spec.ts:210-218 已固化该契约）；grep -r 'cancelEditor\\|closeEditor' cad-viewer/packages --include=*.ts 只应命中 node_modules 与 viewer.js 自身。"
+    },
+    {
+      "id": "A3-2",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P2",
+      "reason": "『Write 模式把内置工具栏塞进 display:none 容器，且没有任何替代的上下文功能区』这部分事实完全成立：useAntdCadShell.ts:304/315-322 的 watch(immediate) 把 defaultToolbarEnabled 设为 mode !== Write；AcEdMTextEditor.ts:445-447 + 236-239 生成 display:none、pointerEvents:none、aria-hidden 的隐藏容器；编辑器只可能在 Write 模式打开（AcApMTextCmd.ts:22 mode=Write，AcApDocManager.ts:1598-1603 `documentMode < cmd.mode` 抛错，Read=0/Write=8 见 AcEdOpenMode.ts:18-25；双击路径 AcTrView2d.ts:675-682 被 openMode !== Write 拦掉）；应用层无消费者：全仓 addActiveInputBoxChangeListener 只有定义（AcEdMTextEditor.ts:208-212）没有调用者，ribbonModel.ts 全文无 contextual（grep 'contextual' 只命中 ribbonTypes.ts/shell.css/AntdRibbon.vue），example 的 en/zh locale 里没有 shell.ribbon.tab.mtextEditorContext（该 key 只在 packages/cad-viewer/src/locale/*/main.ts:21），register.ts:156-164 + app.ts:33 的 registerMTextColorPicker 因此确实无 UI 承载。两点需要纠正，故判 partially-confirmed 并下调 P2：(a) 工具栏 DOM 是存在的——AcEdMTextEditor.ts:475-483 始终传 `toolbar: { enabled: true, container: hiddenToolbarContainer ?? view.container }`，viewer.js:1136-1146 mountToolbar/ensureSharedToolbar 会把 MTextToolbar 挂进那个 display:none 容器，所以 verifyIdea 里『断言页面中不存在任何 MTextToolbar 的 DOM 节点』会失败，正确断言是『节点存在但祖先 display:none』；(b) 『字体/字号/颜色/对齐/行距控件在任何模式下都不可达』被夸大：通用属性面板已经暴露 contents/styleName/attachmentPoint(对正)/textHeight/definedWidth/lineSpacingFactor/rotation（AcDbMText.ts:577-724，面板渲染见 AntdPropertiesPanel.vue:92-105、198-210），特性栏也有实体颜色下拉（AntdPropertyBar.vue:309-324 `editSelectedEntities('Change Color', entity => entity.color = color)`），真正无入口的只剩富文本级格式（按 run 的字体族/粗斜体/下划线/颜色、段落左右居中、堆叠分数、大小写）。注意高度与颜色这两项虽然控件可达却实际无效，那是 A3-5 内联 \\H/\\c 的后果（见 missedFindings）。",
+      "reproducibleCheck": "默认（Write）模式执行 mtext 并框选后，在 DevTools 断言：`document.querySelectorAll('.ml-mtext-toolbar').length > 0` 为真，但 `getComputedStyle(document.querySelector('.ml-mtext-toolbar').parentElement).display === 'none'`，且该按钮不可点击（elementFromPoint 命中的是画布）；同时断言 `ribbonModel` 渲染出的 tab 列表里没有 contextual 页签、全局没有 addActiveInputBoxChangeListener 调用。"
+    },
+    {
+      "id": "A3-3",
+      "verdict": "confirmed",
+      "correctedSeverity": "P1",
+      "reason": "链路逐行核对一致：AcApDocManager.ts:1605-1619 在执行新命令前 `await this._commandManager.cancelActive()`，之后才 `markActive(cmd, curView, promise)`；AcEdCommandStack.ts:441-458 的 cancelActive 只做 `view?.editor.cancelActiveInput()` + `await promise`；AcEdInputManager.ts:203-219 的 cancelActiveInput 在 _activeRejector 为 null 时直接 return，而 getBox 的 cleanup 会在 prompt 结算时清空 _activeRejector（AcEdInputManager.ts:2039-2068），MTEXT 命令在编辑器等待期间确实既无活动 prompt 也无 rejector，因此 cancelActive 只能一直等旧 trigger；旧 trigger 的唯一出口是编辑器 close（AcEdMTextEditor.ts:488-555），期间 undo mark/事务保持打开（AcEdCommand.ts:234-269 在 trigger 入口 startUndoMark/startTransaction，出口才 commit）。功能区按钮确实没有额外闸门：AntdRibbon.vue:453-455 disabled 只由 props.disabled/isDocumentOpening 决定，491-493 isBlocked: () => disabled.value，run() → sendStringToExecute → executeCommandString → executeNamedCommand 同一条挂起路径，且挂起期间命令区无输出（AcApDocManager.ts:1509-1515 只在 reject 时提示）。孤儿编辑器也成立：AcTrView2d.dispose 只移除 css2dRenderer.domElement/stats/canvas（AcTrView2d.ts:2361-2368），不触碰 AcEdMTextEditor/MTextInputBox；隐藏 textarea 挂在 document.body（viewer.js:1054-1067）且 window keydown 监听仍在（viewer.js:1073，133-157 由 isActiveEditor() 门控，static activeEditor 未清所以仍会吞键）。测试无法发现也成立（AcApMTextCmd.spec.ts:15-46 整体 mock AcEdMTextEditor）。仅一处需修正：impact 里『undo mark/事务在旧数据库上保持打开』表述不准——AcApDocument 的 _database 是构造时创建、跨图纸打开复用的同一个实例（AcApDocument.ts:71、209-211），AcDbDatabase.read 是就地重置，所以编辑器关闭后 AcApMTextCmd.ts:68 的 `context.doc.database...appendEntity` 会把 MTEXT 追加到新打开的图纸里（详见 missedFindings 第 4 条），比原文更严重。",
+      "reproducibleCheck": "编辑器打开状态下点击功能区『直线』，断言 1s 内 `__commandManager._activeCommand.localName` 仍为 'mtext'（而非 'line'），且命令区无任何消息；再按 Esc 关闭编辑器，断言随后 line 命令自动开始执行（说明之前只是挂起）。补充断言：`AcEdMTextEditor.getActiveInputBox()` 在 view.dispose() 之后仍非 null，且 document.body 中仍存在 aria-hidden 的 textarea。"
+    },
+    {
+      "id": "A3-4",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P3",
+      "reason": "引用行与事实全部对得上：AcEdMTextEditor.ts:539 把调用方传入的原始 `width` 放进结果；MTextInputBox 构造函数把它钳到 max(1, width)（viewer.js:267），排版/换行/包围盒都用钳制后的值（viewer.js:272 enableWordWrap 默认 true、viewer.js:1804-1818 createMTextData 用 `width: this.width`、viewer.js:1590 的折行判定用 this.width）；AcApMTextCmd.ts:36 的下限是 1e-4，AcTrView2d.ts:1595 同样把 result.width 写回实体，AcTrView2d.ts:1609-1613 在 mtext.width<=0 时传 1e-4；MTextInputBox 无公开 getWidth（viewer.js 全文无 getWidth）；现有 spec 均覆盖不到（AcEdMTextEditor.spec.ts:192/228 传 width:10，AcApMTextCmd.spec.ts:103-109 只 objectContaining 断言入参）。判 partially-confirmed + 下调 P3 的理由是影响面比 P2 暗示的窄：只有当框宽落在 (1e-4, 1) 世界单位（米制/千米制图纸或极端放大）时编辑器的 1 单位折行与实体 <1 折行才会不同；在 mm 制图纸（本项目主要图纸）里用户框选出的宽度远大于 1，该窗口实际不可达。真正常见且更严重的是 width<=0（DXF 41 = 0，无宽度/不折行，AcDbMText 默认就是 0，见 AcDbMText.ts:128）被 resolveMTextEditorWidth 改写成 1e-4 并落库——这一条审计员没有报，已单列为 missedFindings。",
+      "reproducibleCheck": "单测：`new AcEdMTextEditor().open({ width: 0.5, textHeight: 2, ... })` 后触发 inputBox.emit('close')，断言 result.width 等于 MTextInputBox 排版实际使用的宽度（当前 result.width=0.5，排版宽度=1）。集成：对 width=0 的 MTEXT 双击编辑后按 Esc，断言实体 DXF 41 仍为 0（当前变成 1e-4）。"
+    },
+    {
+      "id": "A3-5",
+      "verdict": "confirmed",
+      "correctedSeverity": "P2",
+      "reason": "核心判断与引用全部成立：getText() 确实返回带内联码的 MTEXT 源码——viewer.js:346-350 getText() 返回 mtextString，viewer.js:2146-2147 syncUiStateFromDocument 里 `this.mtextString = this.document.toMText()`，document.js:98-100 toMText() → buildMTextFromAst(this._ast)，ast.js:68-101 对每个与 baseStyle（ast.js:69 `contextToStyle(new MTextContext())`，即空白默认上下文）不同的 run 输出 `{<delta><content>}`，style.js:99-151 里 \\L/\\l、\\O/\\o、\\K/\\k、\\A、\\c/\\C、\\f、\\H、\\W、\\T、\\Q、\\p 全在，因此『只保留纯文本』不成立。颜色固化链也对：AcEdMTextEditor.ts:469-474 传 `color: new MTextColor()`（默认 aci=256，见 mtext-renderer index.js 内 MTextColor 构造 `this._aci = 256, this._rgbValue = null`），viewer.js:1773-1789 resolveBaseFormatColor 对 aci=256 走 `{ aci: null, rgb: byLayerColor }`，viewer.js:2570-2588 createDefaultParseContext 因此把 context.aci 置 256、context.rgb 置图层真彩，ast.js:69 的空白基准与之不同 → style.js:116-124 必然输出 `\\c<rgb>;`（rgb2int），文字颜色被钉死在创建时的图层色。字高同理：style.js:132-135 对每个 run 输出绝对 `\\H<capHeight>;`，api 侧 result.height 恒为 `Math.max(1, 入参 textHeight)`（AcEdMTextEditor.ts:432/540），与用户在编辑器内改字号后 contents 的 \\H 脱钩。字体命名空间一致性也核对过（mtext-renderer-worker.js:6576-6583 的 We() 去路径+扩展名、:35086 `removeFontExtension` 默认 !0、AcApMTextCmd/ AcTrView2d 取 avaiableFonts 的方式一致）。两点需在修复时注意：(a) evidence 里 mtext-renderer-worker.js 的 avaiableFonts 行号不准，实际是 :33620（`this._avaiableFonts = []`）与 :33635-33665（get avaiableFonts / getAvailableFonts 填充），不是 :27303/:27334-27348；结论（普通会话里为空数组，preloadDefaultFonts 默认 false 见 AcApDocManager.ts:273-278/564-566，loadFonts 生产调用者只有 AcApFontUtil.ts:131-136）成立。(b) 『entity.height 与 contents 矛盾』这一子项偏弱：DXF 40 的语义本就是 nominal/initial text height（AcDbMText.ts:815 writeDouble(40, height)），真正的问题是每个 run 都被写进绝对 \\H 导致 DXF 40 在渲染上完全失效（详见 missedFindings 第 3 条），因此严重度按 P2 保留但重心应从 height 字段转到 \\c/\\H/\\f 对实体属性语义的覆盖。",
+      "reproducibleCheck": "把当前图层设为绿色，执行 mtext 输入『测试』后按 Esc，读取实体 contents：期望为『测试』，当前为形如 {\\H<n>;\\fhztxt.shx|b0|i0;\\c65280;测试}；随后改图层颜色/DXF 62 或调 mtext.height，断言渲染颜色与字高都不变（说明 \\c/\\H 覆盖了实体属性）。单测可断言 `buildMTextFromAst(parseMTextToAst('测试', ctx))` 在 ctx 来自 createDefaultParseContext 时以 '{' 开头。"
+    },
+    {
+      "id": "A3-6",
+      "verdict": "refuted",
+      "correctedSeverity": "drop",
+      "reason": "该重复上屏假设被现有代码与浏览器事件顺序双重否掉，属『被其它代码兜底』。代码侧：viewer.js:158-168 onImeBeforeInput 第一件事就是 `if (event.isComposing) return`（161-162），之后才看 inputType 是否 insertText/insertCompositionText；viewer.js:183-193 onImeCompositionEnd 才做 handleTextInput(data)。浏览器侧（决定性证据）：提交组合时 Chrome 的顺序是 beforeinput(isComposing=true) → input(isComposing=true) → compositionend，Gecko 是 beforeinput(isComposing=true) → compositionend → input(isComposing=false)，即两个引擎的『提交』beforeinput 都带 isComposing=true，会被 161-162 直接吞掉，插入只在 compositionend 发生一次；Gecko 新增的那一发 isComposing=false 事件是 input，而本组件根本没有注册 input 监听（viewer.js:1069-1073 只监听 keydown/beforeinput/compositionstart/compositionend 与 window keydown），不可能二次上屏。普通拉丁字符也只有一个入口：onImeKeyDown 对可打印键提前 return（viewer.js:122-132），由 beforeinput(insertText, isComposing=false) 处理并 preventDefault，可见该分工是刻意设计而非遗漏守卫。引用来源：https://mail-archive.com/dev-platform@mozilla.org/msg01388.html（Mozilla Intent to ship，2025-01-15，明确列出 Chrome/Gecko 的 beforeinput.isComposing 取值与顺序）与 https://lists.w3.org/Archives/Public/public-webapps-github/2018Aug/0161.html。子观察『jest 是 node 环境、整包 mock 导致 IME 路径零覆盖』属实（jest.config.ts:32 testEnvironment: 'node'；AcEdMTextEditor.spec.ts:68-74 virtual mock、:15 getText 硬编码、:210/:252 直接 emit('close') 绕过 closeEditor；AcApMTextCmd.spec.ts:15-46 再 mock 一层），但那是测试覆盖缺口，不是缺陷，故整条 drop；不必按原文去加幂等守卫（反而会丢掉 compositionend 的空值清理语义）。",
+      "reproducibleCheck": "真机复现（Chrome + 微软拼音）：在 textarea 上同时监听 beforeinput/compositionend，打印 {inputType, isComposing, data}，断言一次提交只有 1 次 handleTextInput 生效（预期 compositionend 1 次，beforeinput 因 isComposing=true 提前 return）；并断言页面未注册任何 'input' 监听可绕过该守卫。"
+    },
+    {
+      "id": "A3-7",
+      "verdict": "confirmed",
+      "correctedSeverity": "P2",
+      "reason": "两半都核对成立。重影：AcTrView2d.ts:1571-1574 注释写着要隐藏实体，实现行 `// this.removeEntity(mtext)` 被注释掉；MTextInputBox 用同一个场景 `scene: view.internalScene`（AcEdMTextEditor.ts:451-455），AcTrView2d.internalScene 即 _scene.internalScene（AcTrView2d.ts:1322-1323），绘制走 AcTrLayoutView.ts:195 `render(scene.internalScene, ...)`；编辑器 relayout（viewer.js:1258-1292）用初始文本在同一个 scene 里 syncRenderMText，position 也等于 mtext.location，所以双击编辑期间同一位置画两份文字（外加 padding:0 的包围盒），确认重影。行距：AcTrView2d.ts:1563-1569 在打开编辑器之前就把 DXF 44 改写为 AcEdMTextEditor.defaultLineSpacingFactor=0.3（AcEdMTextEditor.ts:155），且这条改写走 acapRunDatabaseEdit(db,'Edit MText') → db.runDatabaseEdit 会产生 undo 记录（AcApDatabaseEdit.ts:16-27）；AcDbMText 的初值是 1.0（AcDbMText.ts:130），DXF 44 写出见 AcDbMText.ts:830；编辑器只能返回 0.3（AcEdMTextEditor.ts:541-543 `getLineSpacingFactor?.() ?? 0.3`，而 MTextInputBox.DEFAULT_LINE_SPACE_FACTOR=0.3 见 viewer.js:71/1828-1830，编辑器从不调用 setLineSpacingFactor/clearLineSpacing），AcTrView2d.ts:1597 再把它写回，因此任何 1.0 的 MTEXT 被双击一次后按 Esc 也会永久变成 0.3 并多一条 undo 记录。保持 P2（不是 P1）：本查看器内部 0.3 就是自洽约定（新建 MTEXT 也写 0.3，AcApMTextCmd.ts:65），后果是可撤销的间距变化而非崩溃；但要注意 DXF 44 语义上 1.0 = 单倍行距，写 0.3 对 AutoCAD/其它软件是 0.3 倍行距（行重叠），属跨软件保真度问题。",
+      "reproducibleCheck": "双击一个 lineSpacingFactor=1.0（AcDbMText 默认）的 MTEXT，直接按 Esc，读取实体 DXF 44：期望仍为 1.0，当前变成 0.3，且 undo 栈多出一条 'Edit MText'。重影：编辑期间截屏或断言 internalScene 中同时存在该 MTEXT 的实体网格与 MTextInputBox 的 renderedObject（后者的 userData 带 MTEXT_INPUT_BOX_SCENE_ROOT_KEY）。"
+    }
+  ],
+  "missedFindings": [
+    {
+      "title": "width=0（无定义宽度/不折行）的 MTEXT：编辑器预览被钳成 1 世界单位的窄列，提交后 DXF 41 被改写成 1e-4，永久改变折行结果",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/view/AcTrView2d.ts",
+      "line": "1609-1613（写回在 1595，钳制在 AcEdMTextEditor.ts:539 + MTextInputBox viewer.js:267）",
+      "evidence": "AcDbMText.ts:128 构造函数 `this._width = 0`，:220-236 文档明确 width 是 word-wrap 的最大宽度（0 即不折行），:905-907 DXF 41 可选（缺省即 0）。AcTrView2d.ts:1609-1613 resolveMTextEditorWidth 把 `width > 0` 之外的一切（0/NaN/负数）替换成 1e-4 传给编辑器，AcTrView2d.ts:1595 又把 result.width 原样写回 `opened.width`。AcEdMTextEditor.ts:539 返回的是入参 width，而 MTextInputBox 实际排版宽度是 viewer.js:267 `this.width = Math.max(1, options.width)`（createMTextData 用 this.width，viewer.js:1804-1818）。渲染侧的折行开关是 mtext-renderer-worker.js:34732 `this.hOffset + o > (this.maxLineWidth || 1 / 0)`，即 maxWidth=0 时退化为 Infinity（不折行），maxWidth=1e-4 时每个词都超出而折到下一行。后果：(1) mm 制图纸里字高动辄数千单位，编辑器按 1 单位排版 → 双击编辑这类文字时预览变成每词一行的竖条；(2) 只要用户双击后按 Esc，实体的 41 组码就从 0 变成 1e-4，之后所有渲染器都会按 ~0 宽度折行，字面布局被永久破坏（且这一改动发生在编辑器『提交』语义之外，用户无感）。",
+      "severity": "P2"
+    },
+    {
+      "title": "双击编辑路径对空内容无守卫：清空全部文字后提交/Esc 会把实体 contents 写成空串（留下不可见空 MTEXT），与新建路径的静默丢弃不一致",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/view/AcTrView2d.ts",
+      "line": "1590-1599",
+      "evidence": "AcTrView2d.ts:1590-1599 直接把 `opened.contents = result.contents` 落库，没有任何 trim/空值判断；对照新建路径 AcApMTextCmd.ts:57-58 `const contents = result.contents.trim(); if (!contents) return` —— 同一次空输入，新建时静默不建实体，编辑时却把已有文字清空成一个 DXF 里仍存在的空 MTEXT（用户看到的是文字消失但对象还在，属性面板显示 contents 为空）。审计员在 A3-1 的 impact 里把 AcTrView2d 一并写成『(AcApMTextCmd.ts:57-58 与 AcTrView2d 编辑路径)直接 return』，与代码事实不符，实际是两条相反的行为。",
+      "severity": "P3"
+    },
+    {
+      "title": "contents 内嵌的绝对 \\H/\\c 使属性面板与特性栏对已有 MTEXT 的『文字高度』『颜色』改动实际无效",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/editor/input/ui/AcEdMTextEditor.ts",
+      "line": "469-474、533（配合 dist/model/style.js:116-135 与 mtext-renderer-worker.js:35762-35790）",
+      "evidence": "AcEdMTextEditor.ts:469-474 用 `byLayerColor` 建 baseFormat，:533 把 getText() 原样作为 contents 提交；每个字符 run 的样式都与 ast.js:69 的空白基准不同，因此 style.js:116-124 必输出 `\\c<rgb>;`、:132-135 必输出 `\\H<n>;`。渲染时 DXF 40/实体颜色只是解析上下文的初值（mtext-renderer-worker.js:35762-35790 以 mtextData.height 初始化 `f.capHeight = { value: o, isRelative: !1 }` 后逐 run 应用内联命令），内联 \\H/\\c 会覆盖它。这些字段恰好是用户在其它 UI 里唯一能改的：属性面板暴露 textHeight/definedWidth/attachmentPoint/lineSpacingFactor（AcDbMText.ts:647-689），特性栏有实体颜色下拉（AntdPropertyBar.vue:309-324 `editSelectedEntities('Change Color', entity => entity.color = color)`）。后果：用户改面板里的『文字高度』或颜色，画面上毫无变化（只有 contents 的 \\H/\\c 生效），比 A3-2 报告的『格式控件不可达』更早暴露为『控件可达但无效』。",
+      "severity": "P2"
+    },
+    {
+      "title": "编辑器打开期间打开另一张图纸：按 Esc 提交的文字会被追加到新图纸，且该实体不在任何可撤销的 undo mark 覆盖内",
+      "file": "cad-viewer/packages/cad-simple-viewer/src/app/AcApDocument.ts",
+      "line": "71、209-211（配合 AcApMTextCmd.ts:68、AcEdCommand.ts:235-244）",
+      "evidence": "AcApDocument._database 在构造时创建（AcApDocument.ts:71）并被所有 openUri/openDocument 复用（:101/:143 就地 read，:209-211 getter 返回同一实例），打开新图纸不会替换 database 对象。AcEdCommand.trigger 在命令开始时就捕获 `const db = context.doc.database` 并 startUndoMark/startTransaction（AcEdCommand.ts:235-244），而 MTEXT 的实体是在编辑器关闭之后才追加的：AcApMTextCmd.ts:68 `context.doc.database.tables.blockTable.modelSpace.appendEntity(mtext)` 在执行时刻重新取 database，因此文字会进入刚打开的新图纸；同时旧 undo mark 对应的数据库内容已被 AcDbDatabase.read 重置，提交（AcEdCommand.ts:260-266）既不能回滚这笔文字，也不会出现在新图纸的 undo 栈里。这是 A3-3『事务悬挂』更具体的后果，审计员只写到『undo mark/事务在旧数据库上保持打开』，与『同一个被复用的 database 实例』这一事实不符。",
+      "severity": "P2"
+    }
+  ]
+}

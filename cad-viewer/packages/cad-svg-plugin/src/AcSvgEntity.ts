@@ -144,8 +144,31 @@ export class AcSvgEntity implements AcGiEntity {
     // Do nothing
   }
 
+  /**
+   * @inheritdoc
+   *
+   * Always returns a distinct object. {@link AcDbRenderingCache} stores block
+   * groups as immutable templates and hands every INSERT a
+   * {@link fastDeepClone} result, so returning `this` would let the first
+   * INSERT's `applyMatrix` mutate the cached template and make later INSERTs
+   * multiply their transforms onto the previous instance's transform.
+   *
+   * Geometry is baked into {@link _localSvg}, so cloning copies the markup plus
+   * its own transform and box; no mutable geometry or matrix is shared with the
+   * source.
+   */
   fastDeepClone() {
-    return this
+    const cloned = new AcSvgEntity()
+    cloned._objectId = this._objectId
+    cloned._ownerId = this._ownerId
+    cloned._layerName = this._layerName
+    cloned._visible = this._visible
+    cloned._userData = this._userData
+    cloned._localSvg = this._localSvg
+    cloned._box = this._box.clone()
+    cloned._matrix = this._matrix?.clone()
+    cloned._basePoint = this._basePoint?.clone()
+    return cloned
   }
 
   addChild(_entity: AcGiEntity) {

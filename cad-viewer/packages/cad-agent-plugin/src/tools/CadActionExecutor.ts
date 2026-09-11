@@ -452,7 +452,10 @@ export class CadActionExecutor {
         const mtext = new AcDbMText()
         mtext.location = toPoint3d(input.position)
         mtext.contents = input.text
-        mtext.textHeight = input.height ?? 2.5
+        // `height` is the text character height (DXF group 40). There is no
+        // `textHeight` member on AcDbMText, so the old assignment was silently
+        // dropped and the entity was written with height 0 (invisible text).
+        mtext.height = input.height ?? 2.5
         applyLayer(mtext, input.layer)
         db.tables.blockTable.modelSpace.appendEntity(mtext)
         entityIds.push(mtext.objectId)

@@ -1,0 +1,70 @@
+{
+  "unit": "A2 MTEXT 落库契约与数据正确性",
+  "verdicts": [
+    {
+      "id": "A2-2",
+      "verdict": "confirmed",
+      "correctedSeverity": "P1",
+      "reason": "全部证据逐行核对成立。AcEdMTextEditor.ts:155 `static readonly defaultLineSpacingFactor = 0.3`；:541-543 回填 `mtextInputBox.getLineSpacingFactor?.() ?? AcEdMTextEditor.defaultLineSpacingFactor`；AcApMTextCmd.ts:65 直接落库。契约侧：graphic-interface/src/AcGiTextStyle.ts:49-54 明确 lineSpaceFactor 是「AutoCAD DXF group-44 line spacing factor / Ratio of actual baseline spacing to single spacing (5/3 of text height) / Default is 1.0」，AcDbMText.ts:130 默认 1.0。渲染侧：mtext-renderer dist/index.js:28723 `const D0 = 5 / 3, Ni = 1, bn = 0.3`（bn 被导出为 STACK_VERTICAL_SHIFT_FACTOR，与行距无关）、:29078-29080 `currentLineHeight = Math.max(defaultLineSpaceFactor, 0) * currentLayoutFontSize * D0` → 0.3 即基线间距 = 0.5×字高，多行文字行间重叠；SVG 导出同语义（AcSvgMTextUtil.ts:28-29、100-104）。双击路径 AcTrView2d.ts:1563-1569 在打开编辑器之前就用 acapRunDatabaseEdit 提交 0.3（AcApDatabaseEdit.ts:16-27 → AcDbDatabase.ts:719-726 runDatabaseEdit，非嵌套时经 runUndoable 独立入 undo 栈），即「仅双击」就永久改写源图纸行距；:1590-1599 关闭时再赋一次 result.lineSpacingFactor。比审计员更强的补充证据：MTextInputBox 的 editorLineSpaceFactor 初值为 null（mtext-input-box dist/viewer/viewer.js:64），预览走 createMTextData() 且仅当非 null 才写 lineSpaceFactor（:1819-1822），故编辑器内预览用的是渲染器默认 1（单倍行距），而 getLineSpacingFactor()（:1828-1830）返回 0.3 —— 预览与落库值不一致，提交后多行文字立刻变成 0.5×行距（行重叠）。P1 维持。",
+      "reproducibleCheck": "对 lineSpacingFactor=1.0 的已有 MTEXT 调 AcTrView2d.editMTextEntity（或直接调 AcApMTextCmd 落库后导出），断言 entity.lineSpacingFactor 仍为 1.0 —— 当前先被 :1567 改成 0.3、再被 :1597 覆盖为 0.3。另可用 AcSvgMTextUtil 的语义断言：resolveLineAdvance(10, {lineSpaceFactor: 0.3}) === 5（0.5×字高）。"
+    },
+    {
+      "id": "A2-3",
+      "verdict": "confirmed",
+      "correctedSeverity": "P1",
+      "reason": "核对成立：AcDbMText.ts:140 `this._direction = new AcGeVector3d(1, 0, 0)`，AcApMTextCmd.ts:60-66 未设 direction/rotation；AcDbMText.ts:792-793 同时下传 `rotation: this.rotation` 与 `directionVector: this.direction`；mtext-renderer dist/index.js:30603-30607 `let f = n.rotation || 0; if (n.directionVector && ...) { ... f = b.z > 0 ? -v : v }` —— directionVector 为真即无条件覆盖 rotation。:30573 与 :30549 显示 shxFontType 例外只出现在 loadShape 分支；loadMText（:30516-30522）只传 3 个参数、s 为 undefined，故 MTEXT 路径没有该例外。SVG 侧 AcSvgMTextUtil.ts:129-135 resolveRotation 同样 direction 优先，:281-286 才据此决定 rotate()。契约内部自相矛盾：AcDbText.ts:822-834 明确注释「Please use 'rotation' and do not set value of 'directionVector' because it will overrides rotation value」并且不传 directionVector。实测项目目标图纸 cad/dxf/processed/千树塔井上下对照图（2025.04）.dxf：480 个 MTEXT 中 12 个带组码 50，其中 9 个同时带 11≈(1,0,0)（例：50=31.9638035530942 / 11=0.9999999998968092 / 21=-1.436599999950001e-05），这些实体在本查看器 canvas 与 SVG 两条路径都会被画成水平 —— 缺陷不止「新建实体」，导入图纸同样中招。需更正一处子陈述：finding 写的「transformBy 只更新 rotation，见 :552-560」不成立 —— :552-560 中 :554 `this._direction.copy(xAxis).normalize()` 与 :555 `this._rotation = Math.atan2(this._direction.y, this._direction.x)` 同时更新，transformBy 之后两字段是自洽的。属性面板改 rotation 无效这一主结论仍成立（AcDbMText.ts:659-668 只改 rotation）。P1 维持。",
+      "reproducibleCheck": "构造 mtext（保持默认 direction=(1,0,0)）后设 rotation=Math.PI/4，调 cad-svg-plugin 的 buildSvgMText，输出不含 rotate()（resolveRotation 因 dir=(1,0,0) 走 atan2(0,1)=0）；或在 AcDbMText.subWorldDraw 上用 spy 断言入参同时含 rotation=π/4 与 directionVector=(1,0,0)。"
+    },
+    {
+      "id": "A2-4",
+      "verdict": "confirmed",
+      "correctedSeverity": "P2",
+      "reason": "代码事实全部成立：AcDbMText.ts:459-464 宽度解析顺序 extentsWidth>0 → width>0 → acdbEstimatePlainTextWidth 估算，:466-470 高度用 acdbEstimateMTextHeight；extentsWidth 仅由 DXF 组码 42（:908-910 `if (n > 0) this.extentsWidth = n`）、transformBy（:557-559）或 API 写入；AcApMTextCmd.ts:63 只写 width，不写 extentsWidth，故新建 MTEXT 的 geometricExtents 宽度恒等于用户框宽。渲染/选择侧取真实字形几何：AcTrGlyphEntity.ts:293-304 updateSelectionBox 用 geometryBox ∪ rendered.box；mtext-renderer :30556-30577 logicalBounds 来自 measureAnchorMetrics，:30894-30920 updateBoxFromObject 亦为字形并集 —— API 包围盒与画面选择框确实不一致。下游消费点逐条核对无误：AcApXAttachCmd.ts:117、AcDbMLeader.ts:3054、AcDbBlockReference.ts:797、AcDbTable.ts:436，且 AcDbTextExtentsHelpers.ts:327-337 与 AcDbMText.ts:459-470 逐字重复同一解析顺序（finding 的收敛建议成立）。需更正一处量化：finding 称「导入的图纸（有 DXF 42）与新建实体走两条宽度解析分支」——实测该 112MB 目标图纸 480 个 MTEXT 中仅 2 个带组码 42、370 个带 11、12 个带 50，即导入实体同样几乎都走 width 分支，问题面比 finding 描述的更大（不是「导入正常/新建异常」，而是所有 width>0 且无 42 的 MTEXT 包围盒都虚胖）。P2 维持。",
+      "reproducibleCheck": "new AcDbMText(); contents='A'; height=2; width=100; 断言 geometricExtents.max.x-min.x 约等于 100（实际字形宽约 2）；把 extentsWidth 设为 2 后同一断言变为 2。"
+    },
+    {
+      "id": "A2-1",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P2",
+      "reason": "代码事实成立：height 确为字高 —— AcDbMText.ts:789 下传 height，mtext-renderer dist/index.js:30677-30678 `const o = e.height || n.fixedTextHeight || 0, ... fontSize: o`，AcSvgMTextUtil.ts:291 `'font-size': String(baseHeight)`，AcDbMText.ts:466-470 按 5/3×字高估算多行总高。AcEdMTextEditor.ts:432 `const normalizedTextHeight = Math.max(1, textHeight)` 确实改写返回值（:540 `height: normalizedTextHeight`），AcApMTextCmd.ts:64 原样落库，命令侧下限确为 1e-4（:74）。但影响与量级被夸大、且只在特定条件下成立：(1) 数值后果仅在「24 屏幕像素折合 < 1 世界单位」（视图比例 > 24px/世界单位）时出现；(2) 影响段落里的「文本比框高约 2.4 倍」不成立 —— 框选高度从不参与任何计算（AcApMTextCmd.ts:36-39 只用 box.min.x 与 box.max.y），0.416→1 只是举例，真正被打破的是「屏幕 24px 字高」这一设计意图（落库 1 世界单位在该缩放下显示为 24/h_w 像素）；(3) 无条件成立的部分只是注释/标签错位（:101 `Final text box height in world units`，配合属性面板 name 'textHeight'，AcDbMText.ts:648），属可维护性风险而非落库错误。补充证据：MTextInputBox 自身已 clamp（mtext-input-box dist/viewer/viewer.js:1807 `height: Math.max(1, this.defaultTextStyle.fixedTextHeight)`），说明 :432 的 clamp 对预览毫无必要、只污染返回值，因此 finding 的修复建议 2 无副作用。故由 P1 降为 P2。",
+      "reproducibleCheck": "以 textHeight=0.4 调 AcEdMTextEditor.open（view.screenToWorld 造出 24px=0.4 单位）并 inputBox.emit('close')，断言 result.height === 0.4 —— 当前返回 1；同时断言落库实体 height（DXF 40）为 1。"
+    },
+    {
+      "id": "A2-5",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P3",
+      "reason": "前半成立：AcApMTextCmd.ts:60-66 确未赋 styleName（AcDbMText.ts:137 默认 ''），AcDbDatabase.ensureEntityStyleDefaults（AcDbDatabase.ts:2520-2537）只补 MLINE/MULTILEADER/HATCH，不会为 MTEXT 固化样式；AcDbTextStyleTable.ts:73-104 resolveAt 在 '' 时按 name→$TEXTSTYLE→Standard→表首回退，本查看器读回无感。但证据有两处错误。错误一：「组码 7 写出空串」不准确 —— AcDbDxfFiler.writeString(:602-605) 对 '' 不早退，writeGroup 第 581 行 `this._lines.push(text === '' ? '0' : text)` 把空值行写成 '0'，故导出的组码 7 实为字符串「0」（STYLE 表中不存在的样式名）。实测（node + packages/data-model/dist/data-model.cjs）：`const f=new AcDbDxfFiler(); f.writeString(7,''); f.toString()` → `7\\n0\\n`；`new AcDbMText().dxfIn(AcDbDxfFiler.fromString('100\\nAcDbMText\\n7\\n0\\n'))` → styleName === '0'。错误二（应判 refuted）：finding 称 layer「不是创建时快照，而是首次访问/保存时刻的 $CLAYER」。实际 AcDbBlockTableRecord.ts:508-514 的 appendEntity→commitEntity 在入库时调用 :513 `item.resolveEffectiveProperties()`，AcDbEntity.ts:661-664 `if (this._layer == null) this._layer = this.database.clayer ?? '0'` —— _layer 在 appendEntity 时刻即固化，之后切换 CLAYER 不会改变该实体，组码 8（AcDbEntity.ts:530 `filer.writeString(8, this.layer)`）也就是创建时图层，不存在「保存时刻 CLAYER」影响。实测：db.clayer='LAYER_A' → modelSpace.appendEntity(m) → db.clayer='LAYER_B' → m.layer === 'LAYER_A'。残留影响仅为「新建实体样式未固化 + 导出非法样式名 '0'」，跨系统后果取决于外部 CAD 对未知样式名的回退策略，故由 P2 降为 P3。",
+      "reproducibleCheck": "node -e 用 dist/data-model.cjs：`const f=new AcDbDxfFiler(); f.writeString(7,''); f.toString()` → \"7\\n0\\n\"；反向 `dxfIn(AcDbDxfFiler.fromString('100\\nAcDbMText\\n7\\n0\\n'))` → styleName==='0'。layer 断言：db.clayer='A'; appendEntity(m); db.clayer='B'; 断言 m.layer==='A'（当前成立，反驳 finding 的 layer 结论）。"
+    },
+    {
+      "id": "A2-6",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P3",
+      "reason": "部分成立：AcApMTextCmd.spec.ts:15-46 确实整体 mock '../src/editor'，:92-99 直接喂理想 result，:112-118 只断言 contents/location/width/height，未断言 lineSpacingFactor、attachmentPoint、styleName、layer；编辑器侧确实用 `{ virtual: true }` mock（AcEdMTextEditor.spec.ts:68-74）。但被反驳的部分：finding 称该 spec「从不触发 close」「open() 返回的 height/width/location/lineSpacingFactor/attachmentPoint 与 normalizedTextHeight 语义从未被断言」——AcEdMTextEditor.spec.ts:210 有 `inputBox.emit('close')`，:211-218 一次性断言了 contents/location/width/height/lineSpacingFactor/attachmentPoint 全部字段（textHeight:2 → height:2）。真正的盲区只剩：无任何用例使用 textHeight < 1（故 :432 的 Math.max(1,…) 夹取零覆盖）、命令侧落库的 lineSpacingFactor/attachmentPoint/styleName/layer 无断言、双击编辑路径（AcTrView2d.ts:1563-1569 的 0.3 改写）无任何测试。A2-1/A2-2 确实落在这些空白里，但 finding 的证据与量化需修正，P3 维持。",
+      "reproducibleCheck": "在 AcApMTextCmd.spec.ts 补 `expect(entity.lineSpacingFactor).toBe(0.25)`、`expect(entity.attachmentPoint).toBe(1)`、`expect(entity.styleName).not.toBe('')`、`expect(entity.layer).toBe('0')`：前两条会通过，后两条当前失败（styleName===''）。另加 textHeight=0.4 的编辑器用例可暴露 :432 的夹取。"
+    }
+  ],
+  "missedFindings": [
+    {
+      "title": "MTEXT 空 contents 落库被写成字符 0（DXF filer 把空字符串值替换为 '0'），往返后文字内容被污染",
+      "file": "cad-viewer/packages/data-model/src/base/AcDbDxfFiler.ts",
+      "line": "571-583",
+      "evidence": "AcDbDxfFiler.ts:581 `this._lines.push(text === '' ? '0' : text)`；:602-605 writeString 对 '' 不早退（`if (!value && value !== '') return this`）；AcDbDxfStringChunks.ts:37-39 对空串返回 `[{ code: 1, value: '' }]`；AcDbMText.ts:823 `filer.writeMTextContents(this.encodeMTextContentsForDxf(this.contents ?? ''))` → 空 contents 会写出组码 1 且值为 '0'。实测（node + packages/data-model/dist/data-model.cjs）：`const f=new AcDbDxfFiler(); f.writeMTextContents(''); f.writeString(7,''); f.toString()` → `1\\n0\\n7\\n0\\n`；`new AcDbMText().dxfIn(AcDbDxfFiler.fromString('100\\nAcDbMText\\n1\\n0\\n'))` → contents === '0'。contents 属性可编辑（AcDbMText.ts:586-595），用户清空文字后保存即在其他 CAD 中显示为字符 0；同一机制也是 A2-5 中组码 7 = '0' 的根因。",
+      "severity": "P2"
+    },
+    {
+      "title": "cad-agent-plugin 的 draw_text 写 mtext.textHeight（AcDbMText 无此成员），字高被丢弃，落库 height=0",
+      "file": "cad-viewer/packages/cad-agent-plugin/src/tools/CadActionExecutor.ts",
+      "line": "452-457",
+      "evidence": ":455 `mtext.textHeight = input.height ?? 2.5`；AcDbMText 只有 height 访问器（AcDbMText.ts:187-203），'textHeight' 仅是属性面板里的 name 字符串（:648）。构建产物 packages/cad-agent-plugin/dist/cad-agent-plugin-cad-agent-plugin-DoAWnVaJ.js 内含 `s.textHeight = t.height ?? 2.5`。实测（node + dist/data-model.cjs）：`const m=new AcDbMText(); m.textHeight=2.5; m.height` → 0（该赋值只创建一个无用自有属性）。后果：落库 DXF 40 = 0，mtext-renderer `const o = e.height || n.fixedTextHeight || 0, ... fontSize: o`（dist/index.js:30677-30678）取不到字高 → 文字不可见或退化为样式固定字高，geometricExtents 高度为 0。该包 build 仅 `vite build`（esbuild 不做类型检查）+ copy-typings，故 TS 报错不会拦截。",
+      "severity": "P2"
+    },
+    {
+      "title": "AcDbMText.backgroundFill setter 无条件把 backgroundFillColor 重置为 0xc8c8c8，与自身文档矛盾并丢弃已设颜色",
+      "file": "cad-viewer/packages/data-model/src/entity/AcDbMText.ts",
+      "line": "301-307",
+      "evidence": ":304-307 `set backgroundFill(value: boolean) { this._backgroundFill = value; this._backgroundFillColor = 0xc8c8c8 }`，而 :296-300 的文档写的是「若 background color 关闭且未指定颜色，才设为 RGB(200,200,200)」；dxfInFields :953-955 读组码 90 也会触发该 setter，若某文件把 63 写在 90 之前则颜色被覆盖（:956-958 才赋色）。现有测试恰好先设 fill 后设 color（__tests__/AcDbMText.spec.ts:44-46 与 :356-358），因此该行为从未被覆盖。",
+      "severity": "P3"
+    }
+  ]
+}

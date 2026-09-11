@@ -1,0 +1,56 @@
+{
+  "unit": "A6",
+  "verdicts": [
+    {
+      "id": "A6-1",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P2",
+      "reason": "代码事实全部核对成立：AcApMTextCmd.ts:36 `const width = Math.max(Math.abs(box.max.x - box.min.x), 1e-4)`（宽度只由拖框决定）、:38 `const textHeight = this.pixelsToWorldY(view, 24)`、:39 location 取 `{ x: box.min.x, y: box.max.y, z: 0 }`、:71-75 pixelsToWorldY 用 screenToWorld(0,0)/(0,pixels) 求 Δy 且下限 1e-4。24px 世界当量=24/zoom 也成立：AcTrBaseView.ts:261-269 updateCameraFrustum 保持 left/right=∓aspect*frustum、top/bottom=±frustum 同比，:194-211 zoomTo 只写 camera.zoom；相机恒为正交（AcTrCamera.ts:5）、flyTo 强制 Euler(0,0,0)（AcTrBaseView.ts:253）、enableRotate=false（:294）；AcEdMTextEditor.ts:432 `const normalizedTextHeight = Math.max(1, textHeight)` 确实把入参夹到 1，:540 `height: normalizedTextHeight` 落库。但 impact 被夸大一处并有一处不成立：(1) \"实时预览用 1、落库 height 也是 1\" 恰恰说明预览与落库一致，不存在\"编辑期所见→提交后所得\"的失真——:432-440 把 normalizedTextHeight 同时写进 defaultTextStyle.fixedTextHeight/lastHeight 作为 MTextInputBox 的 textStyle（:460 textStyle: defaultTextStyle），预览与 :540 落库同源；(2) 真正成立的是：新建 MTEXT 字高完全由\"画文字瞬间的缩放\"决定（24/zoom，zoom>24 时被静默夹到 1 世界单位），与框选尺寸、TEXTSIZE 无关，且该值经 dxfOutFields（AcDbMText.ts:815 `filer.writeDouble(40, this.height)`）永久固化。注意双击编辑既有实体走 AcTrView2d.ts:1615-1619 resolveMTextEditorTextHeight（height>0 时优先用实体自身 height），故\"已有图纸\"不受 24px 影响。2~3 个数量级只有在 zoom>24 且原样式 fixedTextHeight 远大于 1 的极端组合下才出现。",
+      "reproducibleCheck": "断言文本：创建 AcApMTextCmd 桩使 pixelsToWorldY 返回 1e-3，走 AcEdMTextEditor.open 后读 result.height，期望 === 1（当前为 1）；再令 zoom=100（24/zoom=0.24）重复，落库 height 仍为 1 而非 0.24。已有充分单测位置：packages/cad-simple-viewer/__tests__/AcEdMTextEditor.spec.ts。"
+    },
+    {
+      "id": "A6-2",
+      "verdict": "confirmed",
+      "correctedSeverity": "P2",
+      "reason": "逐行核对成立。AcDbMText.ts:786-798 subWorldDraw 构造的 mtextData 只有 text/height/width/position/rotation/directionVector/attachmentPoint/drawingDirection/lineSpaceFactor，无 widthFactor；而 AcGiMTextData 明确有该可选字段（graphic-interface/src/AcGiTextStyle.ts:55 `widthFactor?: number`），AcDbText 会填（AcDbText.ts:822-826 `widthFactor: this.widthFactor`）。取值链在 mtext-renderer/dist/index.js:30677 `const o = e.height || n.fixedTextHeight || 0, c = e.widthFactor || n.widthFactor || 1`（e=data、n=style），data 无该键时本可回退到 style，但这里的 style 是 subWorldDraw 第二参传入的样式——链路成立（AcTrRenderer.ts:646-658 `mtext(mtext, style, delay)` → AcTrMText 构造 `super(context, traits, { ...style })` → AcTrMText.ts:77/88 `this._style` → AcTrMTextRenderer.syncRenderMText）。即样式 widthFactor 经 style 参数可达，缺的只是 data 字段，且 data 缺字段不会阻断回退。因此\"$TEXTSTYLE 宽度因子对 MTEXT 不生效、渲染恒为 1.0\"结论正确；仅当样式 widthFactor≠1 时可见。",
+      "reproducibleCheck": "断言：构造 style.widthFactor=0.5 的 AcDbMText，subWorldDraw 捕获的 AcGiMTextData 应含 widthFactor=0.5（当前 undefined）；或直接断言 mtext-renderer 入口 `e.widthFactor || n.widthFactor || 1` 在 e 不含该键时返回 1。"
+    },
+    {
+      "id": "A6-3",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P3",
+      "reason": "引用的两处代码存在（AcSvgMTextUtil.ts:240-249 把 entityWidthFactor 写入 initialCtx.widthFactor；:1079-1095 tspanAttributes 里 `if (widthFactor !== 1) attrs.transform = \\`scale(${widthFactor},1)\\``），但\"宽度被应用两次/被平方压缩\"不成立，且 fix 建议会引入新错。实测（临时 jest 探针，导入 ../src/AcSvgMTextUtil，随后已删除）输入 text='AAAA'、height=10、width=100：默认样式输出 `<tspan ... transform=\"scale(0.85,1)\" x=\"0\" dy=\"0\">A</tspan>`，box 宽 20.4；样式/实体 widthFactor=0.5 输出 `transform=\"scale(0.425,1)\"`，box 宽 10.2。原因是 :1016-1023 `resolveWidthFactor` 对绝对宽度因子返回 `wf.value * 0.85`（wf=1 时也是 0.85），:972-983 measureCharWidth 用同一个 0.85f 计算前进量，:1094 又对同一 span 施加 scale(0.85f,1)；CSS 的 scale 不改文字前进量，两处用的是同一坐标系，故字形视觉宽度≈0.85f×自然宽，不是 f²（已否证）。真正可复现的偏差是布局盒与字形位置不同源：f=2 时 box 宽 40.8（=4×10×0.6×1.7），而浏览器按未缩放自然前进量排布，字形视觉间距与坐标不一致；f=0.25 时 box 宽 5.1。PDF 复用该管线成立（cad-pdf-plugin/src/AcApPdfConvertor.ts:6 `import { AcSvgRenderer }`、:34 `new AcSvgRenderer()`）。提示：按 fix 直接删掉 :1089-1095 的 scale 会破坏与已按 0.85f 计算的 span 坐标的一致性，正确修法是让布局坐标与字形缩放同源（去掉常数 0.85 或统一在文本组上做一次横向缩放并按未缩放坐标排版）。",
+      "reproducibleCheck": "在 packages/cad-svg-plugin/__tests__ 下临时用例断言：buildSvgMText({text:'AAAA',height:10,width:100,widthFactor:2},{font:'sans-serif'},traits,ctx) 的 localSvg 含 `scale(1.7,1)` 且不含 `scale(3.4,1)`（证明未被平方），同时 box.max.x===40.8（证明布局按 f 计算）；再断言 widthFactor=1 时也含 `scale(0.85,1)`（证明 0.85 常数对默认文本无条件生效）。"
+    },
+    {
+      "id": "A6-4",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P3",
+      "reason": "引用的实现逐行核对成立：AcDbMText.ts:457-481 的宽度优先级是 extentsWidth>0 ? extentsWidth : width>0 ? width : acdbEstimatePlainTextWidth(contents,height)，且 :63-64 注释 `/** The maximum width for word wrap formatting */` 说明 width 是换行参考宽；AcApMTextCmd.ts:36 把拖框宽写入该字段；高度用 acdbEstimateMTextHeight（AcDbTextExtentsHelpers.ts:107-117，单行=字高、多行为 textHeight+(n-1)*textHeight*lineSpacingFactor*5/3，不加上伸/下延）。但\"选择框/属性面板范围/按 entity 包围盒取景\"这条影响路径不成立：全仓库 geometricExtents 的非测试消费点只有一处——cad-search-plugin/src/logic/locate.ts:35-40（搜索定位后 zoomTo）；MTEXT 的框选/高亮走真实字形几何（three-renderer/src/object/AcTrGlyphEntity.ts:293-304 updateSelectionBox 用 computeGeometryBox 与 mtext-renderer 的 rendered.box），缩放到范围/缩放到图层走 batch 顶点包围盒（three-renderer/src/batch/AcTrBatchedGroup.ts:448-491 含 _unbatchedEntities；cad-simple-viewer/src/view/AcTrLayer.ts:129-153 box → computeBatchBoundingBox），AcTrView2d.ts:1460-1476 zoomToFitDrawing 走 resolveLayoutFitBox/_progressiveFitBox（:3054-3056、:3344 由 wcsBbox 累积）。所以\"高亮框宽度等于拖框宽、远大于字形\"的验证预期不会出现。另外 this.width 分支只对 width>0 且 extentsWidth<=0 的实体（新建 MTEXT 或源文件无 DXF42）成立，从 DWG/DXF 读入的 MTEXT 多数带 DXF42（AcDbMText.ts:909 `if (n > 0) this.extentsWidth = n`）。",
+      "reproducibleCheck": "断言：new AcDbMText() 设 contents='A', height=2.5, width=100, extentsWidth=0 时 geometricExtents 的 x 跨度===100（代码事实）；但用编辑器拾取/框选该实体，其高亮/选择盒来自 AcTrGlyphEntity.updateSelectionBox 的字形几何，与 geometricExtents 无关（可断言 wcsBbox 宽度≠100）。"
+    },
+    {
+      "id": "A6-5",
+      "verdict": "confirmed",
+      "correctedSeverity": "P1",
+      "reason": "逐行核对成立且比原描述更严重。AcTrView2d.ts:1560-1569 `if (mtext.lineSpacingFactor !== AcEdMTextEditor.defaultLineSpacingFactor) { acapRunDatabaseEdit(db, 'Edit MText', () => { const opened = db.openEntityForWrite(mtext); if (!(opened instanceof AcDbMText)) return; opened.lineSpacingFactor = AcEdMTextEditor.defaultLineSpacingFactor }) }` 在编辑器打开之前执行，属于对既有实体数据的无条件改写；AcEdMTextEditor.ts:155 `static readonly defaultLineSpacingFactor = 0.3`，data-model 默认 1.0（AcDbMText.ts:130 `this._lineSpacingFactor = 1.0`）。后果三重：(1) 双击即改，即使随后按 Esc 取消，线距也已被改写（编辑器返回前就写库）；(2) 应用编辑时 :1597 `opened.lineSpacingFactor = result.lineSpacingFactor` 同样写入 0.3（AcEdMTextEditor.ts:541-543 回退到 defaultLineSpacingFactor）；(3) 行距语义为 factor*5/3*字高，1.0→0.3 使行间距从 1.67×字高 压到 0.5×字高（3.33 倍压缩），多行文字会明显挤压/重叠。属于无条件破坏既有图纸数据，故上调为 P1。",
+      "reproducibleCheck": "断言：new AcDbMText() 设 contents='A\\\\PB'、height=2.5、lineSpacingFactor=1.0，调用 AcTrView2d.editMTextEntity 后立即断言 lineSpacingFactor===0.3（当前成立）；或用例断言打开编辑器后（未提交）DXF44 已变为 0.3。"
+    },
+    {
+      "id": "A6-6",
+      "verdict": "partially-confirmed",
+      "correctedSeverity": "P3",
+      "reason": "三处代码事实核对成立：AcSvgMTextUtil.ts:228-230 `if (!text || height <= 0) { return { localSvg: '', box } }`（实测 height=0、style.fixedTextHeight=2.5 时返回 `{\"svg\":\"\",\"box\":{\"min\":{\"x\":null,\"y\":null},\"max\":{\"x\":null,\"y\":null}}}`）；mtext-renderer/dist/index.js:30677 `e.height || n.fixedTextHeight || 0`；HTML 导出确实烘焙实时场景几何（cad-html-plugin/src/AcExSceneBatchCollector.ts:531-625 collect 走 THREE 对象子树与 batch 顶点，不走数据模型），导出前等几何（AcTrView2d.ts:1309-1316 waitUntilIdle；:3074-3075 `const deferGeometry = !options.forExport && ...` 说明 forExport 不做字形延迟）。但\"同一实体三处结果不同\"在两个前提下才成立：(1) three 侧要真正差异，必须 style.fixedTextHeight>0；系统自带样式该值是 0（three-renderer/src/util/AcTrShapeStyleUtil.ts:15 `fixedTextHeight: 0`），数据模型建表默认也是 0（data-model/src/database/AcDbDatabase.ts:2556、misc/AcDbDataGenerator.ts:68 均 widthFactor:1/fixedTextHeight 默认 0），此时两条路径都画不出字，差异消失，只剩\"SVG 静默返回空\"与\"canvas 产生 fontSize=0 的空几何\"的实现差异。(2) 编辑器侧确实会把 fixedTextHeight 设为 Math.max(1,textHeight)（AcEdMTextEditor.ts:437），所以\"刚用编辑器画完字高被夹成 1 后又被外部改为 0\"的组合才会暴露 canvas 有字 / SVG 无字。\"forExport 跳过字形延迟导致导出可能用回退字形\"成立但与 height=0 无因果，属同一 finding 的附注。",
+      "reproducibleCheck": "断言：buildSvgMText({text:'AAAA',height:0,...},{font:'Arial',fixedTextHeight:2.5},traits,ctx).localSvg === ''（当前成立，已实测）；同时断言 style.fixedTextHeight=2.5 时 mtext-renderer 入口解析出的 fontSize 为 2.5（`e.height || n.fixedTextHeight || 0`）——即同一实体的两种渲染结论互斥。"
+    }
+  ],
+  "missedFindings": [
+    {
+      "title": "SVG/PDF 的绝对宽度因子被无条件乘 0.85，默认 MTEXT 也被横向压缩到 0.85 且布局盒与字形排版不同源",
+      "file": "cad-viewer/packages/cad-svg-plugin/src/AcSvgMTextUtil.ts",
+      "line": "1016-1023, 972-983, 1079-1095",
+      "evidence": "private resolveWidthFactor(tokenCtx: MTextContext): number { const wf = tokenCtx.widthFactor; if (wf.isRelative) { const ref = this.wrapWidth ?? this.baseHeight * 4; return wf.value * ref } return wf.value * 0.85 }。该函数被 measureCharWidth（:977-982 `return fontSize * baseFactor * widthFactor * tracking`）与 tspanAttributes（:1079、:1093-1095 `attrs.transform = \\`scale(${widthFactor},1)\\``）共用。实测 widthFactor=1 时输出 `transform=\"scale(0.85,1)\"`、box 宽 20.4（4×10×0.6×0.85），即导出文字恒比自然宽度窄 15%；widthFactor=2/0.25 时输出 scale(1.7,1)/scale(0.2125,1)，box 宽 40.8/5.1，而浏览器按未横向缩放的自然前进量排版，导致字形与 span 坐标在不同宽度因子下漂移（f 越大越挤压）。审查员的 A6-3 把这一现象归因为\"平方压缩\"并建议删除 scale，方向错误，故单列。",
+      "severity": "P3"
+    }
+  ]
+}

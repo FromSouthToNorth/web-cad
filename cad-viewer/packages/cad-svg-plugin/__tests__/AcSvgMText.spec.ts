@@ -364,3 +364,34 @@ describe('buildSvgMText', () => {
     expect(localSvg).toContain('font-size="7"')
   })
 })
+
+describe('buildSvgMText height fallback', () => {
+  it('falls back to the style fixed height when the entity has none', () => {
+    const { localSvg } = buildSvgMText(
+      {
+        text: 'AB',
+        height: 0,
+        position: { x: 0, y: 0, z: 0 }
+      } as never,
+      { font: 'Arial', fixedTextHeight: 2.5 } as never,
+      createTraits(),
+      ctx
+    )
+
+    // The canvas renderer resolves height || fixedTextHeight, so dropping the
+    // glyphs here made the export disagree with the viewport.
+    expect(localSvg).toContain('AB')
+    expect(localSvg).toContain('font-size=' + String.fromCharCode(34) + '2.5')
+  })
+
+  it('still drops the glyphs when neither the entity nor the style has a height', () => {
+    const { localSvg } = buildSvgMText(
+      { text: 'AB', height: 0, position: { x: 0, y: 0, z: 0 } } as never,
+      { font: 'Arial', fixedTextHeight: 0 } as never,
+      createTraits(),
+      ctx
+    )
+
+    expect(localSvg).toBe('')
+  })
+})

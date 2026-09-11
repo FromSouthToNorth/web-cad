@@ -192,6 +192,10 @@ function estimateTemplateBytes(
  * Deep-clones a cached template for one consumer and repositions the root at
  * the requested insertion point.
  *
+ * The cached `box` travels with the clone: it is a bound expressed in the
+ * template's own insertion frame, so it is shifted by the same delta as the
+ * root instead of being copied verbatim.
+ *
  * THREE's `Object3D.copy` JSON-clones `userData`, which strips the prototype
  * from `THREE.Box3` instances embedded in the renderer's layout metadata and
  * would corrupt character-level picking. Those fields are restored by
@@ -251,8 +255,30 @@ export function clonePlacedMTextTemplate(
   }
   isolateGeometry(template, clone)
 
-  if (template.box) {
-    clone.box = template.box.clone()
+  // The template box is an axis-aligned bound built in the frame of the
+  // template's own insertion point, so it must follow the root by the same
+  // delta the root moves. The origin is read from `template.position` — the
+  // insertion point the layout was built for — and never from `box.min`:
+  // `box.min` is the frame corner, which the attachment point, rotation and
+  // logical bounds offset from the insertion point, so using it would shift
+  // every clone's selection box.
+  const templateBox = template.box
+  if (templateBox) {
+    // Copy unconditionally: worker-path templates are plain `THREE.Group`
+    // instances whose `box` exists only because reconstruction assigned it,
+    // and consumers read `rendered.box` without a guard.
+    clone.box = templateBox.clone()
+    // An empty or zero-extent box has nothing to relocate, so the shift is
+    // skipped rather than turning a degenerate bound into an off-origin one.
+    if (!templateBox.isEmpty() && !templateBox.min.equals(templateBox.max)) {
+      clone.box.translate(
+        new THREE.Vector3(
+          position.x - template.position.x,
+          position.y - template.position.y,
+          position.z - template.position.z
+        )
+      )
+    }
   }
 
   clone.position.set(position.x, position.y, position.z)

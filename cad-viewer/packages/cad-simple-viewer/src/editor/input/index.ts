@@ -1,4 +1,5 @@
 export * from './AcEdCursorManager'
+export * from './AcEdInlineEditorRegistry'
 export * from './AcEdInputModifiers'
 export * from './AcEdInputToggles'
 export * from './AcEdOrthoMode'

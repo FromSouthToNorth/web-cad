@@ -54,7 +54,6 @@ describe('AcDbMText', () => {
     expect(mtext.contents).toBe('line1\nline2')
     expect(mtext.height).toBeCloseTo(2.5)
     expect(mtext.width).toBeCloseTo(12)
-    expect(mtext.rotation).toBeCloseTo(Math.PI / 3)
     expect(mtext.lineSpacingStyle).toBe(2)
     expect(mtext.lineSpacingFactor).toBeCloseTo(1.25)
     expect(mtext.backgroundFill).toBe(true)
@@ -64,6 +63,9 @@ describe('AcDbMText', () => {
     expect(mtext.styleName).toBe('CustomStyle')
     expect(mtext.location).toMatchObject({ x: 1, y: 2, z: 3 })
     expect(mtext.attachmentPoint).toBe(AcGiMTextAttachmentPoint.BottomRight)
+    // `rotation` and `direction` are the same degree of freedom: assigning the
+    // direction vector rewrites the scalar angle so both stay consistent.
+    expect(mtext.rotation).toBeCloseTo(Math.atan2(3, 2), 12)
     expect(mtext.direction).toMatchObject({ x: 2, y: 3, z: 4 })
     expect(mtext.drawingDirection).toBe(AcGiMTextFlowDirection.TOP_TO_BOTTOM)
     expect(mtext.geometricExtents).toBeInstanceOf(AcGeBox3d)
@@ -256,6 +258,8 @@ describe('AcDbMText', () => {
     expect(mtext.attachmentPoint).toBe(AcGiMTextAttachmentPoint.MiddleCenter)
     expect(mtext.drawingDirection).toBe(AcGiMTextFlowDirection.BY_STYLE)
     expect(mtext.height).toBeCloseTo(3.2)
+    // The property list drives `rotation` after the direction components, so the
+    // scalar angle written last is the value observed.
     expect(mtext.rotation).toBeCloseTo(Math.PI / 4)
     expect(mtext.lineSpacingFactor).toBeCloseTo(1.1)
     expect(mtext.width).toBeCloseTo(16)
@@ -277,7 +281,9 @@ describe('AcDbMText', () => {
       expect.objectContaining({
         text: mtext.contents,
         height: mtext.height,
-        width: mtext.width
+        width: mtext.width,
+        // The style's width factor must reach the renderer explicitly.
+        widthFactor: 1
       }),
       expect.any(Object),
       true
@@ -315,7 +321,6 @@ describe('AcDbMText', () => {
     mtext.contents = 'a\r\nb\nc\rd'
     mtext.styleName = 'MyTextStyle'
     mtext.rotation = Math.PI / 2
-    mtext.direction = { x: 1, y: 0, z: 0 }
     mtext.attachmentPoint = AcGiMTextAttachmentPoint.TopCenter
     mtext.drawingDirection = AcGiMTextFlowDirection.TOP_TO_BOTTOM
     mtext.lineSpacingStyle = 3
@@ -336,9 +341,11 @@ describe('AcDbMText', () => {
     expect(dxfWithoutBackground).not.toContain('42\n')
     expect(dxfWithoutBackground).toContain('1\na\\Pb\\Pc\\Pd')
     expect(dxfWithoutBackground).toContain('7\nMyTextStyle')
+    // A 90 degree rotation now also drives the direction vector, because both
+    // fields describe the same text X axis.
     expect(dxfWithoutBackground).toContain('50\n90')
-    expect(dxfWithoutBackground).toContain('11\n1')
-    expect(dxfWithoutBackground).toContain('21\n0')
+    expect(dxfWithoutBackground).toContain('11\n0')
+    expect(dxfWithoutBackground).toContain('21\n1')
     expect(dxfWithoutBackground).toContain('31\n0')
     expect(dxfWithoutBackground).toContain(
       `71\n${AcGiMTextAttachmentPoint.TopCenter}`
@@ -404,5 +411,119 @@ describe('AcDbMText', () => {
     const roundTrip = new AcDbMText()
     roundTrip.dxfIn(AcDbDxfFiler.fromString(dxf))
     expect(roundTrip.contents).toBe('A'.repeat(520))
+  })
+})
+
+describe('AcDbMText rotation / direction consistency', () => {
+  beforeEach(() => {
+    createWorkingDb()
+  })
+
+  it('keeps direction in sync when rotation is set', () => {
+    const mtext = new AcDbMText()
+    mtext.rotation = Math.PI / 2
+
+    expect(mtext.rotation).toBeCloseTo(Math.PI / 2, 12)
+    // The renderer and the extents helper read `direction`, so it must follow.
+    expect(mtext.direction.x).toBeCloseTo(0, 12)
+    expect(mtext.direction.y).toBeCloseTo(1, 12)
+  })
+
+  it('keeps rotation in sync when direction is set', () => {
+    const mtext = new AcDbMText()
+    mtext.direction = { x: 0, y: 1, z: 0 }
+
+    expect(mtext.rotation).toBeCloseTo(Math.PI / 2, 12)
+  })
+
+  it('drives the geometric extents from a rotation set after construction', () => {
+    const mtext = new AcDbMText()
+    mtext.contents = 'AB'
+    mtext.height = 2
+    mtext.width = 4
+    mtext.location = { x: 0, y: 0, z: 0 }
+    mtext.rotation = Math.PI / 2
+
+    const extents = mtext.geometricExtents
+    // A 90 degree rotation swaps the rectangle's X/Y extents: the box must be
+    // taller than it is wide, which the pre-fix code never produced.
+    expect(extents.max.x - extents.min.x).toBeLessThan(
+      extents.max.y - extents.min.y
+    )
+  })
+
+  it('ignores a zero direction vector written by DXF group 11/21/31', () => {
+    const mtext = new AcDbMText()
+    mtext.dxfIn(
+      AcDbDxfFiler.fromString('100\nAcDbMText\n11\n0\n21\n0\n31\n0\n')
+    )
+
+    // A zero vector carries no direction; keeping the default X axis avoids the
+    // spurious 90 degree rotation Three's `angleTo` reports for it.
+    expect(mtext.direction.x).toBeCloseTo(1, 12)
+    expect(mtext.direction.y).toBeCloseTo(0, 12)
+    expect(mtext.rotation).toBeCloseTo(0, 12)
+  })
+
+  it('applies a real direction vector written by DXF', () => {
+    const mtext = new AcDbMText()
+    mtext.dxfIn(
+      AcDbDxfFiler.fromString('100\nAcDbMText\n11\n0\n21\n1\n31\n0\n')
+    )
+
+    expect(mtext.rotation).toBeCloseTo(Math.PI / 2, 12)
+  })
+})
+
+describe('AcDbMText background fill colour', () => {
+  beforeEach(() => {
+    createWorkingDb()
+  })
+
+  it('seeds the default fill colour when none was explicit', () => {
+    const mtext = new AcDbMText()
+    mtext.backgroundFill = true
+
+    expect(mtext.backgroundFillColor).toBe(0xc8c8c8)
+  })
+
+  it('keeps an explicitly assigned fill colour when the toggle changes', () => {
+    const mtext = new AcDbMText()
+    mtext.backgroundFillColor = 0x336699
+    mtext.backgroundFill = true
+
+    expect(mtext.backgroundFillColor).toBe(0x336699)
+  })
+
+  it('keeps the fill colour read from DXF group 63', () => {
+    const mtext = new AcDbMText()
+    mtext.dxfIn(AcDbDxfFiler.fromString('100\nAcDbMText\n90\n1\n63\n12345\n'))
+
+    expect(mtext.backgroundFill).toBe(true)
+    expect(mtext.backgroundFillColor).toBe(12345)
+  })
+})
+
+describe('AcDbMText width factor', () => {
+  it('passes a condensed style width factor to the renderer', () => {
+    const db = createWorkingDb()
+    const record = db.tables.textStyleTable.getAt(db.textstyle)!
+    record.xScale = 0.5
+
+    const mtext = new AcDbMText()
+    mtext.styleName = record.name
+    mtext.contents = 'AB'
+    mtext.height = 2
+
+    const renderer = { mtext: jest.fn(() => ({ id: 'drawn' })) }
+    mtext.subWorldDraw(renderer as never)
+
+    // Without this the renderer fell back to `1`, so a condensed style had no
+    // effect on MTEXT while it did affect single-line TEXT.
+    expect(renderer.mtext).toHaveBeenLastCalledWith(
+      expect.objectContaining({ widthFactor: 0.5 }),
+      expect.anything(),
+      undefined
+    )
   })
 })

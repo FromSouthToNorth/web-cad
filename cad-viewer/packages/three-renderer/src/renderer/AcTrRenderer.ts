@@ -39,7 +39,10 @@ import {
   type AcTrEntityPreviewOptions,
   type AcTrEntityPreviewResult
 } from './AcTrEntityPreview'
-import { AcTrMTextRenderer } from './AcTrMTextRenderer'
+import {
+  AcTrMTextRenderer,
+  type AcTrMTextFontNotFoundEventArgs
+} from './AcTrMTextRenderer'
 import { AcTrRenderContext } from './AcTrRenderContext'
 
 /** Event payload when a mapped font cannot be resolved during rendering. */
@@ -48,6 +51,79 @@ export interface AcTrFontNotFoundEventArgs {
   fontName: string
   /** Number of characters using this font; set when the font is missing. */
   count?: number
+}
+
+/**
+ * Renderer whose `events` channel the shared font-diagnostics bridge feeds.
+ *
+ * The bridge sinks outlive every single view: `FontManager` lives for the whole
+ * page, and `AcTrMTextRenderer` is a singleton that `resetInstance()` replaces
+ * on each document switch. Subscribing per renderer (one is built per view, see
+ * `AcTrView2d`) would therefore leave a listener behind on `FontManager` for
+ * every view ever created and pin each discarded renderer (its render context,
+ * and the previous drawing's database) through the closure. The bridge is
+ * installed once per sink instead and forwards to the renderer that is
+ * currently live; one view at a time is what this viewer builds.
+ */
+let liveFontDiagnosticsTarget: AcTrRenderer | null = null
+
+/** Guards the one-time subscription to the page-lifetime `FontManager` sinks. */
+let fontManagerBridgeInstalled = false
+
+/**
+ * MText-renderer singleton the bridge is currently subscribed to.
+ *
+ * Remembered so the new singleton created by
+ * {@link AcTrMTextRenderer.resetInstance} can be detected and bridged without
+ * leaving a listener on the retired one.
+ */
+let bridgedMTextRenderer: AcTrMTextRenderer | null = null
+
+/** Forwards a main-thread font miss to the live renderer's event channel. */
+const forwardMainThreadFontNotFound = (args: AcTrFontNotFoundEventArgs) => {
+  liveFontDiagnosticsTarget?.events.fontNotFound.dispatch(args)
+}
+
+/** Forwards a completed main-thread font load to the live renderer. */
+const forwardMainThreadFontLoaded = (args: AcTrFontNotFoundEventArgs) => {
+  liveFontDiagnosticsTarget?.events.fontLoaded.dispatch(args)
+}
+
+/** Forwards a worker-path font miss detected by the MText renderer. */
+const forwardMTextFontNotFound = (args: AcTrMTextFontNotFoundEventArgs) => {
+  liveFontDiagnosticsTarget?.events.fontNotFound.dispatch({
+    fontName: args.fontName,
+    count: args.count
+  })
+}
+
+/**
+ * Makes `target` the live font-diagnostics channel, subscribing the shared
+ * sinks the first time it is called.
+ *
+ * The MText web worker resolves faces inside its own isolate and its message
+ * protocol carries no font feedback, so worker-side misses never reach
+ * {@link FontManager.instance}. {@link AcTrMTextRenderer} detects those misses
+ * on the main thread; bridging it here keeps a single observation point for
+ * every font failure, whether it happened on the main thread or in the pool.
+ */
+function installFontDiagnosticsBridge(target: AcTrRenderer) {
+  liveFontDiagnosticsTarget = target
+  if (!fontManagerBridgeInstalled) {
+    fontManagerBridgeInstalled = true
+    const events = FontManager.instance.events
+    events.fontNotFound.addEventListener(forwardMainThreadFontNotFound)
+    events.fontLoaded.addEventListener(forwardMainThreadFontLoaded)
+  }
+  const mtextRenderer = AcTrMTextRenderer.getInstance()
+  if (bridgedMTextRenderer === mtextRenderer) return
+  // A fresh singleton after a document switch: move the listener onto it rather
+  // than adding a second one, which is how listeners used to accumulate.
+  bridgedMTextRenderer?.events.fontNotFound.removeEventListener(
+    forwardMTextFontNotFound
+  )
+  mtextRenderer.events.fontNotFound.addEventListener(forwardMTextFontNotFound)
+  bridgedMTextRenderer = mtextRenderer
 }
 
 /**
@@ -179,12 +255,7 @@ export class AcTrRenderer implements AcGiRenderer<AcTrEntity> {
     AcTrMTextRenderer.getInstance().overrideStyleManager(
       this._context.styleManager
     )
-    FontManager.instance.events.fontNotFound.addEventListener(args => {
-      this.events.fontNotFound.dispatch(args)
-    })
-    FontManager.instance.events.fontLoaded.addEventListener(args => {
-      this.events.fontLoaded.dispatch(args)
-    })
+    installFontDiagnosticsBridge(this)
     this._subEntityTraits = AcTrSubEntityTraitsUtil.createDefaultTraits()
   }
 
@@ -447,10 +518,22 @@ export class AcTrRenderer implements AcGiRenderer<AcTrEntity> {
   }
 
   /**
-   * Fonts list which can't be found
+   * Fonts list which can't be found.
+   *
+   * Merges the main-thread {@link FontManager} record with the mirror kept by
+   * {@link AcTrMTextRenderer} for worker-path misses. Counts are summed when a
+   * face is reported by both sources, so the value keeps its meaning:
+   * "characters that could not be rendered with this font".
    */
   get missedFonts() {
-    return FontManager.instance.missedFonts
+    const mainThread = FontManager.instance.missedFonts ?? {}
+    const worker = AcTrMTextRenderer.getInstance().missedFonts
+    if (Object.keys(worker).length === 0) return mainThread
+    const merged: Record<string, number> = { ...mainThread }
+    for (const [fontName, count] of Object.entries(worker)) {
+      merged[fontName] = (merged[fontName] ?? 0) + count
+    }
+    return merged
   }
 
   /**

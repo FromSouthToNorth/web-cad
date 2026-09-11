@@ -143,4 +143,26 @@ describe('AcDbTextStyleTableRecord', () => {
     expect(record.textStyle.extendedFont).toBe('SimSun')
     expect(record.fileName).toBe('SimSun')
   })
+
+  it('exposes the oblique angle to the renderer in degrees', () => {
+    const record = new AcDbTextStyleTableRecord({ name: 'Slanted' })
+    record.obliquingAngle = 30
+
+    // The renderer applies `tan(angle * PI / 180)` and the SVG exporter also
+    // treats this as degrees, so the value must pass through unchanged.
+    expect(record.textStyle.obliqueAngle).toBe(30)
+  })
+  it('writes the obliquing angle as degrees (DXF group 50)', () => {
+    const record = new AcDbTextStyleTableRecord({ name: 'Slanted' })
+    record.obliquingAngle = 15
+
+    const filer = new AcDbDxfFiler()
+    record.dxfOutFields(filer)
+
+    // Group 50 is already degrees. Routing it through writeAngle treated the
+    // stored value as radians and emitted 859.44, so every DXF round trip
+    // changed the slant angle (and its sign).
+    expect(filer.toString()).toContain('50\n15\n')
+    expect(filer.toString()).not.toContain('859.')
+  })
 })

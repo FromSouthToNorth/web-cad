@@ -45,6 +45,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The local cad-data mirror (fonts + sample drawings) is not tracked by
+      # git: upstream ships third-party fonts with no license grant. Sync it so
+      # the example app, the CLI runner and the E2E font assertions all run
+      # against the same offline assets the runtime prefers over the CDN.
+      - name: Sync local cad-data assets
+        run: pnpm sync:cad-data
+
       - name: Lint code
         run: pnpm lint
 

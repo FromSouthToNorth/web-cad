@@ -130,6 +130,10 @@ const LIBREDWG_PARSER_WORKER_FILE = 'libredwg-parser-worker.js'
 const npm = (pkg, path = '') => `https://cdn.jsdelivr.net/npm/${pkg}${path}`
 // 1.6.1 is the last release whose main entry bundles the Element Plus shell.
 const CAD_VIEWER_URL = npm(`@hy/cad-viewer@${ML}`, '/dist/cad-viewer.js')
+// Deliberate exception to the local-first cad-data policy: this page exists to
+// demonstrate booting the viewer purely from a CDN, so every asset — including
+// the font repository — comes from jsDelivr. The app itself
+// (packages/cad-viewer-example) serves the local mirror instead.
 const BASE_URL = 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/'
 const DWG_WORKER = npm(
   '@mlightcad/libredwg-converter@3.13.0',

@@ -273,6 +273,34 @@ describe('AcApDocManager font URL configuration', () => {
     expect(mockFontLoaderInstances[0].load).toHaveBeenCalledWith(['simkai'])
   })
 
+  it('normalises a document-relative base URL to an absolute fonts URL', () => {
+    // The MTEXT glyphs are laid out in a module Web Worker, where a relative
+    // URL would resolve against the worker script instead of the host page.
+    AcApDocManager.createInstance({ baseUrl: './cad-data/' })
+
+    expect(mockFontLoaderInstances[0].baseUrl).toBe(
+      'http://localhost/cad-data/fonts/'
+    )
+  })
+
+  it('normalises a root-relative base URL without a trailing slash', () => {
+    AcApDocManager.createInstance({ baseUrl: '/assets/cad-data' })
+
+    expect(mockFontLoaderInstances[0].baseUrl).toBe(
+      'http://localhost/assets/cad-data/fonts/'
+    )
+  })
+
+  it('keeps an absolute base URL unchanged apart from the fonts suffix', () => {
+    AcApDocManager.createInstance({
+      baseUrl: 'https://cdn.example.com/cad-data'
+    })
+
+    expect(mockFontLoaderInstances[0].baseUrl).toBe(
+      'https://cdn.example.com/cad-data/fonts/'
+    )
+  })
+
   it('syncs the default fonts preset to the mtext renderer after worker init', () => {
     AcApDocManager.createInstance({})
 

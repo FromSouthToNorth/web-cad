@@ -204,11 +204,24 @@ await database.read(buffer, { readOnly: true }, AcDbFileType.DXF)
 ### Font Loading
 
 Fonts referenced by text entities are loaded on demand by the mtext renderer when a
-font is first needed. Viewers such as `@hy/cad-simple-viewer` typically resolve
-font metadata from [mlightcad/cad-data](https://github.com/mlightcad/cad-data)
-(default CDN: `https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/`).
+font is first needed. Viewers such as `@hy/cad-simple-viewer` resolve font metadata
+from the asset repository root passed as `baseUrl` (`<baseUrl>/fonts/fonts.json` plus
+`<baseUrl>/fonts/<file>`).
 
-To self-host fonts and templates (directory layout, `fonts.json`, CORS, and `baseUrl`
+This monorepo ships a local mirror at `packages/cad-data/fonts/`, populated by
+`pnpm sync:cad-data` and copied next to each application's build output.
+`resolveCadDataBaseUrl()` from `@hy/cad-simple-viewer` (module `AcApCadDataAssets`)
+implements the "local first, CDN fallback" policy:
+
+```typescript
+import { resolveCadDataBaseUrl } from '@hy/cad-simple-viewer'
+
+// Absolute URL; the CDN https://cdn.jsdelivr.net/gh/mlightcad/cad-data is used
+// only when the local mirror has not been synced.
+const baseUrl = await resolveCadDataBaseUrl({ appBaseUrl: import.meta.env.BASE_URL })
+```
+
+To self-host a different font set (directory layout, `fonts.json`, CORS, and `baseUrl`
 configuration), see the
 [Self Hosted Fonts and Templates](https://github.com/mlightcad/cad-viewer/wiki/Self-Hosted-Fonts-and-Templates)
 guide in the cad-viewer wiki.

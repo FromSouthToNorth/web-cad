@@ -36,14 +36,14 @@ A single HTML file that loads `@hy/cad-viewer` from jsDelivr — no Node, Vite, 
 
 Serve over HTTP(S); `file://` will not work for ES module CDN imports.
 
-### 3. Self-Contained Offline HTML (`/self-contained-html/canteen.html`)
+### 3. Self-Contained Offline HTML (`/self-contained-html/block-color.html`)
 
-A single-file HTML export of the sample **canteen.dwg** drawing, produced by `cad-simple-viewer-cli`.
+A single-file HTML export of the sample **block-color.dxf** drawing from the local cad-data mirror, produced by `cad-simple-viewer-cli`.
 
 **Why it matters:**
 - One portable `.html` file — no CAD app, server, or cad-viewer install for recipients
 - Opens offline in any modern browser with pan, zoom, layers, and measurement
-- Very low memory usage compared with desktop CAD viewers when opening the same sample drawing [`canteen.dwg`](https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/data/canteen.dwg):
+- Very low memory usage compared with desktop CAD viewers. Figures below were measured on the larger upstream sample [`canteen.dwg`](https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/data/canteen.dwg):
 
 | Viewer | Memory consumption |
 |--------|-------------|
@@ -55,7 +55,7 @@ A single-file HTML export of the sample **canteen.dwg** drawing, produced by `ca
 View mode uses about **83% less memory than AutoCAD 2020** and **77% less than GstarCAD Viewer**.
 
 **How it is built:**
-- CI on `main` downloads `canteen.dwg` from cad-data and runs `exportDemoHtml.js`
+- `exportDemoHtml.js` exports `packages/cad-data/data/block-color.dxf`, using the local mirror when present and only falling back to the cad-data CDN otherwise (run `pnpm sync:cad-data` first); CI on `main` runs it automatically
 - Locally: `pnpm export:demo-html` from this package after `pnpm build`
 
 ## Getting Started
@@ -89,11 +89,11 @@ The examples will be available at:
 - Main index: `http://localhost:3000`
 - CAD Viewer Demo: `http://localhost:3000/cad-viewer/`
 - CDN bootstrap (zero-build): `http://localhost:3000/cdn-bootstrap/cad-viewer.html`
-- Self-contained HTML demo: `http://localhost:3000/self-contained-html/canteen.html` (generate first with `pnpm export:demo-html`)
+- Self-contained HTML demo: `http://localhost:3000/self-contained-html/block-color.html` (generate first with `pnpm export:demo-html`)
 
 ### Self-Contained HTML Demo
 
-The offline HTML example is built from the sample [`canteen.dwg`](https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/data/canteen.dwg) using [`@hy/cad-simple-viewer-cli`](../cad-simple-viewer-cli). GitHub Actions on the `main` branch runs this step automatically before deploying to GitHub Pages.
+The offline HTML example is built from `packages/cad-data/data/block-color.dxf` (the local cad-data mirror, synced with `pnpm sync:cad-data`) using [`@hy/cad-simple-viewer-cli`](../cad-simple-viewer-cli). GitHub Actions on the `main` branch runs this step automatically before deploying to GitHub Pages.
 
 To generate the file locally (requires a built workspace and Playwright Chromium or system Chrome via `PLAYWRIGHT_BROWSER_CHANNEL=chrome`):
 
@@ -144,7 +144,7 @@ packages/examples/
 ## Scripts
 
 - `pre-serve`: Copies built examples from individual packages to the public directory
-- `export:demo-html`: Exports the canteen.dwg sample to a self-contained HTML file
+- `export:demo-html`: Exports the block-color.dxf sample from the local cad-data mirror to a self-contained HTML file
 - `serve`: Starts a local server to serve the examples
 
 ## Use Cases

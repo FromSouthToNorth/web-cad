@@ -1,17 +1,22 @@
+import vue from '@vitejs/plugin-vue'
 import { existsSync } from 'fs'
 import { dirname, resolve } from 'path'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { fileURLToPath } from 'url'
 import { Alias, defineConfig } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import svgLoader from 'vite-svg-loader'
-import { visualizer } from 'rollup-plugin-visualizer'
-import vue from '@vitejs/plugin-vue'
-import { exampleRollupOutput } from '../vite-config/pluginRollupOutput'
+
+import {
+  CAD_DATA_FONTS_DIR,
+  CAD_DATA_PACKAGE_DIR_NAME
+} from '../../tools/cad-data-assets.mjs'
 import {
   DATA_MODEL_PACKAGE,
   DXF_PARSER_WORKER_FILE,
   MTEXT_RENDERER_WORKER_FILE
 } from '../../tools/worker-assets.mjs'
+import { exampleRollupOutput } from '../vite-config/pluginRollupOutput'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const VIEWER_RUNTIME_SRC = '../cad-html-plugin/dist/viewer-runtime.iife.js'
@@ -22,6 +27,24 @@ export default defineConfig(({ command, mode }) => {
     console.warn(
       '[cad-viewer-example] viewer-runtime.iife.js not found — HTML export will be unavailable. ' +
         'Build @hy/cad-html-plugin to enable it. Opening DXF does not require this file.'
+    )
+  }
+  // `packages/cad-data` is a synced mirror, not a tracked directory (upstream
+  // ships third-party fonts with no license grant). Without it the app still
+  // builds and falls back to the jsDelivr CDN at runtime, so the copy target is
+  // only registered when the mirror is present — vite-plugin-static-copy throws
+  // when a source glob matches nothing.
+  const cadDataFontsDir = resolve(
+    __dirname,
+    '..',
+    CAD_DATA_PACKAGE_DIR_NAME,
+    CAD_DATA_FONTS_DIR
+  )
+  const hasCadDataFonts = existsSync(cadDataFontsDir)
+  if (!hasCadDataFonts) {
+    console.warn(
+      `[cad-viewer-example] Local cad-data mirror not found at ${cadDataFontsDir} — ` +
+        'fonts will be fetched from the jsDelivr CDN. Run `pnpm sync:cad-data` for offline fonts.'
     )
   }
   const aliases: Alias[] = []
@@ -53,6 +76,17 @@ export default defineConfig(({ command, mode }) => {
           dest: 'assets',
           rename: { stripBase: true }
         },
+        // Local cad-data mirror (fonts.json + binaries) → dist/cad-data/fonts/…
+        // `dest: '.'` is required: the plugin strips the leading `../` from the
+        // source dir, so any other dest would double the `cad-data/` prefix.
+        ...(hasCadDataFonts
+          ? [
+              {
+                src: `${cadDataFontsDir}/**/*`,
+                dest: '.'
+              }
+            ]
+          : []),
         ...(hasViewerRuntime
           ? [
               {
@@ -78,9 +112,7 @@ export default defineConfig(({ command, mode }) => {
     optimizeDeps: {
       force: command === 'serve',
       exclude:
-        command === 'serve'
-          ? devSourcePackages.map(name => `@hy/${name}`)
-          : []
+        command === 'serve' ? devSourcePackages.map(name => `@hy/${name}`) : []
     },
     server: {
       port: 5173,

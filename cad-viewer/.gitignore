@@ -12,6 +12,13 @@ tsconfig.tsbuildinfo
 packages/cad-viewer-example/bench/out
 tools/bench/fixtures/
 
+# cad-data mirror (sync with `pnpm sync:cad-data`)
+# Upstream ships third-party proprietary fonts with no license grant, so the
+# binaries are never committed — only packages/cad-data/README.md is tracked.
+packages/cad-data/fonts/
+packages/cad-data/templates/
+packages/cad-data/data/
+
 # dependencies
 node_modules
 

@@ -105,7 +105,9 @@ function resolveFixture(catalog: Catalog): string | undefined {
   if (isHttpUrl(catalog.fixtureDrawing)) {
     return catalog.fixtureDrawing.trim()
   }
-  return path.resolve(examplesDir, catalog.fixtureDrawing)
+  // Catalog paths are package-root relative, matching `resolveUserPath` and the
+  // `fixtureDrawingRelative` value the gallery round-trips back to us.
+  return path.resolve(packageRoot, catalog.fixtureDrawing)
 }
 
 function resolveDefaultOutput(catalog: Catalog, exampleId: string): string {
@@ -176,9 +178,7 @@ function assertIsFile(filePath: string, label: string) {
     }
     const ext = path.extname(pathname).toLowerCase()
     if (ext !== '.dxf') {
-      throw new Error(
-        `${label} URL must end with .dxf: ${filePath}`
-      )
+      throw new Error(`${label} URL must end with .dxf: ${filePath}`)
     }
     return
   }
@@ -232,8 +232,7 @@ async function handleRun(options: RunOptions): Promise<{
 
   const inputKind = resolveInputKind(example)
   const outputDir =
-    resolveUserPath(options.output) ??
-    resolveDefaultOutput(catalog, example.id)
+    resolveUserPath(options.output) ?? resolveDefaultOutput(catalog, example.id)
   await mkdir(outputDir, { recursive: true })
 
   let inputPath = resolveUserPath(options.input)
@@ -412,7 +411,8 @@ async function main() {
                 : path.relative(packageRoot, fixture).split(path.sep).join('/')
               : undefined,
             fixtureExists: !!(
-              fixture && (isHttpUrl(fixture) || existsSync(fixture))
+              fixture &&
+              (isHttpUrl(fixture) || existsSync(fixture))
             ),
             defaultOutputDirResolved: path.resolve(
               packageRoot,

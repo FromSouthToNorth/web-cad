@@ -9,8 +9,8 @@ import {
   AcGeBox2d,
   log
 } from '@hy/data-model'
-import { FontManager } from '@mlightcad/mtext-renderer'
 import { AcTrMTextRenderer } from '@hy/three-renderer'
+import { FontManager } from '@mlightcad/mtext-renderer'
 
 import {
   AcApAboutCmd,
@@ -108,6 +108,11 @@ import { acapWithSecondaryDatabase } from '../util/AcApSecondaryDatabase'
 import { AcTrView2d } from '../view'
 import type { AcTrLayout } from '../view/AcTrLayout'
 import { AcApBusyIndicator } from './AcApBusyIndicator'
+import {
+  CAD_DATA_CDN_BASE_URL,
+  CAD_DATA_FONTS_DIR_NAME,
+  resolveDocumentBaseUrl
+} from './AcApCadDataAssets'
 import { acapBindCommandServices } from './AcApCommandServices'
 import { AcApContext } from './AcApContext'
 import { AcApDocument } from './AcApDocument'
@@ -135,7 +140,16 @@ import {
   DEFAULT_NEW_DRAWING_TEMPLATE_NAME
 } from './defaultNewDrawingTemplate'
 
-const DEFAULT_BASE_URL = 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data'
+/**
+ * Fallback asset repository root, used only when the host passes no
+ * {@link AcApDocManagerOptions.baseUrl}.
+ *
+ * First-party hosts (the example app, the CLI runner, the bench pages) resolve
+ * a local mirror through `resolveCadDataBaseUrl()` instead, so the viewer works
+ * fully offline. This constant stays as the documented default for third-party
+ * hosts that never configure `baseUrl`.
+ */
+const DEFAULT_BASE_URL = CAD_DATA_CDN_BASE_URL
 
 /**
  * Drops the MTEXT renderer's per-document glyph state (pending promotion counts
@@ -273,7 +287,17 @@ export interface AcApDocManagerOptions {
    */
   autoResize?: boolean
   /**
-   * Base URL to load resources (such as fonts annd drawing templates) needed
+   * Base URL to load resources (such as fonts annd drawing templates) needed.
+   *
+   * Treated as the asset repository root: the viewer requests
+   * `<baseUrl>/fonts/fonts.json` and `<baseUrl>/fonts/<file>`, and normalises
+   * the value to an absolute URL so document-relative values work from the
+   * MTEXT Web Worker too.
+   *
+   * When omitted, {@link CAD_DATA_CDN_BASE_URL} is used. First-party hosts
+   * should prefer `resolveCadDataBaseUrl()` from `AcApCadDataAssets`, which
+   * returns the local `packages/cad-data` mirror when it has been synced
+   * (`pnpm sync:cad-data`) and falls back to that same CDN URL otherwise.
    */
   baseUrl?: string
   /**
@@ -1207,12 +1231,21 @@ export class AcApDocManager {
 
   /**
    * Resolves the font repository URL from {@link baseUrl}.
+   *
+   * The result is always an absolute URL: MTEXT glyphs are laid out in a module
+   * Web Worker, where a relative URL would resolve against the worker script
+   * (`dist/assets/…`) instead of the host page. Hosts may therefore pass a
+   * document-relative value such as `'./cad-data/'` and still get a URL the
+   * worker can fetch.
    */
   private resolveFontsBaseUrl(): string {
     const base = this._baseUrl.endsWith('/')
       ? this._baseUrl
       : `${this._baseUrl}/`
-    return `${base}fonts/`
+    return new URL(
+      `${base}${CAD_DATA_FONTS_DIR_NAME}/`,
+      resolveDocumentBaseUrl()
+    ).href
   }
 
   /**

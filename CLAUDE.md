@@ -15,7 +15,7 @@ CAD 大图纸性能优化工作区（`bw-cad-view`），基于 mlightcad/cad-vie
 ### 初始化
 
 ```bash
-node bootstrap.mjs            # 根目录一键初始化（安装依赖 + 全量构建 + 验证）
+node bootstrap.mjs            # 根目录一键初始化（安装依赖 + 同步 cad-data + 全量构建 + 验证）
 node bootstrap.mjs --fast     # 跳过最终验证构建
 node bootstrap.mjs --force    # 强制重跑所有步骤
 ```
@@ -25,6 +25,9 @@ node bootstrap.mjs --force    # 强制重跑所有步骤
 ```bash
 cd cad-viewer
 pnpm install                  # 安装依赖
+pnpm sync:cad-data            # 同步本地 cad-data 资源（字体，约 9.4MB；离线/中文渲染必需）
+pnpm sync:cad-data:all        # 全量镜像 cad-data（约 55MB，含 templates/ 与全部样例）
+pnpm sync:cad-data:check      # 只校验本地资源是否齐全
 pnpm dev                      # 启动全功能查看器（cad-viewer-example）开发服务器
 pnpm build                    # nx 拓扑排序，按依赖顺序构建全部包
 pnpm preview                  # 预览构建产物
@@ -77,7 +80,7 @@ pnpm format                   # prettier 格式化 packages/**/*.{ts,js,vue,json
 
 ## 架构要点
 
-- monorepo 位于 `cad-viewer/`：pnpm workspace + nx 20。`packages/*` 下有 19 个 workspace 包；`packages/vite-config/` 是共享构建配置目录（无 `package.json`，不算包）。
+- monorepo 位于 `cad-viewer/`：pnpm workspace + nx 20。`packages/*` 下有 20 个 workspace 包；`packages/vite-config/` 是共享构建配置目录（无 `package.json`，不算包）。
 - 包依赖分层（自底向上）：
   `common` → `geometry-engine` → `graphic-interface` → `data-model` → `three-renderer` / `cad-simple-viewer` → `cad-viewer` / 各功能插件 → `cad-viewer-example` / `cad-simple-viewer-cli`。
   插件（svg / pdf / html / agent / simple-ui / invertsel / layerctx / search / tunnel）把 `cad-simple-viewer`、`data-model` 等声明为 peerDependencies，实例由宿主应用提供。
@@ -85,6 +88,7 @@ pnpm format                   # prettier 格式化 packages/**/*.{ts,js,vue,json
   - `common`：基础工具、颜色管理、日志。
   - `geometry-engine` / `graphic-interface`：几何计算与图形接口抽象。
   - `data-model`：DWG/DXF 解析核心，仿 ObjectARX API；含 DXF tokenizer Web Worker。DXF 文本编码仅支持 UTF-8：pair reader 直接扫描 UTF-8 字节，组码/数值不经全量解码，字符串按需惰性解码。
+  - `mtext-renderer`：MText 排版与渲染（Three.js），**已 vendor 自 `mlightcad/mtext-renderer`**，不再是 npm 依赖。包名有意保持 `@mlightcad/mtext-renderer`，版本必须留在 `^0.12.4` 区间内：`@mlightcad/mtext-input-box` 把它作为 peer 依赖并在运行时导入 `MTextColor`/`MText`/`MTextContext`/`UnifiedRenderer` 等类值，改名或越界会让 pnpm 从 registry 再装一份，导致双实例、`instanceof` 失效（`AcEdMTextEditor` → `MTextInputBox` 边界）与约 1MB 重复 bundle。详见 `packages/mtext-renderer/README.md`。
   - `three-renderer`：Three.js 渲染。
   - `cad-simple-viewer`：轻量查看器核心。
   - `cad-viewer`：Vue 全功能查看器。
@@ -93,18 +97,20 @@ pnpm format                   # prettier 格式化 packages/**/*.{ts,js,vue,json
   - `cad-tunnel-plugin`：绘制巷道（GeoJSON → 巷道/立井/煤仓），测试数据在根目录 `jsonData/tunnel.json`。
 - `cad-tools/`：Python DXF 预处理脚本（`process_dxf.py` + `tools/` 下的分析/校验脚本），逻辑见 `docs/06-工具脚本/process_dxf处理逻辑分析.md`。
 - worker 资产：`@hy/data-model` 构建产出 `lib/index.js` 与 `dist/dxf-parser-worker.js`；应用侧通过 `cad-viewer/tools/copy-workers.mjs` 复制 worker，文件名常量集中在 `tools/worker-assets.mjs` 与 `packages/cad-simple-viewer/src/app/AcApWorkerAssets.ts`，重命名时需同步。
+- cad-data 资源：字体不再从 jsDelivr CDN 加载。`cad-viewer/packages/cad-data/` 是本地镜像目录（**资源本体被 `.gitignore` 排除**，上游无 LICENSE，第三方专有字体不入库），由 `pnpm sync:cad-data` 按需同步。名称常量集中在 `tools/cad-data-assets.mjs` 与 `packages/cad-simple-viewer/src/app/AcApCadDataAssets.ts`。运行时走 `resolveCadDataBaseUrl()`（本地优先、CDN 回退）；查看器把 `baseUrl` 当资源仓库根，拼出 `<baseUrl>/fonts/`，并把它规范化为**绝对 URL**（MTEXT worker 内相对 URL 以 worker 脚本为基准）。详见 `docs/03-缺陷修复与功能改造/cad-data本地资源化改造.md`。
 
 ## 构建产物
 
 | 应用 | 产物路径 |
 | --- | --- |
-| 全功能查看器 | `cad-viewer/packages/cad-viewer-example/dist/` |
-| CLI 工具 | `cad-viewer/packages/cad-simple-viewer-cli/dist/` |
+| 全功能查看器 | `cad-viewer/packages/cad-viewer-example/dist/`（含 `dist/cad-data/fonts/`） |
+| CLI 工具 | `cad-viewer/packages/cad-simple-viewer-cli/dist/`（含 `dist-runner/cad-data/fonts/`） |
 | data-model | `cad-viewer/packages/data-model/lib/` + `dist/dxf-parser-worker.js` |
+| cad-data 本地镜像 | `cad-viewer/packages/cad-data/`（不入 git，`pnpm sync:cad-data` 生成） |
 
 - nx 构建带缓存（`.nx/`），`pnpm build` 按 `^build` 依赖顺序执行。
 - `pnpm dev` 的 nx target 会先构建其依赖包，改动底层包后无需手动逐个构建。
-- `bootstrap.mjs` 验证这三个文件：`data-model/lib/index.js`、`data-model/dist/dxf-parser-worker.js`、`cad-viewer-example/dist/index.html`；缺失时重新 `pnpm build`。
+- `bootstrap.mjs` 验证这三个文件：`data-model/lib/index.js`、`data-model/dist/dxf-parser-worker.js`、`cad-viewer-example/dist/index.html`；缺失时重新 `pnpm build`。本地 cad-data 资源缺失只告警（运行时回退 CDN）。
 
 ## 代码约定
 
@@ -151,3 +157,4 @@ pnpm format                   # prettier 格式化 packages/**/*.{ts,js,vue,json
 4. `bootstrap.mjs` 是增量幂等的：已有 `node_modules` 或构建产物时会自动跳过对应步骤。
 5. README.md 中项目结构提到的 `cad/` 测试数据目录当前不存在（被 `.gitignore` 排除，仅本地使用）；巷道插件测试数据在 `jsonData/`。
 6. 新增功能插件前阅读 `docs/04-开发规范/功能插件开发标准.md`，遵循包骨架、加载策略与验证 Checklist。
+7. `packages/cad-data/` 的资源本体不入库（上游无 LICENSE，第三方专有字体存在再分发风险），新环境必须 `pnpm sync:cad-data` 才有本地字体与 CLI 示例夹具；未同步时运行时自动回退 jsDelivr CDN，不会白屏。改动 `baseUrl` 相关逻辑前先读 `docs/03-缺陷修复与功能改造/cad-data本地资源化改造.md`（尤其是「worker 内相对 URL」这条坑）。

@@ -278,7 +278,15 @@ export function useAntdCadShell(options: AntdCadShellOptions) {
       htmlViewerRuntimeUrl: options.htmlViewerRuntimeUrl,
       autoResize: true,
       useMainThreadDraw: options.useMainThreadDraw,
-      openDocumentDefaults: buildOpenOptions
+      openDocumentDefaults: buildOpenOptions,
+      // Fonts are preloaded on both ends: the fallback chain once at init, and
+      // each drawing's STYLE-table fonts right after it opens. Text then lays
+      // out against ready faces instead of starting the fetch at first use —
+      // `awaitFontsBeforeDraw` turns that into a visible first-paint stall.
+      // Both loads go through the font loader that also fills the IndexedDB
+      // cache the MTEXT workers read.
+      preloadDefaultFonts: true,
+      preloadDrawingFonts: true
     })
 
     ensureColorThemeSync()

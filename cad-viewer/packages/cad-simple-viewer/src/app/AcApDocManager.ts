@@ -315,6 +315,23 @@ export interface AcApDocManagerOptions {
    * fonts load on demand through {@link FontManager.lazyFontLoading}.
    */
   preloadDefaultFonts?: boolean
+
+  /**
+   * When `true`, preload the fonts each drawing actually references, right
+   * after it opens.
+   *
+   * The names come from the STYLE table ({@link AcDbTextStyleTable.fonts}:
+   * every style's primary and big font). Loading them through
+   * {@link loadFonts} starts the fetch while the view is still framing and
+   * also writes the shared IndexedDB font cache, so the MTEXT worker pool
+   * reuses the same bytes instead of fetching them at first draw.
+   *
+   * Default is `false`: text entities load faces on demand through
+   * {@link FontManager.lazyFontLoading}. Enable it in hosts that prefer a
+   * ready first paint over saving bandwidth on drawings whose fonts are never
+   * drawn.
+   */
+  preloadDrawingFonts?: boolean
   /**
    * URLs for Web Worker JavaScript bundles used by the CAD viewer.
    */
@@ -465,6 +482,12 @@ export class AcApDocManager {
   private static _instance?: AcApDocManager
   /** Worker URLs configured at initialization */
   private _webworkerFileUrls?: AcApWebworkerFiles
+  /**
+   * Whether each opened drawing's STYLE-table fonts are preloaded.
+   *
+   * See {@link AcApDocManagerOptions.preloadDrawingFonts}.
+   */
+  private _preloadDrawingFonts = false
   /** Cached worker readiness; null until checked, then true or false */
   private _workersReady: boolean | null = null
   /** In-flight worker readiness check */
@@ -603,6 +626,7 @@ export class AcApDocManager {
     if (options.preloadDefaultFonts) {
       void this.loadDefaultFonts()
     }
+    this._preloadDrawingFonts = options.preloadDrawingFonts === true
     this._webworkerFileUrls = options.webworkerFileUrls
     this.registerWorkers(options.webworkerFileUrls)
     if (options.checkWorkersOnInit) {
@@ -959,6 +983,24 @@ export class AcApDocManager {
     } else {
       await this._fontLoader.load(fonts)
     }
+  }
+
+  /**
+   * Starts loading every font the given database references.
+   *
+   * Names come from {@link AcDbTextStyleTable.fonts} (primary font plus big
+   * font of every named style). No-op unless
+   * {@link AcApDocManagerOptions.preloadDrawingFonts} is enabled; the load is
+   * fire-and-forget so opening a drawing never blocks on it — the renderer
+   * already waits for fonts before its first draw.
+   *
+   * @param db - Database of the document that just opened.
+   */
+  private preloadDrawingFonts(db: AcDbDatabase): void {
+    if (!this._preloadDrawingFonts) return
+    const fonts = db.tables.textStyleTable.fonts
+    if (fonts.length === 0) return
+    void this.loadFonts(fonts)
   }
 
   /**
@@ -1807,6 +1849,12 @@ export class AcApDocManager {
       this.setActiveLayout()
       ;(this.curView as AcTrView2d).syncDisplaySysVars(doc.database)
       const db = doc.database
+
+      // Start the drawing's font fetches while the view is still being framed.
+      // The first draw waits for these faces either way
+      // (`awaitFontsBeforeDraw`), so starting here overlaps the download with
+      // layout/zoom work instead of paying for it after the geometry is ready.
+      this.preloadDrawingFonts(db)
 
       // View framing at document open time (see `openViewMode`):
       //

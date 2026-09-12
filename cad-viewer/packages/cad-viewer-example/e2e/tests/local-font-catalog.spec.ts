@@ -156,3 +156,32 @@ test('a drawing that asks for SimKai loads without a missing-font notice', async
   await page.waitForTimeout(2000)
   await expect(notice).toHaveCount(0)
 })
+
+test('opening a drawing preloads the fonts its STYLE table references', async ({
+  page
+}) => {
+  /** Font file names requested from the asset root, in request order. */
+  const fontRequests: string[] = []
+  page.on('request', request => {
+    const match = /\/fonts\/([^/?]+)$/.exec(request.url())
+    if (match) fontRequests.push(match[1])
+  })
+
+  await openEmptyDrawing(page)
+
+  // The fixture declares no text entity, so nothing would ever ask for SimKai
+  // on demand: a request proves the open-time preload scanned the STYLE table.
+  await expect
+    .poll(() => fontRequests.filter(name => /^simkai/i.test(name)).length, {
+      timeout: 20000,
+      message: 'opening the drawing did not preload its STYLE-table font'
+    })
+    .toBeGreaterThan(0)
+
+  // The fallback chain is preloaded once at viewer init, independent of the
+  // drawing (`preloadDefaultFonts`).
+  expect(
+    fontRequests.some(name => /^(simsun|hztxt)/i.test(name)),
+    'the default font chain was not preloaded at init'
+  ).toBe(true)
+})

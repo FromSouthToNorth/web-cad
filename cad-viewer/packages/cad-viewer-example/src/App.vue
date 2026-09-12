@@ -66,13 +66,10 @@ import {
   AcEdCommandStack,
   AcEdOpenMode,
   CAD_DATA_CDN_BASE_URL,
-  CAD_DATA_FONTS_DIR_NAME,
   resolveCadDataBaseUrl
 } from '@hy/cad-simple-viewer'
 import { registerTunnelPlugin } from '@hy/cad-tunnel-plugin/register'
 import { useLocale } from '@hy/cad-viewer'
-import { AcTrMTextRenderer } from '@hy/three-renderer'
-import { FontManager } from '@mlightcad/mtext-renderer'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -194,43 +191,21 @@ const openViewMode = ref<AcApOpenViewMode | undefined>(undefined)
 const onViewerCreate = async () => {
   initialize()
 
-  // Load the hztxt.shx font for Chinese text rendering from whichever asset
-  // root the viewer is using — the local cad-data mirror when it has been
-  // synced, the CDN otherwise.
+  // Font preloading is owned by the engine now (`preloadDefaultFonts` /
+  // `preloadDrawingFonts`, enabled in `useAntdCadShell`): it loads through the
+  // same font loader the MTEXT worker pool reads from and therefore also fills
+  // the shared IndexedDB cache. Two things this hook used to do are gone on
+  // purpose:
   //
-  // The default draw path renders MTEXT in a web worker and the worker's face
-  // catalog comes from `<base>/fonts/fonts.json` plus the shared IndexedDB font
-  // cache. A face registered only on the main thread (FontManager.cacheFont) is
-  // invisible to that worker, which then draws placeholder or empty glyphs.
-  // AcTrMTextRenderer.cacheFont parses the face on the main thread *and* stores
-  // the binary in the IndexedDB cache the worker reads, so one call serves both
-  // paths.
-  try {
-    const fontResponse = await fetch(
-      `${cadDataBaseUrl.value}${CAD_DATA_FONTS_DIR_NAME}/hztxt.shx`
-    )
-    if (!fontResponse.ok) {
-      throw new Error(`HTTP ${fontResponse.status} ${fontResponse.statusText}`)
-    }
-    const fontData = await fontResponse.arrayBuffer()
-    const status = await AcTrMTextRenderer.getInstance().cacheFont(
-      fontData,
-      'hztxt.shx',
-      ['hztxt'],
-      'gb2312'
-    )
-    if (status.status !== 'Success') {
-      console.warn(`Failed to register local hztxt.shx font: ${status.status}`)
-    }
-
-    // hztxt becomes the primary face so Chinese text does not depend on the
-    // SimSun CDN download. `FontManager` stays the owner of the default chain:
-    // the unified renderer reads it whenever it hands the chain to the worker
-    // pool, so the main thread and the workers keep the same fallback order.
-    FontManager.instance.setDefaultFonts(['hztxt'])
-  } catch (error) {
-    console.warn('Failed to load hztxt.shx font:', error)
-  }
+  // 1. Fetching `hztxt.shx` by hand — the engine loads it from the canonical
+  //    `<base>/fonts/` root (aliases and GBK encoding come from `fonts.json`),
+  //    so the manual fetch only duplicated the download.
+  // 2. Narrowing the default chain to `['hztxt']`. That was meant to keep
+  //    Chinese text off the SimSun *CDN* download, but SimSun ships in the
+  //    local cad-data mirror now, and `FontManager.findAndReplaceFont` warns
+  //    that a BIGFONT SHX as the primary substitute stretches Latin runs and
+  //    triggers false MTEXT wrapping. The engine preset (`modern`: simsun,
+  //    then hztxt) is restored.
 }
 
 const applyOpenOptions = (

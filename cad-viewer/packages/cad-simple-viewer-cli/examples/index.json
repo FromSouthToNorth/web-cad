@@ -1,5 +1,5 @@
 {
-  "fixtureDrawing": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/data/canteen.dwg",
+  "fixtureDrawing": "../cad-data/data/block-color.dxf",
   "defaultOutputDir": "tmp/examples-gallery",
   "examples": [
     {

@@ -51,7 +51,7 @@ if (!existsSync(join(cadViewerDir, 'package.json'))) {
 
 // ── 主流程 ──────────────────────────────────────────────────
 
-const totalSteps = fastMode ? 2 : 3
+const totalSteps = fastMode ? 3 : 4
 let stepIndex = 0
 let skippedCount = 0
 const startTime = Date.now()
@@ -72,7 +72,32 @@ if (!forceMode && existsSync(join(cadViewerDir, 'node_modules'))) {
   console.log('  ✓ 完成')
 }
 
-// Step 2: 构建全部包
+// Step 2: 同步本地 cad-data 资源(字体/样例图纸)
+stepIndex++
+step(stepIndex, totalSteps, '同步本地 cad-data 资源')
+const cadDataFontsJson = join(
+  cadViewerDir,
+  'packages',
+  'cad-data',
+  'fonts',
+  'fonts.json'
+)
+if (!forceMode && existsSync(cadDataFontsJson)) {
+  console.log('  ⏭ 已存在本地 cad-data 资源,跳过 (--force 可强制重同步)')
+  skippedCount++
+} else {
+  try {
+    run('node tools/sync-cad-data.mjs', cadViewerDir)
+    console.log('  ✓ 完成')
+  } catch (error) {
+    // 离线/内网环境不应阻塞初始化:viewer 会自动回退到 jsDelivr CDN。
+    console.warn(`  ⚠ 同步失败: ${error.message}`)
+    console.warn('     viewer 仍可运行,但字体会回退到 jsDelivr CDN;')
+    console.warn('     联网后执行 `cd cad-viewer && pnpm sync:cad-data` 即可离线化。')
+  }
+}
+
+// Step 3: 构建全部包
 stepIndex++
 step(stepIndex, totalSteps, '构建全部包')
 if (!forceMode && existsSync(join(cadViewerDir, 'packages', 'cad-viewer-example', 'dist'))) {
@@ -83,7 +108,7 @@ if (!forceMode && existsSync(join(cadViewerDir, 'packages', 'cad-viewer-example'
   console.log('  ✓ 完成')
 }
 
-// Step 3: 验证构建(--fast 跳过)
+// Step 4: 验证构建(--fast 跳过)
 if (!fastMode) {
   stepIndex++
   step(stepIndex, totalSteps, '验证构建产物')
@@ -91,6 +116,11 @@ if (!fastMode) {
     'packages/data-model/lib/index.js',
     'packages/data-model/dist/dxf-parser-worker.js',
     'packages/cad-viewer-example/dist/index.html'
+  ]
+  // 本地 cad-data 资源缺失只告警不阻塞:viewer 会回退到 jsDelivr CDN。
+  const expectedCadDataFiles = [
+    'packages/cad-data/fonts/fonts.json',
+    'packages/cad-viewer-example/dist/cad-data/fonts/fonts.json'
   ]
   let allOk = true
   for (const f of expectedFiles) {
@@ -100,6 +130,14 @@ if (!fastMode) {
     } else {
       console.log(`  ✗ ${f} (缺失)`)
       allOk = false
+    }
+  }
+  for (const f of expectedCadDataFiles) {
+    const full = join(cadViewerDir, f)
+    if (existsSync(full)) {
+      console.log(`  ✓ ${f}`)
+    } else {
+      console.log(`  ⚠ ${f} (缺失,字体会回退到 jsDelivr CDN)`)
     }
   }
   if (!allOk) {

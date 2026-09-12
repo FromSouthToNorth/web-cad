@@ -45,6 +45,12 @@ export interface FontOption {
   label: string
   /** Font backend type: SHX vector font or mesh (TrueType) font. */
   type: 'shx' | 'mesh'
+  /**
+   * True for a font name the user typed that is not in the drawing's font
+   * catalog. AutoCAD accepts any font name in the STYLE dialog, so the option
+   * is offered as a last resort and flagged for the UI to mark as custom.
+   */
+  custom?: boolean
 }
 
 /**
@@ -57,6 +63,31 @@ const BACKWARDS_FLAG = 2
 
 /** Bit mask for upside-down text in `textStyle.textGenerationFlag`. */
 const UPSIDE_DOWN_FLAG = 4
+
+/**
+ * Lowest obliquing angle AutoCAD accepts for a text style, in degrees.
+ *
+ * AutoLISP's `style` / the STYLE dialog reject anything outside ±85; a larger
+ * value would shear the glyphs past legibility.
+ */
+export const TEXT_STYLE_OBLIQUE_MIN = -85
+
+/** Highest obliquing angle AutoCAD accepts for a text style, in degrees. */
+export const TEXT_STYLE_OBLIQUE_MAX = 85
+
+/**
+ * Clamps an obliquing angle to AutoCAD's accepted range.
+ *
+ * @param value - Angle in degrees from the record or the dialog form.
+ * @returns The angle limited to [{@link TEXT_STYLE_OBLIQUE_MIN}, {@link TEXT_STYLE_OBLIQUE_MAX}].
+ */
+export function clampTextStyleObliqueAngle(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.min(
+    TEXT_STYLE_OBLIQUE_MAX,
+    Math.max(TEXT_STYLE_OBLIQUE_MIN, value)
+  )
+}
 
 /**
  * Returns an empty {@link TextStyleFormState} with safe defaults for the dialog form.
@@ -149,7 +180,7 @@ function getTextStyleRecord(
  * @param record - Source text style table record.
  * @returns Populated form state reflecting the record's current values.
  */
-function readTextStyleForm(
+export function readTextStyleForm(
   record: AcDbTextStyleTableRecord
 ): TextStyleFormState {
   const flag = record.textStyle.textGenerationFlag ?? 0
@@ -164,7 +195,9 @@ function readTextStyleForm(
     backwards: (flag & BACKWARDS_FLAG) !== 0,
     vertical: record.isVertical,
     widthFactor: Math.max(0.01, normalizeNumber(record.xScale) || 1),
-    obliqueAngle: normalizeNumber(record.obliquingAngle)
+    obliqueAngle: clampTextStyleObliqueAngle(
+      normalizeNumber(record.obliquingAngle)
+    )
   }
 }
 
@@ -198,14 +231,14 @@ function applyFormState(form: TextStyleFormState, next: TextStyleFormState) {
  * @param record - Target text style table record to mutate.
  * @param form - Form values to persist.
  */
-function applyTextStyleForm(
+export function applyTextStyleForm(
   record: AcDbTextStyleTableRecord,
   form: TextStyleFormState
 ) {
   record.fileName = form.font.trim()
   record.textSize = Math.max(0, form.textHeight)
   record.xScale = Math.max(0.01, form.widthFactor)
-  record.obliquingAngle = form.obliqueAngle
+  record.obliquingAngle = clampTextStyleObliqueAngle(form.obliqueAngle)
   record.isVertical = form.vertical
 
   let flag = 0
@@ -373,12 +406,36 @@ export function useTextStyle(editor: AcApDocManager = AcApDocManager.instance) {
   const fontInfos = ref<AcApFontInfo[]>([])
   /** Reactive edit form for the selected text style. */
   const form = reactive<TextStyleFormState>(createDefaultForm())
+  /**
+   * Font name typed into the primary-font search box.
+   *
+   * AutoCAD's STYLE dialog accepts any font name, not just the ones the drawing
+   * already references, so a typed name is offered as an extra (marked) option
+   * instead of being silently ignored.
+   */
+  const searchedFont = ref('')
 
   /** Returns the active document database, or `undefined` when no document is open. */
   const getDatabase = () => editor.curDocument?.database
 
   /** Primary font dropdown options derived from {@link fontInfos}. */
-  const fontOptions = computed(() => buildFontOptions(fontInfos.value))
+  const fontOptions = computed(() => {
+    const options = buildFontOptions(fontInfos.value)
+    const typed = searchedFont.value.trim()
+    if (!typed) return options
+    const lower = typed.toLowerCase()
+    if (options.some(option => option.value.toLowerCase() === lower)) {
+      return options
+    }
+    const custom: FontOption = {
+      value: typed,
+      label: typed,
+      type: /\.shx$/i.test(typed) ? 'shx' : 'mesh',
+      custom: true
+    }
+    // Keep the typed entry first: it is the one the user is reaching for.
+    return [custom, ...options]
+  })
   /** Big-font dropdown options (SHX only). */
   const bigFontOptions = computed(() => buildBigFontOptions(fontInfos.value))
 
@@ -468,6 +525,7 @@ export function useTextStyle(editor: AcApDocManager = AcApDocManager.instance) {
    * @param name - Text style name to load into the form.
    */
   function loadFormForSelection(name: string) {
+    searchedFont.value = ''
     const db = getDatabase()
     if (!db || !name) {
       applyFormState(form, createDefaultForm())
@@ -501,6 +559,7 @@ export function useTextStyle(editor: AcApDocManager = AcApDocManager.instance) {
    * @param font - New primary font name.
    */
   function handleFontChange(font: string) {
+    searchedFont.value = ''
     const info = findFontInfo(fontInfos.value, font)
     if (info?.type === 'mesh') {
       form.fontStyle = info.name[0] || font
@@ -525,6 +584,19 @@ export function useTextStyle(editor: AcApDocManager = AcApDocManager.instance) {
   function handleFontStyleChange(style: string) {
     form.font = style
     void AcApFontUtil.ensureDrawingFontLoaded(style)
+  }
+
+  /**
+   * Tracks the text typed into the primary-font search box.
+   *
+   * The typed value becomes a selectable "custom" option (see
+   * {@link fontOptions}) so a font the drawing does not reference yet can still
+   * be assigned, matching AutoCAD's free-text font name field.
+   *
+   * @param value - Current search text from the font dropdown.
+   */
+  function handleFontSearch(value: string) {
+    searchedFont.value = value
   }
 
   /**
@@ -669,6 +741,8 @@ export function useTextStyle(editor: AcApDocManager = AcApDocManager.instance) {
     handleFontChange,
     /** Handles mesh font face selection changes. */
     handleFontStyleChange,
+    /** Tracks free-text font names typed into the font dropdown. */
+    handleFontSearch,
     /** Saves form edits to the selected style record. */
     saveSelectedStyle,
     /** Sets the selected style as the drawing TEXTSTYLE. */

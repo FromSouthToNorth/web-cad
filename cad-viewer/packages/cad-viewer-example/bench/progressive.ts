@@ -11,7 +11,11 @@
  *   ?progressive=0  open with progressiveRendering disabled (baseline A/B)
  *   ?file=NAME      fixture served from /bench/fixtures/ (default progressive.dxf)
  */
-import { AcApDocManager, AcEdOpenMode } from '@hy/cad-simple-viewer'
+import {
+  AcApDocManager,
+  AcEdOpenMode,
+  resolveCadDataBaseUrl
+} from '@hy/cad-simple-viewer'
 
 const bar = document.getElementById('bar') as HTMLDivElement
 const paint = document.getElementById('paint') as HTMLDivElement
@@ -47,19 +51,33 @@ requestAnimationFrame(tick)
 // `points` grows as batched geometry is converted.
 setInterval(() => {
   const instance = AcApDocManager.instance as unknown as Record<string, unknown>
-  const view = (instance['curView'] ?? instance['currentView'] ?? null) as
-    | Record<string, unknown>
-    | null
+  const view = (instance['curView'] ??
+    instance['currentView'] ??
+    null) as Record<string, unknown> | null
   if (!view) {
     paint.textContent = 'view=null'
     return
   }
   const renderer = (view['renderer'] ?? view['_renderer']) as
-    | { info?: { render?: { calls?: number; lines?: number; points?: number; triangles?: number } } }
+    | {
+        info?: {
+          render?: {
+            calls?: number
+            lines?: number
+            points?: number
+            triangles?: number
+          }
+        }
+      }
     | {
         internalRenderer?: {
           info?: {
-            render?: { calls?: number; lines?: number; points?: number; triangles?: number }
+            render?: {
+              calls?: number
+              lines?: number
+              points?: number
+              triangles?: number
+            }
           }
         }
       }
@@ -80,7 +98,11 @@ AcApDocManager.createInstance({
   width: 1280,
   height: 720,
   autoResize: true,
-  useMainThreadDraw: true
+  useMainThreadDraw: true,
+  // Serve the local cad-data mirror when it has been synced; otherwise fall
+  // back to the jsDelivr CDN. `bench/*.html` lives one level below the app
+  // root, so the value must be resolved against `import.meta.env.BASE_URL`.
+  baseUrl: await resolveCadDataBaseUrl({ appBaseUrl: import.meta.env.BASE_URL })
 })
 
 const docManager = AcApDocManager.instance

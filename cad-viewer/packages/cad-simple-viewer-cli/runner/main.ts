@@ -7,7 +7,8 @@ import {
   AcEdOpenMode,
   AcTrView2d,
   DXF_PARSER_WORKER_FILE,
-  MTEXT_RENDERER_WORKER_FILE
+  MTEXT_RENDERER_WORKER_FILE,
+  resolveCadDataBaseUrl
 } from '@hy/cad-simple-viewer'
 import { registerLazySvgPlugin } from '@hy/cad-svg-plugin/register'
 import {
@@ -197,7 +198,11 @@ async function ensureViewer(): Promise<void> {
     width: 1280,
     height: 720,
     autoResize: false,
-    baseUrl: 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/',
+    // Local cad-data fonts are copied into `dist-runner/cad-data/fonts/` by
+    // scripts/copy-runner-assets.mjs, so they are served next to this page.
+    // resolveCadDataBaseUrl probes that path and falls back to the jsDelivr CDN
+    // when the mirror was never synced.
+    baseUrl: await resolveCadDataBaseUrl({ appBaseUrl: './' }),
     useMainThreadDraw: true,
     webworkerFileUrls: {
       dxfParser: dxfParserUrl,

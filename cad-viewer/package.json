@@ -36,6 +36,9 @@
     "sync:versions": "node tools/sync-versions.mjs",
     "sync:versions:check": "node tools/sync-versions.mjs --check",
     "serve": "nx run @hy/cad-viewer-examples:serve",
+    "sync:cad-data": "node tools/sync-cad-data.mjs",
+    "sync:cad-data:all": "node tools/sync-cad-data.mjs --all",
+    "sync:cad-data:check": "node tools/sync-cad-data.mjs --check",
     "test": "jest",
     "test:e2e": "pnpm --filter @hy/cad-viewer-example test:e2e"
   },

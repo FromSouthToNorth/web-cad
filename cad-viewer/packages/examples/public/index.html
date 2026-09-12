@@ -273,10 +273,12 @@
             <li><strong>Ultra-low memory footprint</strong> — far below desktop CAD viewers when opening the same drawing</li>
             <li><strong>Works offline</strong> — email, archive, or host on any static file server</li>
             <li><strong>Built-in tools</strong> — pan, zoom, zoom extents, layer toggle, and distance measurement</li>
-            <li><strong>Same pipeline as the live demos</strong> — generated with <code>cad-simple-viewer-cli</code> from the sample <code>canteen.dwg</code> drawing</li>
+            <li><strong>Same pipeline as the live demos</strong> — generated with <code>cad-simple-viewer-cli</code> from the locally mirrored <code>block-color.dxf</code> sample</li>
           </ul>
           <p class="note">
-            Memory consumption measured with the sample drawing
+            The offline demo is exported from <code>block-color.dxf</code>, the sample shipped by the
+            local cad-data mirror (<code>pnpm sync:cad-data</code>). The memory figures below were
+            measured on the larger upstream sample drawing
             <a href="https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/data/canteen.dwg"><code>canteen.dwg</code></a>:
           </p>
           <table class="compare-table" aria-label="Memory consumption comparison for canteen.dwg">
@@ -309,7 +311,7 @@
             View mode uses about 83% less memory than AutoCAD 2020 and 77% less than GstarCAD Viewer,
             while measure mode adds distance tools at 56 MB.
           </p>
-          <a class="button" href="./self-contained-html/canteen.html" target="_blank" rel="noopener">Open offline HTML demo</a>
+          <a class="button" href="./self-contained-html/block-color.html" target="_blank" rel="noopener">Open offline HTML demo</a>
           <a class="button secondary" href="https://github.com/mlightcad/cad-viewer/tree/main/packages/cad-simple-viewer-cli" target="_blank" rel="noopener">CLI docs</a>
           <p class="note">
             This file is produced automatically in CI on the <code>main</code> branch and published to GitHub Pages.

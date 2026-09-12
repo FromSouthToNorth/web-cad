@@ -55,7 +55,7 @@
     "@hy/cad-simple-viewer": "workspace:*",
     "@hy/cad-svg-plugin": "workspace:*",
     "@hy/data-model": "workspace:*",
-    "@mlightcad/mtext-renderer": "^0.12.4",
+    "@mlightcad/mtext-renderer": "workspace:*",
     "commander": "^12.1.0",
     "playwright": "^1.49.1"
   },

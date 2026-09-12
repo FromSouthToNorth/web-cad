@@ -42,7 +42,7 @@
     "@hy/cad-tunnel-plugin": "workspace:*",
     "@hy/cad-viewer": "workspace:*",
     "@hy/data-model": "workspace:*",
-    "@mlightcad/mtext-renderer": "^0.12.4",
+    "@mlightcad/mtext-renderer": "workspace:*",
     "@hy/three-renderer": "workspace:*",
     "ant-design-vue": "^4.2.6",
     "lodash-es": "4.17.21",

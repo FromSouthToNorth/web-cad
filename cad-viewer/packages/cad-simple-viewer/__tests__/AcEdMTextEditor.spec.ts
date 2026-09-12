@@ -28,6 +28,10 @@ class MockMTextInputBox {
     end: 1,
     isCollapsed: false
   }))
+  readonly selectAll = jest.fn()
+  readonly clearSelection = jest.fn()
+  readonly syncStateFromCursor = jest.fn()
+  readonly cursorLogic = { moveTo: jest.fn() }
   readonly toDocumentIndexFromLogicalIndex = jest.fn((index: number) => index)
   readonly isScriptOnlyStack = jest.fn(() => false)
   readonly document = {
@@ -63,6 +67,7 @@ interface FormatObservableInputBox {
   removeCurrentFormatChangeListener: (listener: () => void) => void
   focusEditor: () => void
   isStackSelectionActive: () => boolean
+  applyFormatToWholeText?: (format: { fontFamily?: string }) => void
 }
 
 jest.mock(
@@ -255,6 +260,77 @@ describe('AcEdMTextEditor', () => {
 
     inputBox.setCurrentFormat()
     expect(listener).toHaveBeenCalledTimes(3)
+    expect(
+      (inputBox as unknown as FormatObservableInputBox).applyFormatToWholeText
+    ).toBeUndefined()
+  })
+
+  it('restyles the whole MTEXT and puts the caret back where it was', async () => {
+    const view = createView()
+    const resultPromise = new AcEdMTextEditor().open({
+      view: view as never,
+      location: { x: 0, y: 0, z: 0 },
+      width: 10,
+      textHeight: 2
+    })
+
+    const inputBox = mockMTextInputBoxInstances[0]
+    const observable = inputBox as unknown as FormatObservableInputBox
+    // Caret in the middle of the text, nothing selected.
+    inputBox.getSelectionRange.mockReturnValue({
+      start: 2,
+      end: 2,
+      isCollapsed: true
+    })
+
+    observable.applyFormatToWholeText?.({ fontFamily: 'hztxt' })
+
+    // Selecting everything is what makes `setCurrentFormat` rewrite existing
+    // runs instead of only the insertion format.
+    expect(inputBox.selectAll).toHaveBeenCalledTimes(1)
+    // ... and the selection must not survive: the caret goes back to index 2.
+    expect(inputBox.clearSelection).toHaveBeenCalledTimes(1)
+    expect(inputBox.cursorLogic.moveTo).toHaveBeenCalledWith(2)
+    expect(inputBox.syncStateFromCursor).toHaveBeenCalledTimes(1)
+
+    inputBox.emit('close')
+    await resultPromise
+
+    // The bridge wraps `setCurrentFormat` while the session lives, so the
+    // original spy is only observable once the session released it.
+    expect(inputBox.setCurrentFormat).toHaveBeenCalledWith({
+      fontFamily: 'hztxt'
+    })
+  })
+
+  it('keeps a real selection instead of restyling the whole MTEXT', async () => {
+    const view = createView()
+    const resultPromise = new AcEdMTextEditor().open({
+      view: view as never,
+      location: { x: 0, y: 0, z: 0 },
+      width: 10,
+      textHeight: 2
+    })
+
+    const inputBox = mockMTextInputBoxInstances[0]
+    const observable = inputBox as unknown as FormatObservableInputBox
+    inputBox.getSelectionRange.mockReturnValue({
+      start: 0,
+      end: 2,
+      isCollapsed: false
+    })
+
+    observable.applyFormatToWholeText?.({ fontFamily: 'hztxt' })
+
+    expect(inputBox.selectAll).not.toHaveBeenCalled()
+    expect(inputBox.clearSelection).not.toHaveBeenCalled()
+
+    inputBox.emit('close')
+    await resultPromise
+
+    expect(inputBox.setCurrentFormat).toHaveBeenCalledWith({
+      fontFamily: 'hztxt'
+    })
   })
 
   it('marks the WebGL scene dirty when the editor content changes', async () => {
@@ -274,7 +350,7 @@ describe('AcEdMTextEditor', () => {
 
     inputBox.emit('change')
 
-    // MTEXT glyphs live in iew.internalScene, so only isDirty triggers the
+    // MTEXT glyphs live in view.internalScene, so only isDirty triggers the
     // WebGL pass. Setting isHtmlDirty alone left typed text invisible until a
     // pan or zoom happened to dirty the scene.
     expect(view.isDirty).toBe(true)

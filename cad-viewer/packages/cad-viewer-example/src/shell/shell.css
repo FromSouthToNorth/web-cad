@@ -1774,3 +1774,272 @@ button.antd-ribbon-panel-title--dropdown.is-disabled {
   opacity: 0;
   transform: translateY(4px);
 }
+
+/* ── MTEXT contextual tab (Text Editor) ──────────────────────────────
+ *
+ * The Format / Paragraph / Insert / Close panels carry live editor controls
+ * instead of ribbon buttons, so they render into each panel's leading slot.
+ * Sizing follows the property-bar controls already used in the ribbon. */
+
+.antd-mtext-format,
+.antd-mtext-paragraph,
+.antd-mtext-insert,
+.antd-mtext-close {
+  display: flex;
+  align-items: center;
+  gap: var(--ml-space-2);
+  flex-shrink: 0;
+}
+
+/* 2-column field grid: style/font, color/height, oblique/tracking, width. */
+.antd-mtext-format-fields {
+  display: grid;
+  grid-template-columns: repeat(2, 132px);
+  gap: 2px var(--ml-space-2);
+}
+
+.antd-mtext-field {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.antd-mtext-field-label {
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--ml-theme-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.antd-mtext-control {
+  width: 100%;
+  min-width: 0;
+}
+
+.antd-mtext-control.ant-select .ant-select-selector,
+.antd-mtext-control .ant-select-selector {
+  border-color: var(--ml-theme-border) !important;
+  background: var(--ml-theme-bg-base) !important;
+  color: var(--ml-theme-text-primary) !important;
+}
+
+.antd-mtext-control .ant-select-selection-item,
+.antd-mtext-control .ant-select-arrow {
+  color: var(--ml-theme-text-primary) !important;
+}
+
+.antd-mtext-format.is-disabled .antd-mtext-field,
+.antd-mtext-paragraph.is-disabled .antd-mtext-field,
+.antd-mtext-insert.is-disabled {
+  opacity: 0.5;
+}
+
+/* ── color dropdown ─────────────────────────────────────────────────── */
+
+.antd-mtext-color-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ml-space-1);
+  height: 24px;
+  padding: 0 var(--ml-space-2);
+  border: 1px solid var(--ml-theme-border);
+  border-radius: var(--ml-radius-sm);
+  background: var(--ml-theme-bg-base);
+  cursor: pointer;
+  transition:
+    border-color var(--ml-motion-fast),
+    background-color var(--ml-motion-fast);
+}
+
+.antd-mtext-color-trigger:hover:not(:disabled) {
+  border-color: var(--ml-theme-primary);
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-mtext-color-trigger:disabled {
+  cursor: default;
+}
+
+.antd-mtext-color-fill {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--ml-radius-xs);
+  background: var(--swatch-color, #888);
+  border: 1px solid var(--ml-theme-border);
+  flex-shrink: 0;
+}
+
+.antd-mtext-color-arrow {
+  font-size: 10px;
+  color: var(--ml-theme-text-muted);
+}
+
+.antd-mtext-color-menu,
+.antd-mtext-menu {
+  min-width: 140px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: var(--ml-space-1);
+  background: var(--ml-theme-bg-surface);
+  border: 1px solid var(--ml-theme-border);
+  border-radius: var(--ml-radius-md);
+  box-shadow: var(--ml-shadow-float);
+}
+
+.antd-mtext-menu--symbols {
+  min-width: 190px;
+}
+
+.antd-mtext-color-item,
+.antd-mtext-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--ml-space-2);
+  width: 100%;
+  padding: var(--ml-space-1) var(--ml-space-2);
+  border: none;
+  border-radius: var(--ml-radius-sm);
+  background: transparent;
+  color: var(--ml-theme-text-primary);
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--ml-motion-fast);
+}
+
+.antd-mtext-color-item:hover,
+.antd-mtext-menu-item:hover {
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-mtext-color-item.is-active,
+.antd-mtext-menu-item.is-active {
+  background: color-mix(in srgb, var(--ml-theme-primary) 12%, transparent);
+  font-weight: 600;
+}
+
+.antd-mtext-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--ml-radius-xs);
+  border: 1px solid var(--ml-theme-border);
+  flex-shrink: 0;
+}
+
+/* ── dropdown triggers and icon toggles ─────────────────────────────── */
+
+.antd-mtext-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--ml-space-1);
+  height: 24px;
+  max-width: 150px;
+  padding: 0 var(--ml-space-2);
+  border: 1px solid var(--ml-theme-border);
+  border-radius: var(--ml-radius-sm);
+  background: var(--ml-theme-bg-base);
+  color: var(--ml-theme-text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    border-color var(--ml-motion-fast),
+    background-color var(--ml-motion-fast);
+}
+
+.antd-mtext-dropdown-trigger:hover:not(:disabled) {
+  border-color: var(--ml-theme-primary);
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-mtext-dropdown-trigger:disabled {
+  cursor: default;
+}
+
+.antd-mtext-dropdown-trigger--icon {
+  max-width: none;
+  padding: 0 6px;
+}
+
+.antd-mtext-dropdown-trigger--large {
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  height: 54px;
+  min-width: 56px;
+  max-width: 84px;
+  font-size: 11px;
+  line-height: 1.1;
+}
+
+.antd-mtext-dropdown-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.antd-mtext-dropdown-arrow {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--ml-theme-text-muted);
+}
+
+.antd-mtext-icon {
+  display: inline-flex;
+  width: 1em;
+  height: 1em;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 3×3 character-effect grid. */
+.antd-mtext-toggles {
+  display: grid;
+  grid-template-columns: repeat(3, 24px);
+  grid-auto-rows: 24px;
+  gap: 2px;
+  align-content: center;
+}
+
+.antd-mtext-align-group {
+  display: flex;
+  gap: 2px;
+}
+
+.antd-mtext-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--ml-radius-sm);
+  background: transparent;
+  color: var(--ml-theme-text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    border-color var(--ml-motion-fast),
+    background-color var(--ml-motion-fast);
+}
+
+.antd-mtext-toggle:hover:not(:disabled) {
+  border-color: var(--ml-theme-border);
+  background: var(--ml-theme-bg-hover);
+}
+
+.antd-mtext-toggle.is-active {
+  border-color: var(--ml-theme-primary);
+  background: color-mix(in srgb, var(--ml-theme-primary) 16%, transparent);
+}
+
+.antd-mtext-toggle:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

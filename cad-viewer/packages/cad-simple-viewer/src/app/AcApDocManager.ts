@@ -9,8 +9,8 @@ import {
   AcGeBox2d,
   log
 } from '@hy/data-model'
-import { FontManager } from '@mlightcad/mtext-renderer'
 import { AcTrMTextRenderer } from '@hy/three-renderer'
+import { FontManager } from '@mlightcad/mtext-renderer'
 
 import {
   AcApAboutCmd,
@@ -108,6 +108,11 @@ import { acapWithSecondaryDatabase } from '../util/AcApSecondaryDatabase'
 import { AcTrView2d } from '../view'
 import type { AcTrLayout } from '../view/AcTrLayout'
 import { AcApBusyIndicator } from './AcApBusyIndicator'
+import {
+  CAD_DATA_CDN_BASE_URL,
+  CAD_DATA_FONTS_DIR_NAME,
+  resolveDocumentBaseUrl
+} from './AcApCadDataAssets'
 import { acapBindCommandServices } from './AcApCommandServices'
 import { AcApContext } from './AcApContext'
 import { AcApDocument } from './AcApDocument'
@@ -135,7 +140,16 @@ import {
   DEFAULT_NEW_DRAWING_TEMPLATE_NAME
 } from './defaultNewDrawingTemplate'
 
-const DEFAULT_BASE_URL = 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data'
+/**
+ * Fallback asset repository root, used only when the host passes no
+ * {@link AcApDocManagerOptions.baseUrl}.
+ *
+ * First-party hosts (the example app, the CLI runner, the bench pages) resolve
+ * a local mirror through `resolveCadDataBaseUrl()` instead, so the viewer works
+ * fully offline. This constant stays as the documented default for third-party
+ * hosts that never configure `baseUrl`.
+ */
+const DEFAULT_BASE_URL = CAD_DATA_CDN_BASE_URL
 
 /**
  * Drops the MTEXT renderer's per-document glyph state (pending promotion counts
@@ -273,7 +287,17 @@ export interface AcApDocManagerOptions {
    */
   autoResize?: boolean
   /**
-   * Base URL to load resources (such as fonts annd drawing templates) needed
+   * Base URL to load resources (such as fonts annd drawing templates) needed.
+   *
+   * Treated as the asset repository root: the viewer requests
+   * `<baseUrl>/fonts/fonts.json` and `<baseUrl>/fonts/<file>`, and normalises
+   * the value to an absolute URL so document-relative values work from the
+   * MTEXT Web Worker too.
+   *
+   * When omitted, {@link CAD_DATA_CDN_BASE_URL} is used. First-party hosts
+   * should prefer `resolveCadDataBaseUrl()` from `AcApCadDataAssets`, which
+   * returns the local `packages/cad-data` mirror when it has been synced
+   * (`pnpm sync:cad-data`) and falls back to that same CDN URL otherwise.
    */
   baseUrl?: string
   /**
@@ -291,6 +315,23 @@ export interface AcApDocManagerOptions {
    * fonts load on demand through {@link FontManager.lazyFontLoading}.
    */
   preloadDefaultFonts?: boolean
+
+  /**
+   * When `true`, preload the fonts each drawing actually references, right
+   * after it opens.
+   *
+   * The names come from the STYLE table ({@link AcDbTextStyleTable.fonts}:
+   * every style's primary and big font). Loading them through
+   * {@link loadFonts} starts the fetch while the view is still framing and
+   * also writes the shared IndexedDB font cache, so the MTEXT worker pool
+   * reuses the same bytes instead of fetching them at first draw.
+   *
+   * Default is `false`: text entities load faces on demand through
+   * {@link FontManager.lazyFontLoading}. Enable it in hosts that prefer a
+   * ready first paint over saving bandwidth on drawings whose fonts are never
+   * drawn.
+   */
+  preloadDrawingFonts?: boolean
   /**
    * URLs for Web Worker JavaScript bundles used by the CAD viewer.
    */
@@ -441,6 +482,12 @@ export class AcApDocManager {
   private static _instance?: AcApDocManager
   /** Worker URLs configured at initialization */
   private _webworkerFileUrls?: AcApWebworkerFiles
+  /**
+   * Whether each opened drawing's STYLE-table fonts are preloaded.
+   *
+   * See {@link AcApDocManagerOptions.preloadDrawingFonts}.
+   */
+  private _preloadDrawingFonts = false
   /** Cached worker readiness; null until checked, then true or false */
   private _workersReady: boolean | null = null
   /** In-flight worker readiness check */
@@ -579,6 +626,7 @@ export class AcApDocManager {
     if (options.preloadDefaultFonts) {
       void this.loadDefaultFonts()
     }
+    this._preloadDrawingFonts = options.preloadDrawingFonts === true
     this._webworkerFileUrls = options.webworkerFileUrls
     this.registerWorkers(options.webworkerFileUrls)
     if (options.checkWorkersOnInit) {
@@ -938,6 +986,24 @@ export class AcApDocManager {
   }
 
   /**
+   * Starts loading every font the given database references.
+   *
+   * Names come from {@link AcDbTextStyleTable.fonts} (primary font plus big
+   * font of every named style). No-op unless
+   * {@link AcApDocManagerOptions.preloadDrawingFonts} is enabled; the load is
+   * fire-and-forget so opening a drawing never blocks on it — the renderer
+   * already waits for fonts before its first draw.
+   *
+   * @param db - Database of the document that just opened.
+   */
+  private preloadDrawingFonts(db: AcDbDatabase): void {
+    if (!this._preloadDrawingFonts) return
+    const fonts = db.tables.textStyleTable.fonts
+    if (fonts.length === 0) return
+    void this.loadFonts(fonts)
+  }
+
+  /**
    * Opens a CAD document from a URL.
    *
    * This method loads a document from the specified URL and replaces the current document.
@@ -1207,12 +1273,21 @@ export class AcApDocManager {
 
   /**
    * Resolves the font repository URL from {@link baseUrl}.
+   *
+   * The result is always an absolute URL: MTEXT glyphs are laid out in a module
+   * Web Worker, where a relative URL would resolve against the worker script
+   * (`dist/assets/…`) instead of the host page. Hosts may therefore pass a
+   * document-relative value such as `'./cad-data/'` and still get a URL the
+   * worker can fetch.
    */
   private resolveFontsBaseUrl(): string {
     const base = this._baseUrl.endsWith('/')
       ? this._baseUrl
       : `${this._baseUrl}/`
-    return `${base}fonts/`
+    return new URL(
+      `${base}${CAD_DATA_FONTS_DIR_NAME}/`,
+      resolveDocumentBaseUrl()
+    ).href
   }
 
   /**
@@ -1774,6 +1849,12 @@ export class AcApDocManager {
       this.setActiveLayout()
       ;(this.curView as AcTrView2d).syncDisplaySysVars(doc.database)
       const db = doc.database
+
+      // Start the drawing's font fetches while the view is still being framed.
+      // The first draw waits for these faces either way
+      // (`awaitFontsBeforeDraw`), so starting here overlaps the download with
+      // layout/zoom work instead of paying for it after the geometry is ready.
+      this.preloadDrawingFonts(db)
 
       // View framing at document open time (see `openViewMode`):
       //

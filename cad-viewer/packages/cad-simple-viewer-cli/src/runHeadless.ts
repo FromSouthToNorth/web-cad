@@ -198,9 +198,7 @@ async function loadDrawingInput(inputPath: string): Promise<{
   const absoluteInput = path.resolve(inputPath)
   const ext = path.extname(absoluteInput).toLowerCase()
   if (ext !== '.dxf') {
-    throw new Error(
-      `Unsupported file type "${ext}". Only .dxf is supported.`
-    )
+    throw new Error(`Unsupported file type "${ext}". Only .dxf is supported.`)
   }
   if (!existsSync(absoluteInput)) {
     throw new Error(`Input drawing not found: ${absoluteInput}`)
@@ -252,7 +250,14 @@ function startStaticServer(root: string): Promise<{
           '.js': 'text/javascript; charset=utf-8',
           '.css': 'text/css; charset=utf-8',
           '.json': 'application/json',
-          '.wasm': 'application/wasm'
+          '.wasm': 'application/wasm',
+          // Local cad-data mirror under `<dist-runner>/cad-data/fonts/`.
+          // AutoCAD SHX has no registered media type; the renderer only needs
+          // the bytes, so octet-stream is correct and explicit here.
+          '.shx': 'application/octet-stream',
+          '.woff': 'font/woff',
+          '.woff2': 'font/woff2',
+          '.ttf': 'font/ttf'
         }
         res.setHeader('Content-Type', types[ext] ?? 'application/octet-stream')
         void readFile(filePath).then(body => {

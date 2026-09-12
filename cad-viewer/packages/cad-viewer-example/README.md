@@ -9,7 +9,7 @@ A Vue 3 demo that embeds [`@hy/cad-viewer`](https://github.com/mlightcad/cad-vie
 - **Open modes** — Read, Review, or Write access when opening a drawing
 - **Internationalization** — Built-in English/Chinese UI via `vue-i18n`; host app can merge custom messages
 - **Custom commands** — Example `quit` / `exit` commands return to the upload screen
-- **CDN assets** — Fonts and templates loaded from [cad-data](https://github.com/mlightcad/cad-data)
+- **Local-first assets** — Fonts come from the local `cad-data` mirror (`pnpm sync:cad-data`, copied into `dist/cad-data/`) and fall back to the jsDelivr CDN, so Chinese text renders offline
 - **Export plugins** — HTML (`chtml` dialog, `-chtml` command-line) and PDF (`cpdf`) via lazy-loaded workspace plugins
 - **E2E tests** — Playwright smoke and rendering checks against local fixtures
 
@@ -90,19 +90,35 @@ Integration patterns useful when embedding `@hy/cad-viewer` in your own Vue app:
 | Custom commands | `AcApDocManager.instance.commandManager.addCommand(…)` — see `quit` / `exit` in `src/commands/` |
 | Upload flow | Reactive store + conditional render: upload screen until `selectedFile` is set |
 | Workers & runtime | `vite-plugin-static-copy` copies MTEXT worker, LibreDWG worker/wasm, and `viewer-runtime.iife.js` |
+| Fonts (`baseUrl`) | `resolveCadDataBaseUrl({ appBaseUrl: import.meta.env.BASE_URL })` probes the local `cad-data` mirror and falls back to the jsDelivr CDN; the same `vite-plugin-static-copy` config copies `packages/cad-data/fonts/` into `dist/cad-data/fonts/` |
 | Export plugins | Declared in `package.json`; `@hy/cad-viewer` registers them via `@hy/cad-*-plugin/register` on bootstrap |
 
 Minimal host wiring in `App.vue`:
 
 ```vue
-<AntdCadViewer
-  locale="en"
-  :local-file="store.selectedFile"
-  :mode="selectedMode"
-  :base-url="'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/'"
-  @create="initialize"
-/>
+<script setup lang="ts">
+import { resolveCadDataBaseUrl } from '@hy/cad-simple-viewer'
+
+// Absolute URL: the MTEXT worker resolves relative URLs against its own script.
+const cadDataBaseUrl = ref('https://cdn.jsdelivr.net/gh/mlightcad/cad-data')
+void resolveCadDataBaseUrl({ appBaseUrl: import.meta.env.BASE_URL }).then(url => {
+  cadDataBaseUrl.value = url
+})
+</script>
+
+<template>
+  <AntdCadViewer
+    locale="en"
+    :local-file="store.selectedFile"
+    :mode="selectedMode"
+    :base-url="cadDataBaseUrl"
+    @create="initialize"
+  />
+</template>
 ```
+
+Run `pnpm sync:cad-data` from the repo root first to serve fonts from the local
+mirror; without it the `baseUrl` above stays on the CDN.
 
 ## Project structure
 

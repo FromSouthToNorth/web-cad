@@ -144,12 +144,14 @@ async function readModelSpaceEntities(page: Page): Promise<MTextEntity[]> {
 
 /**
  * Points the Standard text style at `hztxt`, the SHX font `App.vue` caches
- * from `public/fonts/hztxt.shx` when the viewer is created.
+ * from the local cad-data mirror (`packages/cad-data/fonts/hztxt.shx`, served
+ * as `dist/cad-data/fonts/hztxt.shx`) when the viewer is created.
  *
  * The stock drawing names a Windows-only system font (SimKai), so without
  * this step the glyph shapes come from whatever CJK font the host happens to
- * have - or from nothing at all on a bare CI image. `hztxt.shx` ships inside
- * this repository, so the SHX path is offline and identical everywhere.
+ * have - or from nothing at all on a bare CI image. Run `pnpm sync:cad-data`
+ * first: the mirror is not tracked by git, and with it present the SHX path is
+ * offline and identical everywhere.
  *
  * Returns whether the style really ended up on the offline font.
  */
@@ -267,9 +269,13 @@ async function pickBoxCorners(page: Page, p1: { x: number; y: number }) {
 }
 
 /**
- * Types the Chinese string into the open editor and closes it. Closing the
- * editor is what commits the entity: `AcApMTextCmd` appends it to model space
- * once the editor promise resolves.
+ * Types the Chinese string into the open editor and commits it.
+ *
+ * Committing goes through the contextual ribbon's Close button, not Escape:
+ * since the MTEXT editor rework Escape is the *cancel* path (the editor
+ * resolves `null` and nothing is written), while Close resolves a result that
+ * `AcApMTextCmd` appends to model space. In Write mode the input box's own
+ * toolbar is hidden, so that button is the user-visible commit affordance.
  */
 async function typeAndCommitChineseMText(page: Page) {
   // Typing goes through the editor's hidden IME textarea. `insertText` is
@@ -277,7 +283,7 @@ async function typeAndCommitChineseMText(page: Page) {
   // for characters that are not on the physical keyboard layout.
   await page.keyboard.insertText(CHINESE_TEXT)
   await page.waitForTimeout(600)
-  await page.keyboard.press('Escape')
+  await page.locator('.antd-mtext-close button').first().click()
 
   await expect
     .poll(
@@ -598,4 +604,84 @@ test('the text region is blank before the command and inked after it', async ({
     verdict.inkPixels,
     `no ink appeared after committing the text: ${JSON.stringify(verdict)}`
   ).toBeGreaterThan(100)
+})
+
+/**
+ * Regression for the missing font/format panel (audit P2-7).
+ *
+ * In Write mode the shell disables the input box's built-in toolbar, so the
+ * only formatting UI is the contextual "Text Editor" ribbon tab. That tab was
+ * lost when the old Element Plus shell was deleted, which left the application
+ * with no font, height or color control at all. This asserts the tab appears
+ * with the editor, carries the format controls, and goes away again.
+ */
+test('opening the MTEXT editor reveals the Text Editor contextual ribbon tab', async ({
+  page
+}) => {
+  await preparePage(page)
+  const { p1 } = await textRegionOf(page)
+  await clickTextRibbonButton(page)
+  await pickBoxCorners(page, p1)
+
+  const tab = page.locator('#antd-ribbon-tab-mtextEditorContext')
+  await expect(tab).toBeVisible({ timeout: 15000 })
+  await expect(tab).toHaveAttribute('aria-selected', 'true')
+
+  // Format panel: seven labelled fields (style, font, color, height, oblique
+  // angle, tracking, width factor) and the 3x3 character-effect grid.
+  const formatPanel = page.locator('.antd-mtext-format')
+  await expect(formatPanel).toBeVisible()
+  await expect(formatPanel.locator('.antd-mtext-field')).toHaveCount(7)
+  await expect(formatPanel.locator('.antd-mtext-toggle')).toHaveCount(9)
+  await expect(formatPanel.locator('.antd-mtext-toggle').first()).toBeEnabled()
+
+  // Every label must resolve to a real translation. A wrong i18n namespace
+  // (`ribbon.mtext.*` instead of the `main.`-prefixed one the catalog is
+  // registered under) renders the raw key instead, which is how this panel
+  // first shipped — the element counts above stay green in that state.
+  await expect(formatPanel.locator('.antd-mtext-field-label')).toHaveText([
+    'Text Style',
+    'Font',
+    'Color',
+    'Height',
+    'Oblique angle',
+    'Tracking',
+    'Width factor'
+  ])
+
+  // Paragraph, Insert and Close panels share the same tab.
+  const paragraphPanel = page.locator('.antd-mtext-paragraph')
+  const insertPanel = page.locator('.antd-mtext-insert')
+  const closePanel = page.locator('.antd-mtext-close')
+  await expect(paragraphPanel).toBeVisible()
+  await expect(insertPanel).toBeVisible()
+  await expect(closePanel).toBeVisible()
+  await expect(paragraphPanel).toContainText('Justify')
+  await expect(paragraphPanel).toContainText('Line Spacing')
+  await expect(insertPanel).toContainText('Symbol')
+  await expect(closePanel).toContainText('Close')
+
+  for (const panel of [formatPanel, paragraphPanel, insertPanel, closePanel]) {
+    await expect(panel).not.toContainText('ribbon.mtext')
+  }
+
+  // Tooltips live in `title` attributes, which the text assertions above do
+  // not cover.
+  await expect(
+    formatPanel.locator('.antd-mtext-toggle').first()
+  ).toHaveAttribute('title', 'Toggle bold formatting.')
+  await expect(
+    paragraphPanel.locator('.antd-mtext-dropdown-trigger').first()
+  ).toHaveAttribute('title', 'Set the multiline text attachment point.')
+
+  // Toggling bold must reach the editor without closing it.
+  const boldToggle = formatPanel.locator('.antd-mtext-toggle').first()
+  await boldToggle.click()
+  await expect(boldToggle).toHaveAttribute('aria-pressed', 'true')
+
+  await page.keyboard.press('Escape')
+  await expect(page.locator('#antd-ribbon-tab-mtextEditorContext')).toHaveCount(
+    0,
+    { timeout: 15000 }
+  )
 })

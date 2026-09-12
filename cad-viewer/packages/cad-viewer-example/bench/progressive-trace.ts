@@ -11,7 +11,11 @@
  * Result is published on globalThis.__openTrace (array of stamped entries)
  * and globalThis.__mlViewDebug (the view, after open returns).
  */
-import { AcApDocManager, AcEdOpenMode } from '@hy/cad-simple-viewer'
+import {
+  AcApDocManager,
+  AcEdOpenMode,
+  resolveCadDataBaseUrl
+} from '@hy/cad-simple-viewer'
 
 const bar = document.getElementById('bar') as HTMLDivElement
 const params = new URLSearchParams(location.search)
@@ -35,7 +39,11 @@ AcApDocManager.createInstance({
   width: 1280,
   height: 720,
   autoResize: true,
-  useMainThreadDraw: true
+  useMainThreadDraw: true,
+  // Serve the local cad-data mirror when it has been synced; otherwise fall
+  // back to the jsDelivr CDN. `bench/*.html` lives one level below the app
+  // root, so the value must be resolved against `import.meta.env.BASE_URL`.
+  baseUrl: await resolveCadDataBaseUrl({ appBaseUrl: import.meta.env.BASE_URL })
 })
 
 const docManager = AcApDocManager.instance

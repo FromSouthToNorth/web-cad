@@ -37,6 +37,14 @@ jobs:
         working-directory: cad-viewer
         run: pnpm install --frozen-lockfile
 
+      # Local cad-data mirror (fonts + sample drawings). Not tracked by git —
+      # upstream ships third-party fonts with no license grant — so the
+      # deployment must sync its own copy; without it the built app would fall
+      # back to the jsDelivr CDN.
+      - name: Sync local cad-data assets
+        working-directory: cad-viewer
+        run: pnpm sync:cad-data
+
       - name: Build
         working-directory: cad-viewer
         run: pnpm build

@@ -108,7 +108,7 @@ function defaultInputFor(example) {
     return (
       catalog.fixtureDrawingRelative ||
       catalog.fixtureDrawing ||
-      'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/data/canteen.dwg'
+      '../cad-data/data/block-color.dxf'
     )
   }
   return ''
@@ -130,8 +130,7 @@ function toPackageRelative(filePath) {
   if (/^https?:\/\//i.test(normalized)) {
     return normalized
   }
-  const isAbs =
-    /^[A-Za-z]:\//.test(normalized) || normalized.startsWith('/')
+  const isAbs = /^[A-Za-z]:\//.test(normalized) || normalized.startsWith('/')
   if (!isAbs) {
     return normalized.replace(/\/+/g, '/')
   }
@@ -227,8 +226,7 @@ function syncParamFields(example) {
         'Folder of .dwg / .dxf files. Relative to the package root, or absolute.'
     } else {
       inputLabelEl.textContent = 'Input drawing'
-      inputPathEl.placeholder =
-        'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/data/canteen.dwg'
+      inputPathEl.placeholder = '../cad-data/data/block-color.dxf'
       inputHintEl.textContent =
         'Local path (relative to the package root or absolute) or an http(s) URL ending in .dxf / .dwg.'
     }

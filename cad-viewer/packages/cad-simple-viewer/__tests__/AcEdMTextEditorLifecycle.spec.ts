@@ -978,6 +978,7 @@ interface FakeMTextFields {
   height: number
   lineSpacingFactor: number
   attachmentPoint: number
+  styleName?: string
 }
 
 /** Entity shape `editMTextEntity` needs, including its write-transaction host. */
@@ -986,6 +987,11 @@ interface FakeMTextEntity extends FakeMTextFields {
     isUndoRecording(): boolean
     runDatabaseEdit(label: string, fn: () => void): void
     openEntityForWrite(entity: FakeMTextEntity): FakeMTextEntity
+    /** `$TEXTSTYLE` of the fake drawing. */
+    textstyle: string
+    tables: {
+      textStyleTable: { resolveAt(name?: string): { name: string } | undefined }
+    }
   }
 }
 
@@ -1033,13 +1039,22 @@ function createEditedMText(): FakeMTextEntity {
   const { AcDbMText: MockAcDbMText } = jest.requireMock('@hy/data-model') as {
     AcDbMText: new () => FakeMTextFields
   }
+  // Mirrors the real table's "name of the current style" lookup, so a test can
+  // simulate the Format panel repointing `$TEXTSTYLE` mid-edit.
+  const database: FakeMTextEntity['database'] = {
+    // The real helper only needs the entity transaction to run the callback.
+    isUndoRecording: () => false,
+    runDatabaseEdit: (_label: string, fn: () => void) => fn(),
+    openEntityForWrite: (entity: FakeMTextEntity) => entity,
+    textstyle: 'Standard',
+    tables: {
+      textStyleTable: {
+        resolveAt: () => ({ name: database.textstyle })
+      }
+    }
+  }
   return Object.assign(new MockAcDbMText(), {
-    database: {
-      // The real helper only needs the entity transaction to run the callback.
-      isUndoRecording: () => false,
-      runDatabaseEdit: (_label: string, fn: () => void) => fn(),
-      openEntityForWrite: (entity: FakeMTextEntity) => entity
-    },
+    database,
     location: { x: 1, y: 2, z: 0 },
     contents: 'before edit',
     width: 30,
@@ -1172,5 +1187,47 @@ describe('AcTrView2d MTEXT edit restore path', () => {
     expect(target.updateEntity).not.toHaveBeenCalled()
     expect(mtext.contents).toBe('after edit')
     expect(mockShowMessage).not.toHaveBeenCalled()
+  })
+
+  it('adopts the text style the user picked while the edit was open', async () => {
+    const target = createMTextEditTarget()
+    const mtext = createEditedMText()
+    openSpy.mockImplementation(async () => {
+      // Exactly what the contextual Format panel does mid-edit.
+      mtext.database.textstyle = 'HZ'
+      return createEditorResult()
+    })
+
+    await runEditMTextEntity(target, mtext)
+
+    // The in-place path has to reach the same conclusion as the create command:
+    // an explicit style choice while editing is an object-level property.
+    expect(mtext.styleName).toBe('HZ')
+  })
+
+  it('keeps the entity style when the edit did not change it', async () => {
+    const target = createMTextEditTarget()
+    const mtext = createEditedMText()
+    // The entity uses a style that is not the drawing's current one.
+    mtext.styleName = 'HZ'
+    openSpy.mockResolvedValue(createEditorResult())
+
+    await runEditMTextEntity(target, mtext)
+
+    // Fixing a typo must not silently rewrite DXF group 7 to `$TEXTSTYLE`.
+    expect(mtext.styleName).toBe('HZ')
+  })
+
+  it('rolls the text style back when the edit is cancelled', async () => {
+    const target = createMTextEditTarget()
+    const mtext = createEditedMText()
+    openSpy.mockImplementation(async () => {
+      mtext.database.textstyle = 'HZ'
+      return null
+    })
+
+    await runEditMTextEntity(target, mtext)
+
+    expect(mtext.database.textstyle).toBe('Standard')
   })
 })

@@ -33,9 +33,9 @@ cad-simple-viewer-cli \
 # Global install: same, with your own script
 cad-simple-viewer-cli -i ./drawing.dxf -s ./export-png.scr -o ./out
 
-# Open from URL
+# Open from URL (only .dxf endpoints are supported)
 cad-simple-viewer-cli \
-  -i https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/data/canteen.dwg \
+  -i https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/data/block-color.dxf \
   -s ./export-png.scr \
   -o ./out
 

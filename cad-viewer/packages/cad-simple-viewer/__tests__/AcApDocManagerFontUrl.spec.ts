@@ -265,12 +265,40 @@ describe('AcApDocManager font URL configuration', () => {
 
     const manager = AcApDocManager.createInstance({
       baseUrl
-    })
+    }) as AcApDocManager
 
     await manager?.loadFonts(['simkai'])
 
     expect(mockFontLoaderInstances[0].baseUrl).toBe(`${baseUrl}fonts/`)
     expect(mockFontLoaderInstances[0].load).toHaveBeenCalledWith(['simkai'])
+  })
+
+  it('normalises a document-relative base URL to an absolute fonts URL', () => {
+    // The MTEXT glyphs are laid out in a module Web Worker, where a relative
+    // URL would resolve against the worker script instead of the host page.
+    AcApDocManager.createInstance({ baseUrl: './cad-data/' })
+
+    expect(mockFontLoaderInstances[0].baseUrl).toBe(
+      'http://localhost/cad-data/fonts/'
+    )
+  })
+
+  it('normalises a root-relative base URL without a trailing slash', () => {
+    AcApDocManager.createInstance({ baseUrl: '/assets/cad-data' })
+
+    expect(mockFontLoaderInstances[0].baseUrl).toBe(
+      'http://localhost/assets/cad-data/fonts/'
+    )
+  })
+
+  it('keeps an absolute base URL unchanged apart from the fonts suffix', () => {
+    AcApDocManager.createInstance({
+      baseUrl: 'https://cdn.example.com/cad-data'
+    })
+
+    expect(mockFontLoaderInstances[0].baseUrl).toBe(
+      'https://cdn.example.com/cad-data/fonts/'
+    )
   })
 
   it('syncs the default fonts preset to the mtext renderer after worker init', () => {
@@ -290,5 +318,59 @@ describe('AcApDocManager font URL configuration', () => {
     expect(mockSetRenderMode.mock.invocationCallOrder[0]).toBeLessThan(
       mockInitialize.mock.invocationCallOrder[0]
     )
+  })
+})
+
+describe('AcApDocManager drawing font preload', () => {
+  /** Database stub carrying just the STYLE-table surface the preload reads. */
+  function databaseWithFonts(fonts: string[]) {
+    return { tables: { textStyleTable: { fonts } } }
+  }
+
+  /** Calls the private preload hook the open path uses. */
+  function runPreload(manager: AcApDocManager, fonts: string[]) {
+    const internals = manager as unknown as {
+      preloadDrawingFonts: (db: unknown) => void
+    }
+    internals.preloadDrawingFonts(databaseWithFonts(fonts))
+  }
+
+  beforeEach(() => {
+    ;(AcApDocManager as unknown as { _instance: unknown })._instance = undefined
+    mockFontLoaderInstances.length = 0
+  })
+
+  it('preloads the fonts the drawing references when enabled', async () => {
+    const manager = AcApDocManager.createInstance({
+      preloadDrawingFonts: true
+    }) as AcApDocManager
+
+    runPreload(manager, ['simkai', 'hztxt'])
+    await Promise.resolve()
+
+    expect(mockFontLoaderInstances[0].load).toHaveBeenCalledWith([
+      'simkai',
+      'hztxt'
+    ])
+  })
+
+  it('stays off by default so untouched drawings pay no bandwidth', async () => {
+    const manager = AcApDocManager.createInstance({}) as AcApDocManager
+
+    runPreload(manager, ['simkai'])
+    await Promise.resolve()
+
+    expect(mockFontLoaderInstances[0].load).not.toHaveBeenCalled()
+  })
+
+  it('does not touch the loader when the drawing declares no style font', async () => {
+    const manager = AcApDocManager.createInstance({
+      preloadDrawingFonts: true
+    }) as AcApDocManager
+
+    runPreload(manager, [])
+    await Promise.resolve()
+
+    expect(mockFontLoaderInstances[0].load).not.toHaveBeenCalled()
   })
 })

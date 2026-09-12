@@ -52,6 +52,12 @@ export interface AcEdMTextEditorCurrentFormatObservable {
     listener: AcEdMTextEditorCurrentFormatChangeListener
   ) => void
 }
+
+/** Character format payload accepted by `MTextInputBox.setCurrentFormat`. */
+export type AcEdMTextEditorCharFormat = Parameters<
+  MTextInputBox['setCurrentFormat']
+>[0]
+
 export type AcEdMTextEditorActiveInputBox = MTextInputBox &
   Partial<AcEdMTextEditorCurrentFormatObservable> & {
     /**
@@ -63,6 +69,15 @@ export type AcEdMTextEditorActiveInputBox = MTextInputBox &
     focusEditor?: () => void
     /** Returns whether the current selection is a non-script stacked fraction. */
     isStackSelectionActive?: () => boolean
+    /**
+     * Applies a character format to every run of the edited MTEXT, keeping the
+     * caret where the user left it.
+     *
+     * `setCurrentFormat` only affects the insertion format while nothing is
+     * selected, which is the wrong scope for an object-level property such as
+     * the text style; a host that sets one uses this instead.
+     */
+    applyFormatToWholeText?: (format: AcEdMTextEditorCharFormat) => void
   }
 export type AcEdMTextEditorActiveInputBoxChangeListener = (
   inputBox: AcEdMTextEditorActiveInputBox | null
@@ -107,6 +122,7 @@ type MTextInputBoxRuntime = MTextInputBox &
   Partial<AcEdMTextEditorCurrentFormatObservable> & {
     focusEditor?: () => void
     isStackSelectionActive?: () => boolean
+    applyFormatToWholeText?: (format: AcEdMTextEditorCharFormat) => void
     [mtextFormatBridgeKey]?: MTextInputBoxFormatBridge
   }
 interface MTextInputBoxRuntimeStackNode {
@@ -580,6 +596,59 @@ export class AcEdMTextEditor {
       const hasDenominator = (stackNode.denominator ?? '').trim().length > 0
       return hasNumerator === hasDenominator
     }
+    /**
+     * Applies a character format to every run of the edited MTEXT.
+     *
+     * The library's `setCurrentFormat` only rewrites the document while a
+     * selection exists; with a collapsed caret it merely becomes the insertion
+     * format, i.e. it affects characters typed *afterwards*. An object-level
+     * property such as the text style must not behave that way, so the whole
+     * text is selected first.
+     *
+     * `selectAll` also parks the caret at the end of the MTEXT, so the caret
+     * index captured before the call is restored afterwards: a user who placed
+     * the caret mid-string and then restyled the text has to keep typing where
+     * they were. The selection itself is always dropped, so the next keystroke
+     * appends instead of replacing the MTEXT.
+     *
+     * @param format - Character format applied to every run.
+     */
+    runtime.applyFormatToWholeText = (format: AcEdMTextEditorCharFormat) => {
+      const selection = runtime.getSelectionRange()
+      if (!selection.isCollapsed) {
+        runtime.setCurrentFormat(format)
+        return
+      }
+
+      const runtimeMethods = runtime as unknown as Record<
+        string,
+        ((...args: unknown[]) => unknown) | undefined
+      >
+      const selectAll = runtimeMethods.selectAll
+      const clearSelection = runtimeMethods.clearSelection
+      if (
+        typeof selectAll !== 'function' ||
+        typeof clearSelection !== 'function'
+      ) {
+        runtime.setCurrentFormat(format)
+        return
+      }
+
+      const caretIndex = selection.end
+      selectAll.call(runtime)
+      try {
+        runtime.setCurrentFormat(format)
+      } finally {
+        clearSelection.call(runtime)
+        const cursorLogic = runtimeMethods.cursorLogic as
+          | { moveTo?: (index: number) => void }
+          | undefined
+        if (typeof cursorLogic?.moveTo === 'function') {
+          cursorLogic.moveTo(caretIndex)
+          runtimeMethods.syncStateFromCursor?.call(runtime)
+        }
+      }
+    }
     runtime[mtextFormatBridgeKey] = {
       addCurrentFormatChangeListener: runtime.addCurrentFormatChangeListener,
       removeCurrentFormatChangeListener:
@@ -593,6 +662,7 @@ export class AcEdMTextEditor {
         delete runtime.removeCurrentFormatChangeListener
         delete runtime.focusEditor
         delete runtime.isStackSelectionActive
+        delete runtime.applyFormatToWholeText
         delete runtime[mtextFormatBridgeKey]
       }
     }
@@ -966,9 +1036,8 @@ export class AcEdMTextEditor {
           tagName === 'SELECT' ||
           element.isContentEditable === true
         if (!isNativeEditable) return false
-        const imeInput = (
-          session.inputBox as unknown as { imeInput?: unknown }
-        ).imeInput
+        const imeInput = (session.inputBox as unknown as { imeInput?: unknown })
+          .imeInput
         return target !== imeInput && target !== view.canvas
       }
 

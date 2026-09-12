@@ -5,7 +5,7 @@ import {
   type AcEdMTextEditorActiveInputBox
 } from '@hy/cad-simple-viewer'
 import { AcCmColor, type AcDbDatabase } from '@hy/data-model'
-import { computed, reactive, readonly } from 'vue'
+import { computed, reactive, readonly, ref } from 'vue'
 
 import {
   DEFAULT_MTEXT_FORMAT,
@@ -42,6 +42,8 @@ interface MTextEditorRuntime {
   getCurrentFormat: () => MTextCharFormat
   /** Applies a partial character format to the selection. */
   setCurrentFormat: (format: Partial<MTextCharFormat>) => void
+  /** Applies a character format to every run, keeping the caret in place. */
+  applyFormatToWholeText?: (format: Partial<MTextCharFormat>) => void
   /** Two-letter attachment code reported by the editor. */
   getAttachmentPointCode?: () => string
   /** Current paragraph line spacing factor. */
@@ -114,11 +116,42 @@ function activeInputBox(): MTextEditorRuntime | null {
 }
 
 /**
+ * Revision of the drawing-level state the panels read.
+ *
+ * `AcApDocManager.instance` and the database behind it are plain singletons,
+ * not reactive objects. Without a dependency, a `computed` that only reads them
+ * is evaluated once and cached for the lifetime of the module, so a text style
+ * added later - or selected while the editor is open - would never reach the
+ * panel, and a second drawing opened in the same session would keep showing the
+ * first one's style/height/font lists. Every write the ribbon makes to that
+ * state bumps this counter, and so does binding a fresh editor session.
+ */
+const drawingRevision = ref(0)
+
+/**
+ * Marks the current reactive scope as depending on the drawing-level state.
+ *
+ * Called from {@link currentDatabase}, which every drawing-level `computed`
+ * goes through, so the dependency is picked up without repeating it.
+ *
+ * @returns The current revision.
+ */
+function trackDrawingRevision(): number {
+  return drawingRevision.value
+}
+
+/** Invalidates every drawing-level `computed` after a document/style change. */
+function touchDrawingRevision(): void {
+  drawingRevision.value += 1
+}
+
+/**
  * Returns the active drawing database, if a document is open.
  *
  * @returns Current database or `undefined`.
  */
 function currentDatabase(): AcDbDatabase | undefined {
+  trackDrawingRevision()
   try {
     return AcApDocManager.instance?.curDocument?.database
   } catch {
@@ -189,6 +222,9 @@ function bindEditor(editor: MTextEditorRuntime | null): void {
     boundEditor.on('close', syncFromEditor)
     boundEditor.addCurrentFormatChangeListener?.(syncFromEditor)
   }
+  // A new session may belong to another drawing; the style/font/height lists
+  // are rebuilt against it.
+  touchDrawingRevision()
   syncFromEditor()
 }
 
@@ -200,14 +236,29 @@ function onActiveInputBoxChanged(
 }
 
 /**
- * Applies a partial character format to the active editor selection.
+ * Applies a partial character format to the edited MTEXT.
+ *
+ * Scope follows the selection: with text selected the format applies to that
+ * selection, and with a collapsed caret it applies to the whole MTEXT - the
+ * editor bridge decides (see `MTextEditorRuntime.applyFormatToWholeText`).
+ *
+ * Whole-object scope for a collapsed caret is deliberate. The alternative the
+ * library offers is the *insertion* format, which only affects characters typed
+ * afterwards: a user who is used to "type the text, then style it" (the flow the
+ * ribbon is built around) would watch every control do nothing to the text on
+ * screen. The caret is restored by the bridge, so continuing to type still
+ * appends where the user left off.
  *
  * @param format - Format fields to change.
  */
 function applyFormat(format: Partial<MTextRibbonFormat>): void {
   const editor = activeInputBox()
   if (!editor) return
-  editor.setCurrentFormat(format)
+  if (Object.keys(format).length > 0 && editor.applyFormatToWholeText) {
+    editor.applyFormatToWholeText(format)
+  } else {
+    editor.setCurrentFormat(format)
+  }
   editor.focusEditor?.()
   syncFromEditor()
 }
@@ -333,29 +384,50 @@ function insertText(text: string): void {
 /**
  * Applies a drawing text style to the MTEXT editor and to `$TEXTSTYLE`.
  *
- * The style's font and usable height are mirrored into the current character
- * format so the editor reflects the choice immediately.
+ * The style's font is mirrored into the character format so the text on screen
+ * changes with the choice, and the name is written to `$TEXTSTYLE` - the value
+ * the MTEXT command re-reads when it commits the entity, so the text being
+ * edited is created with the style the user picked rather than the one that was
+ * current when the command started.
+ *
+ * The style's fixed height (DXF group 40 of the STYLE record) is deliberately
+ * *not* mirrored, and neither is its `lastHeight` ("last height used", group
+ * 42): the entity's own height is the authority for a text that already exists
+ * (fix contract D1/D4.1 - a run must not carry a `\H` that fights DXF group 40),
+ * and `lastHeight` is bookkeeping rather than an authored height.
+ *
+ * A text style is an object-level property, so with no selection the whole
+ * MTEXT is restyled (see {@link applyFormat}): applying it to the insertion
+ * format only would leave the text already on screen untouched, which reads as
+ * "the control did nothing".
  *
  * @param styleName - Text style name selected in the ribbon.
  */
 function applyTextStyle(styleName: string): void {
+  const editor = activeInputBox()
   const db = currentDatabase()
-  if (!db || !styleName) return
+  if (!editor || !db || !styleName) return
   const record = db.tables.textStyleTable.getAt(styleName)
   if (!record) return
 
   db.textstyle = styleName
+  // The Format panel's Text Style field is bound to `$TEXTSTYLE`; without this
+  // the dropdown would keep showing the previous style after the user picked a
+  // new one.
+  touchDrawingRevision()
+
   const textStyle = record.textStyle
   const next: Partial<MTextRibbonFormat> = {}
   if (textStyle.font) {
     void AcApFontUtil.ensureDrawingFontLoaded(textStyle.font)
     next.fontFamily = textStyle.font
   }
-  const height =
-    normalizeMTextNumber(textStyle.fixedTextHeight) ??
-    normalizeMTextNumber(textStyle.lastHeight)
-  if (height != null && height > 0) next.fontSize = height
-  applyFormat(next)
+  if (Object.keys(next).length > 0) {
+    applyFormat(next)
+    return
+  }
+  editor.focusEditor?.()
+  syncFromEditor()
 }
 
 /**

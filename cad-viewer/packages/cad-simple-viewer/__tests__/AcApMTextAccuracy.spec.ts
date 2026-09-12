@@ -185,9 +185,14 @@ jest.mock('../src/view', () => ({
   AcTrView2d: class AcTrView2d {}
 }))
 
-import { AcDbDatabase, AcDbMText } from '@hy/data-model'
+import {
+  AcDbDatabase,
+  AcDbMText,
+  AcDbTextStyleTableRecord
+} from '@hy/data-model'
 
 import { AcApMTextCmd } from '../src/command/draw/AcApMTextCmd'
+import { AcEdMTextEditor } from '../src/editor'
 
 /** Scale (world units per screen pixel) used by the fake view. */
 let mockWorldUnitsPerPixel = 0.5
@@ -306,8 +311,13 @@ function requestedTextHeight(): number {
  *
  * The append spy wraps the real model space of the working database, so the
  * command exercises the real append path while the test observes each entity.
+ *
+ * @param options - Optional append spy and a hook that runs while the editor is
+ * still open, i.e. after the command took its pre-open style snapshot.
  */
-async function runCommand(options: { appendEntity?: jest.Mock } = {}) {
+async function runCommand(
+  options: { appendEntity?: jest.Mock; beforeClose?: () => void } = {}
+) {
   const modelSpace = mockWorkingDatabase.tables.blockTable.modelSpace
   const realAppend = modelSpace.appendEntity
   const appendEntity =
@@ -326,12 +336,41 @@ async function runCommand(options: { appendEntity?: jest.Mock } = {}) {
     // has constructed its input box.
     await Promise.resolve()
     await Promise.resolve()
+    options.beforeClose?.()
     lastInputBox().emit('close')
     await commandPromise
   } finally {
     modelSpace.appendEntity = realAppend
   }
   return { appendEntity, inputBox: lastInputBox() }
+}
+
+/**
+ * Runs the command and cancels the open editor the way Escape does.
+ *
+ * @param options - Optional hook that runs while the editor is still open.
+ */
+async function runCancelledCommand(
+  options: { beforeCancel?: () => void } = {}
+) {
+  const modelSpace = mockWorkingDatabase.tables.blockTable.modelSpace
+  const realAppend = modelSpace.appendEntity
+  const appendEntity = jest.fn()
+  modelSpace.appendEntity = appendEntity
+  try {
+    const commandPromise = new AcApMTextCmd().execute(
+      createContext(appendEntity) as never
+    )
+    await Promise.resolve()
+    await Promise.resolve()
+    options.beforeCancel?.()
+    // Escape / a document switch settle the session as cancelled.
+    AcEdMTextEditor.closeActive()
+    await commandPromise
+  } finally {
+    modelSpace.appendEntity = realAppend
+  }
+  return { appendEntity }
 }
 
 /**
@@ -434,6 +473,69 @@ describe('AcApMTextCmd attribute accuracy (B1 literals layer)', () => {
     const entity = appendEntity.mock.calls[0][0]
     expect(entity.height).toBeCloseTo(60, 10)
     expect(entity.styleName).toBe('Standard')
+  })
+
+  it('writes the text style the user switched to while the editor was open', async () => {
+    createWorkingDatabase(0, 0.2)
+    givenReverseBoxPick()
+    givenEditorAnswer({ contents: 'Hello' })
+    const database = mockWorkingDatabase as unknown as AcDbDatabase
+
+    const { appendEntity } = await runCommand({
+      beforeClose: () => {
+        // What the contextual Format panel's Text Style control does once the
+        // editor is already open: register the style, then make it current.
+        database.tables.textStyleTable.add(
+          new AcDbTextStyleTableRecord({ name: 'HZ', font: 'hztxt' })
+        )
+        database.textstyle = 'HZ'
+      }
+    })
+
+    // The style was resolved before the editor opened (for the height
+    // contract), but the entity must carry the style the user picked last:
+    // changing `$TEXTSTYLE` mid-edit is an explicit choice, not background
+    // drift.
+    expect(appendEntity.mock.calls[0][0].styleName).toBe('HZ')
+  })
+
+  it('rolls the mid-edit text style back when the edit is cancelled', async () => {
+    const database = createWorkingDatabase(0, 0.2)
+    database.tables.textStyleTable.add(
+      new AcDbTextStyleTableRecord({ name: 'HZ', font: 'hztxt' })
+    )
+    givenReverseBoxPick()
+    givenEditorAnswer({ contents: 'Hello' })
+
+    const { appendEntity } = await runCancelledCommand({
+      beforeCancel: () => {
+        // What the Format panel does while the editor is open; Escape must not
+        // leave it behind (fix contract: cancel means zero database writes).
+        database.textstyle = 'HZ'
+      }
+    })
+
+    expect(appendEntity).not.toHaveBeenCalled()
+    expect(database.textstyle).toBe('Standard')
+  })
+
+  it('rolls the mid-edit text style back when the commit is rejected', async () => {
+    const database = createWorkingDatabase(0, 0.2)
+    database.tables.textStyleTable.add(
+      new AcDbTextStyleTableRecord({ name: 'HZ', font: 'hztxt' })
+    )
+    givenReverseBoxPick()
+    // Whitespace-only contents: the edit is submitted but nothing is created.
+    givenEditorAnswer({ contents: '   ' })
+
+    const { appendEntity } = await runCommand({
+      beforeClose: () => {
+        database.textstyle = 'HZ'
+      }
+    })
+
+    expect(appendEntity).not.toHaveBeenCalled()
+    expect(database.textstyle).toBe('Standard')
   })
 
   it('uses a fixed style height when the pick has no height', async () => {

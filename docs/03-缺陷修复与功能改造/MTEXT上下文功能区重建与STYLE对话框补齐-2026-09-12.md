@@ -229,3 +229,61 @@ npx playwright test e2e/tests/mtext-draw-accuracy.spec.ts
   （实测新建编辑器显示 `1.00 / 1.00 / 0`），面板 `0.1–5` / `0.1–10` 的范围与之一致；
   截图里出现的 `100.0` 来自**文档侧读回值**（`CharFormat` 直接取
   `style.widthFactor.value`，非相对量为百分制），旧实现同样是这套范围，本次未改动。
+
+## 8. 后续修正：文字样式控件的行为（2026-09-12 晚）
+
+本文件 §3.2 把「文字样式」控件描述为「把样式字体与可用字高镜像进字符格式」，§6 的单测/E2E
+清单也不含样式应用。后续按用户工作流程
+**「注释 → 文字 → 框选 → 输入中文 → 修改设置文字样式 → 关闭提交」** 复核后发现该控件实际不可用
+（下拉不回显、提交后实体仍是旧样式、无选区时对已输入文字无效），已修复并补齐测试。
+
+**口径以新文档为准**：`docs/03-缺陷修复与功能改造/MTEXT文字样式工作流程验证与整改-2026-09-12.md`。
+其中与本文件冲突的三点：
+
+1. 文字样式现在是**对象级**属性：无选区时整段重排（不是只影响「之后输入的字」）；
+2. **不再镜像样式字高**（`fixedTextHeight` / `lastHeight`）——字高权威来源是 `mtext.height`（契约 D1/D4.1）；
+3. `$TEXTSTYLE` 在**取消（Esc）时回滚**，提交时才固化到实体的 DXF 7。
+
+本文 §6.1 的「17 条 / 517 条」等计数为当时快照，现有变化见新文档 §5。
+
+## 9. 后续修正：字体预加载（2026-09-12）
+
+**症状**：打开图纸后字体才开始下载，首屏文字要等；`simkai` 虽然已在本地镜像里，但没人预加载它。
+
+**原因是上一轮的刻意设计**：`AcApFontLoader` 的类注释写明「Drawing open no longer collects or awaits
+fonts in data-model. Text entities load faces on demand via `FontManager.lazyFontLoading`」，
+即打开图纸时刻意不收集字体；而 `awaitFontsBeforeDraw = true` 会让**首帧一直等**这些按需加载，
+于是表现为「首屏卡住/文字晚出」。相关现状：
+
+- 引擎的 `preloadDefaultFonts` 选项存在但**默认关闭**，示例应用没开；
+- 示例应用只手动预热了 `hztxt.shx` 一个字体，并把默认链**收窄成 `['hztxt']`**；
+- data-model 的 `AcDbTextStyleTable.fonts`（图纸引用的正文字体 + 大字体）**全仓无人调用**，是死 API。
+
+**改动（两者都做）**：
+
+1. **启动预热 fallback 链**：示例壳传 `preloadDefaultFonts: true`（引擎既有能力）→
+   `loadDefaultFonts()` 按 `getFontsToLoad()`（`modern` = simsun + hztxt，外加符号字体）加载。
+2. **打开图纸按 STYLE 表预加载**：新增 `AcApDocManagerOptions.preloadDrawingFonts`（默认 `false`，
+   示例壳传 `true`）与私有 `preloadDrawingFonts(db)`，在 `onAfterOpenDocument` 里
+   `db.tables.textStyleTable.fonts → loadFonts(...)`。放在视图取景之前触发，让下载与
+   排版/缩放重叠，而不是等几何就绪后才开始；加载是 fire-and-forget，不阻塞打开。
+3. **`App.vue` 里两段代码删掉**（附理由注释）：手动 fetch `hztxt.shx`（引擎已从规范的
+   `<base>/fonts/` 加载，别名与 GBK 编码来自 `fonts.json`，手动那份只是重复下载）；
+   把默认链收窄成 `['hztxt']`（当初是为避开 SimSun 的 **CDN** 下载，现在 SimSun 就在本地镜像里，
+   而 `findAndReplaceFont` 明确警告 BIGFONT SHX 作首选会拉宽西文、误触发换行）。
+
+**为什么能同时服务 worker**：`FontManager.loadFont()` 的常规路径在 fetch+parse 后会
+`FontCacheManager.instance.set(...)` 写 IndexedDB —— 也就是说把加载提前，worker 池会命中同一份缓存，
+不必只依赖 `AcTrMTextRenderer.cacheFont` 那条通道（此前只有 hztxt 走了它）。
+
+**验证**：
+
+- 单测：`AcApDocManagerFontUrl.spec.ts` 新增 3 条（启用时按图纸预加载、默认关闭不加载、
+  无字体声明时不碰加载器），9/9 通过。
+- E2E：`local-font-catalog.spec.ts` 新增「opening a drawing preloads the fonts its STYLE table
+  references」——用**不含任何文字实体**的夹具打开后仍出现 `/fonts/simkai.woff` 请求
+  （按需加载绝无可能触发），同时断言启动阶段已请求 fallback 链。
+- 回归（有头真浏览器，7 条全过）：中文 MTEXT 提交与**像素出墨/笔画连通分量**判据、命令前后
+  墨点对照、上下文功能区、主线程/worker 两条渲染链路 —— 证明删掉手动 hztxt 缓存与恢复
+  `modern` 预设没有让中文渲染退化。
+

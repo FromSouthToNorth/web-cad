@@ -17,6 +17,16 @@ type ActiveInputBoxListener = (
 const activeInputBoxListeners = new Set<ActiveInputBoxListener>()
 let activeInputBox: unknown = null
 
+/**
+ * Mutable stand-in for the `AcApDocManager` singleton.
+ *
+ * The ribbon reads the drawing database through it (text style table,
+ * `$TEXTSTYLE`), so the style tests below need to install a document at
+ * runtime. The name is `mock`-prefixed because `jest.mock`'s factory is hoisted
+ * above this declaration.
+ */
+const mockDocManager: { instance: unknown } = { instance: undefined }
+
 jest.mock('@hy/cad-simple-viewer', () => ({
   // Numeric mirror of the renderer's paragraph alignment enum. The real enum
   // lives in the package's UMD bundle, which Jest cannot execute, and the
@@ -29,7 +39,7 @@ jest.mock('@hy/cad-simple-viewer', () => ({
     JUSTIFIED: 4,
     DISTRIBUTED: 5
   },
-  AcApDocManager: { instance: undefined },
+  AcApDocManager: mockDocManager,
   AcApFontUtil: {
     ensureDrawingFontLoaded: jest.fn(async () => undefined)
   },
@@ -89,6 +99,8 @@ class FakeMTextEditor {
   // ── commands ───────────────────────────────────────────────────────
   setCurrentFormat = (format: unknown) =>
     this.record('setCurrentFormat', [format])
+  applyFormatToWholeText = (format: unknown) =>
+    this.record('applyFormatToWholeText', [format])
   setAttachmentPoint = (code: string) =>
     this.record('setAttachmentPoint', [code])
   setParagraphAlignment = (alignment: string) =>
@@ -224,6 +236,7 @@ describe('useMTextRibbon', () => {
     mountedRibbons.length = 0
     activeInputBox = null
     activeInputBoxListeners.clear()
+    mockDocManager.instance = undefined
   })
 
   it('reports the editor format and attachment point once an editor opens', () => {
@@ -237,13 +250,16 @@ describe('useMTextRibbon', () => {
     expect(ribbon.state.format.attachmentPoint).toBe('MC')
   })
 
-  it('toggles a character effect on the selection', () => {
+  it('toggles a character effect on the whole MTEXT when nothing is selected', () => {
     const editor = new FakeMTextEditor()
     const ribbon = openEditor(editor)
 
     ribbon.setFormatToggle('bold', true)
 
-    expect(editor.argsFor('setCurrentFormat')).toEqual([[{ bold: true }]])
+    // The editor bridge scopes it: selection -> selection, collapsed caret ->
+    // the whole object, so the text already on screen actually changes.
+    expect(editor.argsFor('applyFormatToWholeText')).toEqual([[{ bold: true }]])
+    expect(editor.argsFor('setCurrentFormat')).toEqual([])
   })
 
   it('prefers the in-place script toggle and falls back to the insertion format', () => {
@@ -298,10 +314,26 @@ describe('useMTextRibbon', () => {
 
     ribbon.setFontHeight(0)
     ribbon.setFontHeight(Number.NaN)
+    expect(editor.argsFor('applyFormatToWholeText')).toEqual([])
     expect(editor.argsFor('setCurrentFormat')).toEqual([])
 
     ribbon.setFontHeight(4)
-    expect(editor.argsFor('setCurrentFormat')).toEqual([[{ fontSize: 4 }]])
+    expect(editor.argsFor('applyFormatToWholeText')).toEqual([
+      [{ fontSize: 4 }]
+    ])
+  })
+
+  it('applies font and height to the whole MTEXT, not just to later typing', () => {
+    const editor = new FakeMTextEditor()
+    const ribbon = openEditor(editor)
+
+    ribbon.setFontFamily(' hztxt ')
+    ribbon.setFontHeight(7)
+
+    expect(editor.argsFor('applyFormatToWholeText')).toEqual([
+      [{ fontFamily: 'hztxt' }],
+      [{ fontSize: 7 }]
+    ])
   })
 
   it('reports an inactive state and defaults once the editor closes', () => {
@@ -361,5 +393,145 @@ describe('useMTextRibbon', () => {
     ribbon.disposeMTextRibbon()
     expect(editor.listenerCount('change')).toBe(0)
     expect(activeInputBoxListeners.size).toBe(0)
+  })
+
+  // ── drawing text styles ────────────────────────────────────────────
+
+  /**
+   * Installs a fake drawing whose STYLE table holds `records`.
+   *
+   * @param records - Style records the ribbon can read back.
+   * @param current - `$TEXTSTYLE` the drawing starts on.
+   */
+  function installTextStyles(
+    records: Array<{
+      name: string
+      font?: string
+      fixedHeight?: number
+      lastHeight?: number
+    }>,
+    current = records[0]?.name ?? ''
+  ) {
+    const byName = new Map(
+      records.map(record => [
+        record.name,
+        {
+          name: record.name,
+          isShapeFile: false,
+          textStyle: {
+            name: record.name,
+            font: record.font ?? '',
+            fixedTextHeight: record.fixedHeight ?? 0,
+            lastHeight: record.lastHeight ?? 0
+          }
+        }
+      ])
+    )
+    mockDocManager.instance = {
+      curDocument: {
+        database: {
+          textstyle: current,
+          tables: {
+            textStyleTable: {
+              getAt: (name: string) => byName.get(name),
+              newIterator: () => byName.values()
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /** `$TEXTSTYLE` of the installed fake drawing. */
+  function currentTextStyle(): string {
+    return (
+      mockDocManager.instance as {
+        curDocument: { database: { textstyle: string } }
+      }
+    ).curDocument.database.textstyle
+  }
+
+  it('applies the chosen style to the whole MTEXT when nothing is selected', () => {
+    installTextStyles([
+      { name: 'Standard', font: 'simplex', lastHeight: 0.2 },
+      { name: 'HZ', font: 'hztxt', fixedHeight: 5 }
+    ])
+    const editor = new FakeMTextEditor()
+    const ribbon = openEditor(editor)
+
+    ribbon.applyTextStyle('HZ')
+
+    // `$TEXTSTYLE` is what the MTEXT command re-reads when it commits.
+    expect(currentTextStyle()).toBe('HZ')
+    // A collapsed caret must not limit the style to characters typed later, so
+    // the editor's whole-text helper is used rather than `setCurrentFormat`.
+    expect(editor.argsFor('applyFormatToWholeText')).toEqual([
+      [{ fontFamily: 'hztxt' }]
+    ])
+    expect(editor.argsFor('setCurrentFormat')).toEqual([])
+  })
+
+  it('never mirrors a style height into the character format', () => {
+    installTextStyles([
+      { name: 'Standard', font: 'simplex', lastHeight: 0.2 },
+      { name: 'HZ', font: 'hztxt', fixedHeight: 5, lastHeight: 7 }
+    ])
+    const editor = new FakeMTextEditor()
+    const ribbon = openEditor(editor)
+
+    ribbon.applyTextStyle('Standard')
+    ribbon.applyTextStyle('HZ')
+
+    // Only the font may change: DXF group 40 stays authoritative for the text
+    // that already exists (fix contract D1/D4.1), so neither the style's fixed
+    // height (5) nor its last-used height (7) may become a `\H` run override.
+    expect(editor.argsFor('applyFormatToWholeText')).toEqual([
+      [{ fontFamily: 'simplex' }],
+      [{ fontFamily: 'hztxt' }]
+    ])
+  })
+
+  it('falls back to the insertion format without a whole-text helper', () => {
+    installTextStyles([{ name: 'HZ', font: 'hztxt' }])
+    const editor = new FakeMTextEditor()
+    // An editor from before the whole-text bridge landed.
+    delete (editor as { applyFormatToWholeText?: unknown })
+      .applyFormatToWholeText
+    const ribbon = openEditor(editor)
+
+    ribbon.applyTextStyle('HZ')
+
+    expect(editor.argsFor('setCurrentFormat')).toEqual([
+      [{ fontFamily: 'hztxt' }]
+    ])
+  })
+
+  it('refreshes the Text Style field once the drawing style changes', () => {
+    installTextStyles([
+      { name: 'Standard', font: 'simplex' },
+      { name: 'HZ', font: 'hztxt' }
+    ])
+    const editor = new FakeMTextEditor()
+    const ribbon = openEditor(editor)
+
+    expect(ribbon.currentTextStyle.value).toBe('Standard')
+    ribbon.applyTextStyle('HZ')
+    expect(ribbon.currentTextStyle.value).toBe('HZ')
+  })
+
+  it('rebuilds the style list when a new drawing session binds', () => {
+    installTextStyles([{ name: 'Standard', font: 'simplex' }])
+    const first = openEditor(new FakeMTextEditor())
+    expect(first.textStyleNames.value).toEqual(['Standard'])
+    // A second viewer session (another drawing) tears the first one down.
+    first.disposeMTextRibbon()
+
+    installTextStyles([
+      { name: 'Standard', font: 'simplex' },
+      { name: 'HZ', font: 'hztxt' }
+    ])
+    const ribbon = openEditor(new FakeMTextEditor())
+
+    expect(ribbon.textStyleNames.value).toEqual(['Standard', 'HZ'])
   })
 })

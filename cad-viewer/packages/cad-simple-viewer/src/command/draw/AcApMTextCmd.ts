@@ -81,6 +81,23 @@ export class AcApMTextCmd extends AcEdCommand {
     const database = context.doc.database
     const width = Math.abs(box.max.x - box.min.x)
     const view = context.view as AcTrView2d
+    // `$TEXTSTYLE` as it was before the editor opened. The inline editor's
+    // Format panel repoints it while the user is typing, so a cancelled or
+    // rejected edit has to put it back: without a new entity there is nothing
+    // for that choice to apply to and the drawing must be exactly as it was
+    // (fix contract D2/D5 - cancel means zero database writes).
+    const textStyleBeforeEdit = database.textstyle
+    /**
+     * Discards an edit that produced no entity, including the text style the
+     * Format panel may have switched in the meantime.
+     */
+    const discardEdit = () => {
+      database.textstyle = textStyleBeforeEdit
+    }
+    // Snapshot used for the height contract below only. The style written to
+    // the entity is resolved again after the editor closes, because the
+    // contextual Format panel can switch the drawing's current text style
+    // while the user is typing (see `committedStyleName`).
     const textStyleRecord = database.tables.textStyleTable.resolveAt(
       database.textstyle
     )
@@ -119,15 +136,22 @@ export class AcApMTextCmd extends AcEdCommand {
       heightSource: resolvedHeight.source,
       toolbarFontFamilies
     })
-    if (!result) return
+    if (!result) {
+      // Cancel (Esc, a document switch, a second `open()`): the style the
+      // Format panel picked is rolled back with the rest of the edit.
+      discardEdit()
+      return
+    }
 
     const contents = result.contents.trim()
     if (!contents) {
+      discardEdit()
       this.showMessage(AcApI18n.t('jig.mtext.emptyContents'), 'warning')
       return
     }
     const height = Number(result.height)
     if (!(height > 0)) {
+      discardEdit()
       this.showMessage(AcApI18n.t('jig.mtext.invalidHeight'), 'warning')
       return
     }
@@ -152,12 +176,18 @@ export class AcApMTextCmd extends AcEdCommand {
       Number.isInteger(attachment) && attachment >= 1 && attachment <= 9
         ? (attachment as AcGiMTextAttachmentPoint)
         : AcGiMTextAttachmentPoint.TopLeft
-    // Persist the style and layer that were in effect at creation time so the
-    // entity neither drifts when the current style changes nor leaves DXF group
-    // 7/8 to be decided at save time.
-    const styleName = textStyleRecord?.name
-    if (styleName) {
-      mtext.styleName = styleName
+    // The style is re-resolved *after* the editor closed rather than taken from
+    // the pre-open snapshot, because the inline editor's Format panel makes the
+    // style the user picked the drawing's current one (`$TEXTSTYLE`) while the
+    // editor is open: fix contract D5 freezes the entity's DXF group 7 to the
+    // current text style record at commit time, so the text that was just
+    // styled is created with the style the user chose. The pre-open snapshot
+    // still supplies the height above and is the defensive fallback here.
+    const committedStyleName =
+      database.tables.textStyleTable.resolveAt(database.textstyle)?.name ??
+      textStyleRecord?.name
+    if (committedStyleName) {
+      mtext.styleName = committedStyleName
     }
     mtext.layer = database.clayer ?? '0'
 

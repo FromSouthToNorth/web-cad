@@ -1569,6 +1569,18 @@ export class AcTrView2d extends AcEdBaseView {
 
   private async editMTextEntity(mtext: AcDbMText) {
     const db = mtext.database
+    // `$TEXTSTYLE` as it was before the editor opened. The contextual Format
+    // panel repoints it while the user types, so the entity only adopts it when
+    // the edit is really committed, and a cancel puts it back (fix contract
+    // D2/D5: cancel means zero database writes).
+    const textStyleBeforeEdit = db.textstyle
+    /**
+     * Discards an edit that produced no entity, including the text style the
+     * Format panel may have switched in the meantime.
+     */
+    const discardEdit = () => {
+      db.textstyle = textStyleBeforeEdit
+    }
 
     // Hide the in-scene MTEXT while the inline editor renders its own copy;
     // otherwise both draw at once (double text) when the user double-clicks.
@@ -1590,11 +1602,15 @@ export class AcTrView2d extends AcEdBaseView {
         // out with a substitute width for degenerate (0 = no wrap) entities.
         committedWidth: mtext.width
       })
-      if (!result) return
+      if (!result) {
+        discardEdit()
+        return
+      }
 
       // Same rule as the create command: an empty editor payload must not
       // overwrite the entity (it would leave an invisible empty MTEXT).
       if (!result.contents.trim()) {
+        discardEdit()
         AcApDocManager.instance.editor.showMessage(
           AcApI18n.t('jig.mtext.emptyContents'),
           'warning'
@@ -1611,6 +1627,17 @@ export class AcTrView2d extends AcEdBaseView {
         opened.height = result.height
         opened.lineSpacingFactor = result.lineSpacingFactor
         opened.attachmentPoint = result.attachmentPoint
+        // Picking another text style in the editor is an explicit object-level
+        // choice, exactly as it is for a newly created MTEXT. It is only
+        // adopted when the user actually changed `$TEXTSTYLE` during the edit,
+        // so fixing a typo in a text that uses a non-current style never
+        // rewrites its DXF group 7 by accident.
+        if (db.textstyle !== textStyleBeforeEdit) {
+          const styleName = db.tables.textStyleTable.resolveAt(
+            db.textstyle
+          )?.name
+          if (styleName) opened.styleName = styleName
+        }
       })
       applied = true
     } finally {

@@ -332,6 +332,60 @@ const viewPanel: RibbonPanelDef = {
   ]
 }
 
+// ── MTEXT editor tab (contextual) ────────────────────────────────────
+//
+// Shown only while an inline MTEXT editor is open. Its panels carry no ribbon
+// items: the format controls need live editor state (font dropdown, numeric
+// fields, toggles), so `AntdRibbon` renders dedicated components into each
+// panel's leading slot instead.
+
+const mtextFormatPanel: RibbonPanelDef = {
+  id: 'mtextFormat',
+  title: 'Format',
+  items: []
+}
+
+const mtextParagraphPanel: RibbonPanelDef = {
+  id: 'mtextParagraph',
+  title: 'Paragraph',
+  items: []
+}
+
+const mtextInsertPanel: RibbonPanelDef = {
+  id: 'mtextInsert',
+  title: 'Insert',
+  items: []
+}
+
+const mtextClosePanel: RibbonPanelDef = {
+  id: 'mtextClose',
+  title: 'Close',
+  items: []
+}
+
+/** Id of the contextual tab shown while the MTEXT editor is open. */
+export const mtextEditorTabId = 'mtextEditorContext'
+
+const mtextEditorTab: RibbonTabDef = {
+  id: mtextEditorTabId,
+  title: 'Text Editor',
+  panels: [
+    mtextFormatPanel,
+    mtextParagraphPanel,
+    mtextInsertPanel,
+    mtextClosePanel
+  ],
+  contextual: {
+    color: '#9a6a22',
+    // Exclusive: the tab appears for the lifetime of the editor session and
+    // disappears with it, rather than tracking the object selection.
+    mode: 'exclusive',
+    // Informational: activation is driven by the editor bridge, which also
+    // covers double-click editing where no MTEXT command is running.
+    commands: ['MTEXT', 'mtext']
+  }
+}
+
 // ── tabs ─────────────────────────────────────────────────────────────
 
 export const ribbonTabs: RibbonTabDef[] = [
@@ -364,5 +418,6 @@ export const ribbonTabs: RibbonTabDef[] = [
     title: 'View',
     keyTip: 'V',
     panels: [viewPanel]
-  }
+  },
+  mtextEditorTab
 ]

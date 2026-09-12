@@ -75,7 +75,8 @@ export default {
         insert: '插入',
         review: '审阅',
         measure: '测量',
-        view: '视图'
+        view: '视图',
+        mtextEditorContext: '文字编辑器'
       },
       group: {
         draw: '绘图',
@@ -87,7 +88,11 @@ export default {
         insert: '插入',
         markup: '批注',
         measure: '测量',
-        view: '视图'
+        view: '视图',
+        mtextFormat: '格式',
+        mtextParagraph: '段落',
+        mtextInsert: '插入',
+        mtextClose: '关闭'
       },
       button: {
         line: '直线',

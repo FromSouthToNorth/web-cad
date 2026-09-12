@@ -38,76 +38,89 @@ import { useDialogManager } from '../composable'
 import { i18n } from '../locale'
 import { store } from './store'
 
-let isCommandRegistered = false
+/**
+ * Command stack the viewer commands were last registered into.
+ *
+ * `AcApDocManager.destroy()` — called by the shell when the viewer unmounts —
+ * drops the singleton, so the next mount builds a fresh, empty command stack.
+ * Keying idempotency on that stack instead of a module-level boolean makes the
+ * registration survive every remount. With the old flag, visiting the upload
+ * screen (or any viewer unmount/remount) left `STYLE`, `UNITS`, `QSELECT`,
+ * `ATTDEF`, `ATTEDIT`, `INSERT`, `PROPERTIES`, `PTTYPE` and `CHTML`
+ * unregistered, so the ribbon buttons for them silently did nothing.
+ */
+let registeredCommandStack: AcEdCommandStack | null = null
+
 export const registerCmds = () => {
-  if (!isCommandRegistered) {
-    const register = AcApDocManager.instance.commandManager
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'layer',
-      'layer',
-      new AcApLayerStateCmd()
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'pttype',
-      'pttype',
-      new AcApPointStyleCmd()
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'qselect',
-      'qselect',
-      new AcApQSelectCmd()
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'chtml',
-      'chtml',
-      new AcApExportHtmlDlgCmd()
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'units',
-      'units',
-      new AcApDrawingUnitsCmd()
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'properties',
-      'properties',
-      new AcApPropertiesCmd()
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'insert',
-      'insert',
-      new AcApInsertPaletteCmd(),
-      'blockspalette'
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'style',
-      'style',
-      new AcApTextStyleCmd(),
-      'st'
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'attedit',
-      'attedit',
-      new AcApAttEditCmd(),
-      ['eattedit', 'ate']
-    )
-    register.addCommand(
-      AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
-      'attdef',
-      'attdef',
-      new AcApAttDefCmd(),
-      'ddattdef'
-    )
-    isCommandRegistered = true
+  const register = AcApDocManager.instance.commandManager
+  if (registeredCommandStack === register) {
+    return
   }
+  registeredCommandStack = register
+  register.addCommand(
+    AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
+    'layer',
+    'layer',
+    new AcApLayerStateCmd()
+  )
+  register.addCommand(
+    AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
+    'pttype',
+    'pttype',
+    new AcApPointStyleCmd()
+  )
+  register.addCommand(
+    AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
+    'qselect',
+    'qselect',
+    new AcApQSelectCmd()
+  )
+  register.addCommand(
+    AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
+    'chtml',
+    'chtml',
+    new AcApExportHtmlDlgCmd()
+  )
+  register.addCommand(
+    AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
+    'units',
+    'units',
+    new AcApDrawingUnitsCmd()
+  )
+  register.addCommand(
+    AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
+    'properties',
+    'properties',
+    new AcApPropertiesCmd()
+  )
+  register.addCommand(
+    AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
+    'insert',
+    'insert',
+    new AcApInsertPaletteCmd(),
+    'blockspalette'
+  )
+  register.addCommand(
+    AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
+    'style',
+    'style',
+    new AcApTextStyleCmd(),
+    'st'
+  )
+  register.addCommand(
+    AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
+    'attedit',
+    'attedit',
+    new AcApAttEditCmd(),
+    ['eattedit', 'ate']
+  )
+  register.addCommand(
+    AcEdCommandStack.SYSTEMT_COMMAND_GROUP_NAME,
+    'attdef',
+    'attdef',
+    new AcApAttDefCmd(),
+    'ddattdef'
+  )
 }
 
 let isDialogRegistered = false
@@ -163,34 +176,56 @@ export const registerMTextColorPicker = () => {
   }
 }
 
-let isLazyPluginRegistered = false
-let isAgentIntegrationStarted = false
-let isSearchIntegrationStarted = false
+/**
+ * Plugin manager the lazy plugins were last registered into.
+ *
+ * Same remount hazard as {@link registerCmds}: the plugin manager lives on the
+ * `AcApDocManager` singleton, which `destroy()` drops. The previous
+ * module-level flag therefore left `cpdf`, `csvg`, `chtml`, `agent` and
+ * `search` unregistered (and their ribbon buttons dead) after any viewer
+ * unmount, e.g. after opening a drawing from the upload screen.
+ */
+let registeredPluginManager: AcApPluginManager | null = null
+
+/**
+ * Cached optional-plugin registrars.
+ *
+ * Loading them once keeps the one-time UI wiring (palette openers, i18n) from
+ * running again, while the per-manager `registerLazy*Plugin` call below still
+ * happens for every new plugin manager.
+ */
+let agentRegistrar: typeof import('@hy/cad-agent-plugin/register') | null = null
+let searchRegistrar: typeof import('@hy/cad-search-plugin/register') | null =
+  null
 
 const registerAgentIntegration = async (pluginManager: AcApPluginManager) => {
   try {
-    await import('@hy/cad-agent-plugin/style.css')
-    const agentRegister = await import('@hy/cad-agent-plugin/register')
+    if (!agentRegistrar) {
+      await import('@hy/cad-agent-plugin/style.css')
+      const agentRegister = await import('@hy/cad-agent-plugin/register')
 
-    agentRegister.setAgentPaletteOpener(() => {
-      if (
-        store.dialogs.layerManager &&
-        store.dialogs.activePaletteTab === 'agent'
-      ) {
-        store.dialogs.layerManager = false
-        return
-      }
+      agentRegister.setAgentPaletteOpener(() => {
+        if (
+          store.dialogs.layerManager &&
+          store.dialogs.activePaletteTab === 'agent'
+        ) {
+          store.dialogs.layerManager = false
+          return
+        }
 
-      store.dialogs.activePaletteTab = 'agent'
-      store.dialogs.layerManager = true
-    })
+        store.dialogs.activePaletteTab = 'agent'
+        store.dialogs.layerManager = true
+      })
 
-    agentRegister.mergeAgentI18nIntoVueI18n((locale, messages) => {
-      i18n.global.mergeLocaleMessage(locale, messages)
-    })
+      agentRegister.mergeAgentI18nIntoVueI18n((locale, messages) => {
+        i18n.global.mergeLocaleMessage(locale, messages)
+      })
 
-    agentRegister.registerLazyAgentPlugin(pluginManager)
-    store.features.agentPlugin = true
+      agentRegistrar = agentRegister
+      store.features.agentPlugin = true
+    }
+
+    agentRegistrar.registerLazyAgentPlugin(pluginManager)
   } catch {
     // Optional peer `@hy/cad-agent-plugin` is not installed.
   }
@@ -198,28 +233,32 @@ const registerAgentIntegration = async (pluginManager: AcApPluginManager) => {
 
 const registerSearchIntegration = async (pluginManager: AcApPluginManager) => {
   try {
-    await import('@hy/cad-search-plugin/style.css')
-    const searchRegister = await import('@hy/cad-search-plugin/register')
+    if (!searchRegistrar) {
+      await import('@hy/cad-search-plugin/style.css')
+      const searchRegister = await import('@hy/cad-search-plugin/register')
 
-    searchRegister.setSearchPaletteOpener(() => {
-      if (
-        store.dialogs.layerManager &&
-        store.dialogs.activePaletteTab === 'search'
-      ) {
-        store.dialogs.layerManager = false
-        return
-      }
+      searchRegister.setSearchPaletteOpener(() => {
+        if (
+          store.dialogs.layerManager &&
+          store.dialogs.activePaletteTab === 'search'
+        ) {
+          store.dialogs.layerManager = false
+          return
+        }
 
-      store.dialogs.activePaletteTab = 'search'
-      store.dialogs.layerManager = true
-    })
+        store.dialogs.activePaletteTab = 'search'
+        store.dialogs.layerManager = true
+      })
 
-    searchRegister.mergeSearchI18nIntoVueI18n((locale, messages) => {
-      i18n.global.mergeLocaleMessage(locale, messages)
-    })
+      searchRegister.mergeSearchI18nIntoVueI18n((locale, messages) => {
+        i18n.global.mergeLocaleMessage(locale, messages)
+      })
 
-    searchRegister.registerLazySearchPlugin(pluginManager)
-    store.features.searchPlugin = true
+      searchRegistrar = searchRegister
+      store.features.searchPlugin = true
+    }
+
+    searchRegistrar.registerLazySearchPlugin(pluginManager)
   } catch {
     // Optional peer `@hy/cad-search-plugin` is not installed.
   }
@@ -239,31 +278,26 @@ export interface RegisterLazyPluginsOptions {
  * Currently registers the PDF plugin (`cpdf`, `ipdf`), the HTML export
  * plugin (`-chtml`), the SVG export plugin (`csvg`), and optionally the CAD
  * Agent plugin (`agent`) when `@hy/cad-agent-plugin` is installed.
- * Safe to call multiple times; registration runs once per application lifetime.
+ *
+ * Safe to call multiple times: registration is skipped only for a plugin
+ * manager that already received it, so a viewer remount re-registers into the
+ * rebuilt manager.
  *
  * @param options - Optional HTML plugin settings such as `viewerRuntimeUrl`
  */
 export const registerLazyPlugins = (
   options: RegisterLazyPluginsOptions = {}
 ) => {
-  if (isLazyPluginRegistered) {
+  const pluginManager = AcApDocManager.instance.pluginManager
+  if (registeredPluginManager === pluginManager) {
     return
   }
+  registeredPluginManager = pluginManager
 
-  const pluginManager = AcApDocManager.instance.pluginManager
   registerLazyPdfPlugin(pluginManager)
   registerLazyHtmlPlugin(pluginManager, options.htmlPlugin)
   registerLazySvgPlugin(pluginManager)
 
-  if (!isAgentIntegrationStarted) {
-    isAgentIntegrationStarted = true
-    void registerAgentIntegration(pluginManager)
-  }
-
-  if (!isSearchIntegrationStarted) {
-    isSearchIntegrationStarted = true
-    void registerSearchIntegration(pluginManager)
-  }
-
-  isLazyPluginRegistered = true
+  void registerAgentIntegration(pluginManager)
+  void registerSearchIntegration(pluginManager)
 }

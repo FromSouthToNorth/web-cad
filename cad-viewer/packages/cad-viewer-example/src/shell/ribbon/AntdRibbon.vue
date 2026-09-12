@@ -41,7 +41,7 @@
           @dblclick="toggleCollapse"
         >
           <span class="antd-ribbon-tab-label">
-            {{ t(`shell.ribbon.tab.${tab.id}`) }}
+            {{ tabTitles[tab.id] ?? tab.title }}
           </span>
           <span
             v-if="tabKeytipsVisible && tab.keyTip"
@@ -100,7 +100,7 @@
         <AntdRibbonPanel
           v-for="panel in activeTab?.panels ?? []"
           :key="panel.id"
-          :title="t(`shell.ribbon.group.${panel.id}`)"
+          :title="panelTitle(panel.id)"
           :items="panel.items"
           :disabled="disabled"
           :keytip-active="panelKeytipsVisible"
@@ -115,6 +115,10 @@
             v-if="panel.id === 'properties'"
             :disabled="disabled"
           />
+          <AntdMTextFormatPanel v-if="panel.id === 'mtextFormat'" />
+          <AntdMTextParagraphPanel v-if="panel.id === 'mtextParagraph'" />
+          <AntdMTextInsertPanel v-if="panel.id === 'mtextInsert'" />
+          <AntdMTextClosePanel v-if="panel.id === 'mtextClose'" />
         </AntdRibbonPanel>
       </div>
     </div>
@@ -175,7 +179,17 @@ import AntdPropertyBar from './AntdPropertyBar.vue'
 import AntdQat from './AntdQat.vue'
 import AntdRibbonPanel from './AntdRibbonPanel.vue'
 import { CommandQueue } from './commandQueue'
-import { fileItems, qatItems, ribbonTabs } from './ribbonModel'
+import AntdMTextClosePanel from './mtext/AntdMTextClosePanel.vue'
+import AntdMTextFormatPanel from './mtext/AntdMTextFormatPanel.vue'
+import AntdMTextInsertPanel from './mtext/AntdMTextInsertPanel.vue'
+import AntdMTextParagraphPanel from './mtext/AntdMTextParagraphPanel.vue'
+import { useMTextRibbon } from './mtext/useMTextRibbon'
+import {
+  fileItems,
+  mtextEditorTabId,
+  qatItems,
+  ribbonTabs
+} from './ribbonModel'
 import type { RibbonItemDef } from './ribbonTypes'
 
 const { t } = useI18n()
@@ -196,11 +210,82 @@ const emit = defineEmits<{
 
 // ── tabs ─────────────────────────────────────────────────────────────
 
+/** Inline MTEXT editor state, also used to reveal its contextual tab. */
+const mtext = useMTextRibbon()
+
 const activeTabId = ref(ribbonTabs[0]?.id ?? '')
 const activeTab = computed(() =>
   ribbonTabs.find(tab => tab.id === activeTabId.value)
 )
-const visibleTabs = computed(() => ribbonTabs)
+/** Contextual tabs stay hidden until the feature that owns them is active. */
+const visibleTabs = computed(() =>
+  ribbonTabs.filter(tab => !tab.contextual || mtext.state.active)
+)
+
+/**
+ * Tab titles.
+ *
+ * Spelled out (instead of `` `shell.ribbon.tab.${tab.id}` ``) so vue-i18n's
+ * `no-dynamic-keys` rule can verify every key, including the contextual MTEXT
+ * editor tab.
+ */
+const tabTitles = computed<Record<string, string>>(() => ({
+  home: t('shell.ribbon.tab.home'),
+  insert: t('shell.ribbon.tab.insert'),
+  review: t('shell.ribbon.tab.review'),
+  measure: t('shell.ribbon.tab.measure'),
+  view: t('shell.ribbon.tab.view'),
+  mtextEditorContext: t('shell.ribbon.tab.mtextEditorContext')
+}))
+
+/**
+ * Panel titles.
+ *
+ * Every key is spelled out so vue-i18n's `no-dynamic-keys` rule can verify it;
+ * the previous `` `shell.ribbon.group.${panel.id}` `` lookup was invisible to
+ * the rule.
+ */
+const panelTitles = computed<Record<string, string>>(() => ({
+  draw: t('shell.ribbon.group.draw'),
+  modify: t('shell.ribbon.group.modify'),
+  annotation: t('shell.ribbon.group.annotation'),
+  layer: t('shell.ribbon.group.layer'),
+  properties: t('shell.ribbon.group.properties'),
+  utilities: t('shell.ribbon.group.utilities'),
+  insert: t('shell.ribbon.group.insert'),
+  markup: t('shell.ribbon.group.markup'),
+  measure: t('shell.ribbon.group.measure'),
+  view: t('shell.ribbon.group.view'),
+  mtextFormat: t('shell.ribbon.group.mtextFormat'),
+  mtextParagraph: t('shell.ribbon.group.mtextParagraph'),
+  mtextInsert: t('shell.ribbon.group.mtextInsert'),
+  mtextClose: t('shell.ribbon.group.mtextClose')
+}))
+
+function panelTitle(panelId: string): string {
+  return panelTitles.value[panelId] ?? panelId
+}
+
+/** Tab that was active before the MTEXT contextual tab took over. */
+let tabBeforeMText = ''
+
+// Opening the inline MTEXT editor reveals its contextual tab and focuses it;
+// closing the editor restores whatever tab the user was on. Assigning
+// `activeTabId` directly (instead of `activateTab`) intentionally leaves an
+// intentionally collapsed ribbon collapsed.
+watch(
+  () => mtext.state.active,
+  active => {
+    if (active) {
+      if (!activeTab.value?.contextual) tabBeforeMText = activeTabId.value
+      activeTabId.value = mtextEditorTabId
+      return
+    }
+    if (activeTab.value?.contextual) {
+      activeTabId.value = tabBeforeMText || ribbonTabs[0]?.id || ''
+    }
+  }
+)
 
 function activateTab(tabId: string) {
   activeTabId.value = tabId
@@ -439,11 +524,13 @@ function onPointerDown() {
 onMounted(() => {
   window.addEventListener('keydown', onGlobalKeydown, true)
   window.addEventListener('pointerdown', onPointerDown, true)
+  mtext.initMTextRibbon()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onGlobalKeydown, true)
   window.removeEventListener('pointerdown', onPointerDown, true)
+  mtext.disposeMTextRibbon()
   commandQueue.dispose()
 })
 

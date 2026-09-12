@@ -76,7 +76,8 @@ export default {
         insert: 'Insert',
         review: 'Review',
         measure: 'Measure',
-        view: 'View'
+        view: 'View',
+        mtextEditorContext: 'Text Editor'
       },
       group: {
         draw: 'Draw',
@@ -88,7 +89,11 @@ export default {
         insert: 'Insert',
         markup: 'Markups',
         measure: 'Measure',
-        view: 'View'
+        view: 'View',
+        mtextFormat: 'Format',
+        mtextParagraph: 'Paragraph',
+        mtextInsert: 'Insert',
+        mtextClose: 'Close'
       },
       button: {
         line: 'Line',

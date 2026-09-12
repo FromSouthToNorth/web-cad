@@ -70,6 +70,7 @@
                           show-search
                           :filter-option="filterOptionByLabel"
                           class="ml-text-style-dlg__control"
+                          @search="handleFontSearch"
                           @change="handleFontChange"
                         >
                           <a-select-option
@@ -77,7 +78,12 @@
                             :key="opt.value"
                             :value="opt.value"
                           >
-                            {{ opt.label }}
+                            {{ opt.label
+                            }}{{
+                              opt.custom
+                                ? ` (${t('dialog.textStyleDlg.customFont')})`
+                                : ''
+                            }}
                           </a-select-option>
                         </a-select>
                       </a-form-item>
@@ -213,6 +219,8 @@
                         <a-input-number
                           :key="`${selectedName}-oblique`"
                           v-model:value="form.obliqueAngle"
+                          :min="TEXT_STYLE_OBLIQUE_MIN"
+                          :max="TEXT_STYLE_OBLIQUE_MAX"
                           :step="1"
                           :precision="0"
                           class="ml-text-style-dlg__control"
@@ -243,6 +251,14 @@
             @click="handleDelete"
           >
             {{ t('dialog.textStyleDlg.delete') }}
+          </a-button>
+          <a-button
+            class="ml-text-style-dlg__action-btn"
+            type="primary"
+            :disabled="!selectedName"
+            @click="handleApply"
+          >
+            {{ t('dialog.textStyleDlg.apply') }}
           </a-button>
         </div>
       </div>
@@ -292,6 +308,11 @@ import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useTextStyle } from '../../composable'
+import {
+  clampTextStyleObliqueAngle,
+  TEXT_STYLE_OBLIQUE_MAX,
+  TEXT_STYLE_OBLIQUE_MIN
+} from '../../composable/useTextStyle'
 import MlBaseDialog from '../common/MlBaseDialog.vue'
 import MlFieldsetGroup from '../common/MlFieldsetGroup.vue'
 
@@ -323,6 +344,7 @@ const {
   revertForm,
   selectStyle,
   handleFontChange,
+  handleFontSearch,
   handleFontStyleChange,
   saveSelectedStyle,
   setCurrentStyle,
@@ -341,10 +363,29 @@ const newStyleName = ref('')
 const newStyleError = ref('')
 const newStyleInputRef = ref<InstanceType<typeof AInput> | null>(null)
 
-/** antdv `show-search` filter: match label against the typed input. */
-function filterOptionByLabel(input: string, option: { label?: string }) {
-  const label = option?.label ?? ''
-  return String(label).toLowerCase().includes(input.toLowerCase())
+/**
+ * antdv `show-search` filter for the font dropdowns.
+ *
+ * The comparison deliberately uses the option `value` as well as its `label`:
+ * options rendered from an `a-select-option` slot carry a VNode in `label`
+ * (which stringifies to `"[object Object]"`), so a label-only filter matched
+ * nothing and typing in the font box emptied the dropdown — including the
+ * custom entry this dialog offers for names the drawing does not reference yet.
+ */
+function filterOptionByLabel(
+  input: string,
+  option: { label?: unknown; value?: unknown }
+) {
+  const needle = input.trim().toLowerCase()
+  if (!needle) return true
+  return [option?.label, option?.value].some(candidate => {
+    if (typeof candidate === 'string') {
+      return candidate.toLowerCase().includes(needle)
+    }
+    return (
+      typeof candidate === 'number' && String(candidate).includes(needle)
+    )
+  })
 }
 
 function handleOpen() {
@@ -357,6 +398,24 @@ function handleCancel() {
 
 function handleOk() {
   saveSelectedStyle()
+}
+
+/**
+ * AutoCAD's "Apply" semantics: persist the edits without closing the dialog so
+ * the user can keep tuning the same style.
+ */
+function handleApply() {
+  // The number field already clamps, but a value typed and applied in one
+  // gesture can still arrive out of range: clamp it here and say so once.
+  const clamped = clampTextStyleObliqueAngle(form.obliqueAngle)
+  if (clamped !== form.obliqueAngle) {
+    form.obliqueAngle = clamped
+    message.warning(t('dialog.textStyleDlg.obliqueRange'))
+  }
+  if (!saveSelectedStyle()) return
+  message.success(
+    t('dialog.textStyleDlg.applied', { name: selectedName.value })
+  )
 }
 
 function handleSetCurrent() {

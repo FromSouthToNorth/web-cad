@@ -24,6 +24,8 @@ docs/
 | [高性能技术分析.md](./01-架构设计/高性能技术分析.md) | WebAssembly（LibreDWG）集成、Web Worker 多线程、内存管理等高性能技术选型分析报告 |
 | [data-model解析器类结构详解.md](./01-架构设计/data-model解析器类结构详解.md) | data-model 包解析链路类结构详解：模块分层、类继承总图、AcDbObject/实体体系/词法层/Filer/Worker 线格式/语义构建/转换器/数据库与符号表/Worker 框架、数据流与性能优化对应关系 |
 | [cad-viewer类结构详解.md](./01-架构设计/cad-viewer类结构详解.md) | cad-viewer 侧三层（UI/引擎/渲染）类结构详解：三层依赖、总类图、AcAp 文档管理与 AcTr 场景组织、AcEd 编辑器与命令/Jig 体系、服务层、空间索引、插件体系、AcTr 实体对象/合批/渲染器/样式/相机、关键调用链与性能优化对应关系 |
+| [mtext-renderer依赖流程图.md](./01-架构设计/mtext-renderer依赖流程图.md) | mtext-renderer（本地 vendor 的 MTEXT 排版渲染底座）定位与职责边界、工作区分层依赖、包内模块图与环依赖、外部依赖内联/external 策略、MTEXT 绘制时序、Worker 消息协议、构建产物与 worker 资产流转、单实例约束（Mermaid 图） |
+| [上游Wiki（mlightcad-cad-viewer）分析与对照.md](./01-架构设计/上游Wiki（mlightcad-cad-viewer）分析与对照.md) | 上游 Wiki 22 页快照分析与逐条对照：页面主题地图、命令/事务 undo/Jig/系统变量/插件/i18n/颜色/OSNAP 设计要点，以及包名 scope、LibreDWG、mtext-renderer、多仓库调试、默认 baseUrl、标注命令基类六处与本仓的结构性差异 |
 
 ## 02-性能优化
 
@@ -49,6 +51,7 @@ docs/
 | [缺失颜色组码默认ByLayer修复总结.md](./03-缺陷修复与功能改造/缺失颜色组码默认ByLayer修复总结.md) | 实体省略颜色组码 62 被错误染成 CECOLOR：修复为按 DXF 规范默认 ByLayer（data-model） |
 | [Ribbon功能区设计规范改造总结.md](./03-缺陷修复与功能改造/Ribbon功能区设计规范改造总结.md) | 功能区按 Ant Design 与 AutoCAD Ribbon 规范改造：Alt 键提示导航、折叠过渡动画、SuperTip 增强提示、禁用态修复、图标尺寸与无障碍对齐（cad-viewer-example） |
 | [读取巷道初次点击无反应修复总结.md](./03-缺陷修复与功能改造/读取巷道初次点击无反应修复总结.md) | 大图纸打开期间首次点击「读取巷道」被原生 disabled 吞掉：antd 壳改视觉禁用 + CommandQueue 点击排队重放，插件命令层 waitForCurrentDocument 兜底（cad-tunnel-plugin + cad-viewer-example） |
+| [cad-data本地资源化改造.md](./03-缺陷修复与功能改造/cad-data本地资源化改造.md) | 去 jsDelivr 运行时依赖：本地镜像 `packages/cad-data` + `pnpm sync:cad-data` + 本地优先/CDN 回退；含上游许可证风险、worker 内相对 URL 坑与全部改动清单 |
 
 ## 04-开发规范
 

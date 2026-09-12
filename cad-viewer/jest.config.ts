@@ -51,7 +51,10 @@ const config: Config = {
   ],
   testPathIgnorePatterns: [
     '/e2e/',
-    '/__tests__/helpers/'
+    '/__tests__/helpers/',
+    // Vendored mtext-renderer keeps upstream's vitest suite, which cannot run
+    // under Jest. Run it with `pnpm --filter @mlightcad/mtext-renderer test`.
+    '/packages/mtext-renderer/test/'
   ],
   moduleNameMapper: {
     '^lodash-es$': lodashCjsModule,

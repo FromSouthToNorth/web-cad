@@ -1,0 +1,100 @@
+import * as THREE from 'three'
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+
+import { BaseTextShape } from './baseTextShape'
+import { MeshFont } from './meshFont'
+
+const _tmp = new THREE.Vector2()
+
+function hasFinitePositions(geometry: THREE.BufferGeometry) {
+  const position = geometry.getAttribute('position')
+  if (!position || position.count === 0) {
+    return true
+  }
+  const array = position.array as ArrayLike<number>
+  for (let index = 0; index < array.length; index++) {
+    if (!Number.isFinite(array[index])) {
+      return false
+    }
+  }
+  return true
+}
+
+/**
+ * Represents a text shape for mesh-based fonts (e.g., TTF, OTF, WOFF).
+ * This class extends BaseTextShape to provide specific functionality for mesh fonts,
+ * including 3D geometry generation and character width calculation.
+ */
+export class MeshTextShape extends BaseTextShape {
+  /**
+   * Flag to indicate whether the character is found in the font.
+   * Used to track if the character exists in the font's glyph set.
+   */
+  public isFound = false
+  private readonly char: string
+  private readonly font: MeshFont
+  private readonly fontSize: number
+
+  constructor(char: string, fontSize: number, font: MeshFont) {
+    super()
+    this.char = char
+    this.fontSize = fontSize
+    this.font = font
+    this.width = this.getCharWidth(char, fontSize, font)
+  }
+
+  /**
+   * Converts the text shape to a THREE.js geometry.
+   * This is used for 3D rendering of the text.
+   * @returns A THREE.js BufferGeometry representing the text shape
+   */
+  toGeometry(): THREE.BufferGeometry {
+    let geometry = this.font.cache.getGeometry(
+      this.char.charCodeAt(0),
+      this.fontSize
+    )
+    if (geometry == null) {
+      const shapes = this.font.generateShapes(this.char, this.fontSize)
+      geometry = new THREE.ShapeGeometry(shapes, 4)
+      if (!hasFinitePositions(geometry)) {
+        geometry.dispose()
+        return new THREE.BufferGeometry()
+      }
+      // Remove uv and normal to save memory
+      if (geometry.hasAttribute('uv')) {
+        geometry.deleteAttribute('uv')
+      }
+      if (geometry.hasAttribute('normal')) {
+        geometry.deleteAttribute('normal')
+      }
+      geometry = mergeVertices(geometry, 1e-6)
+      this.font.cache.setGeometry(this.char.charCodeAt(0), this.fontSize, geometry)
+    }
+    if (!hasFinitePositions(geometry)) {
+      return new THREE.BufferGeometry()
+    }
+    return geometry
+  }
+
+  /** @inheritdoc */
+  hasStrokeGeometry(): boolean {
+    return this.isFound && this.width > 0
+  }
+
+  /**
+   * Calculates the width of a character in the font.
+   * @param char - The character to calculate width for
+   * @param fontSize - The size of the font in pixels
+   * @param font - The mesh font to use
+   * @returns The width of the character in pixels
+   */
+  private getCharWidth(char: string, fontSize: number, font: MeshFont) {
+    const glyph = font.data.glyphs[char]
+    if (!glyph) {
+      this.isFound = false
+      return 0
+    }
+    this.isFound = true
+    return (glyph.ha * fontSize) / font.data.resolution
+  }
+}

@@ -1,0 +1,585 @@
+import { MTextColor } from '@mlightcad/mtext-parser'
+import * as THREE from 'three'
+
+import { FontManager } from '../font'
+import { collectIsolateMemoryStats } from '../memory/collectIsolateMemoryStats'
+import type { IsolateMemoryStats } from '../memory/types'
+import { serializeMTextColor } from '../renderer/colorUtils'
+import { DefaultStyleManager } from '../renderer/defaultStyleManager'
+import { MText } from '../renderer/mtext'
+import {
+  CharBox,
+  ColorSettings,
+  LineLayout,
+  MTextData,
+  TextStyle
+} from '../renderer/types'
+
+// Worker message types
+interface WorkerMessage {
+  type:
+    | 'render'
+    | 'loadFonts'
+    | 'setDefaultFonts'
+    | 'setLazyFontLoading'
+    | 'setAwaitFontsBeforeDraw'
+    | 'setFontUrl'
+    | 'setMissedFonts'
+    | 'getAvailableFonts'
+    | 'getMemoryStats'
+  id: string
+  data?: {
+    mtextContent?: unknown
+    textStyle?: unknown
+    colorSettings?: unknown
+    fonts?: string[]
+    symbolFonts?: string[]
+    missedFonts?: Record<string, number>
+    url?: string
+    enabled?: boolean
+  }
+}
+
+interface WorkerResponse {
+  type:
+    | 'render'
+    | 'loadFonts'
+    | 'setDefaultFonts'
+    | 'setLazyFontLoading'
+    | 'setAwaitFontsBeforeDraw'
+    | 'setFontUrl'
+    | 'setMissedFonts'
+    | 'getAvailableFonts'
+    | 'getMemoryStats'
+    | 'fontLoaded'
+    | 'fontNotFound'
+    | 'error'
+  id: string
+  success: boolean
+  data?: unknown
+  error?: string
+}
+
+// Initialize managers in the worker
+const fontManager = FontManager.instance
+const styleManager = new DefaultStyleManager()
+
+// Forward worker-local font loads so the main thread can redraw after lazy loads.
+fontManager.events.fontLoaded.addEventListener(payload => {
+  self.postMessage({
+    type: 'fontLoaded',
+    id: '',
+    success: true,
+    data: { fontName: payload?.fontName }
+  } as WorkerResponse)
+})
+
+// Forward missed-font reports so the main thread can drive status-bar / UI.
+fontManager.events.fontNotFound.addEventListener(payload => {
+  self.postMessage({
+    type: 'fontNotFound',
+    id: '',
+    success: true,
+    data: { fontName: payload?.fontName, count: payload?.count }
+  } as WorkerResponse)
+})
+
+// Handle messages from main thread
+self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
+  const { type, id, data } = event.data
+
+  try {
+    switch (type) {
+      case 'render': {
+        if (!data) throw new Error('Missing data for render message')
+        const { mtextContent, textStyle, colorSettings } = data as {
+          mtextContent: MTextData
+          textStyle: TextStyle
+          colorSettings: ColorSettings
+        }
+        const normalizedColorSettings = normalizeColorSettings(colorSettings)
+
+        // Create MText instance and draw (loads fonts on demand)
+        let mtext = new MText(
+          mtextContent,
+          textStyle,
+          styleManager,
+          fontManager,
+          normalizedColorSettings
+        )
+        await mtext.asyncDraw()
+        mtext.updateMatrixWorld(true)
+
+        // Serialize the MText object for transfer with transferable objects
+        const { data: serializedMText, transferableObjects } =
+          serializeMText(mtext)
+
+        self.postMessage(
+          {
+            type: 'render',
+            id,
+            success: true,
+            data: serializedMText
+          } as WorkerResponse,
+          { transfer: transferableObjects }
+        )
+
+        // Release memory occupied by mtext
+        mtext.dispose()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(mtext as any) = undefined
+        break
+      }
+
+      case 'loadFonts': {
+        if (!data) throw new Error('Missing data for loadFonts message')
+        const { fonts } = data as { fonts: string[] }
+        await fontManager.loadFontsByNames(fonts)
+        const loaded = fonts.filter(name => fontManager.isFontLoaded(name))
+        self.postMessage({
+          type: 'loadFonts',
+          id,
+          success: true,
+          data: { loaded }
+        } as WorkerResponse)
+        break
+      }
+
+      case 'setDefaultFonts': {
+        if (!data) throw new Error('Missing data for setDefaultFonts message')
+        const { fonts, symbolFonts } = data as {
+          fonts: string[]
+          symbolFonts: string[]
+        }
+        fontManager.setDefaultFonts(fonts)
+        fontManager.setSymbolFonts(symbolFonts)
+        self.postMessage({
+          type: 'setDefaultFonts',
+          id,
+          success: true,
+          data: {
+            fonts: [...fontManager.defaultFonts],
+            symbolFonts: [...fontManager.symbolFonts]
+          }
+        } as WorkerResponse)
+        break
+      }
+
+      case 'setLazyFontLoading': {
+        if (!data) throw new Error('Missing data for setLazyFontLoading message')
+        const { enabled } = data as { enabled: boolean }
+        fontManager.lazyFontLoading = enabled
+        self.postMessage({
+          type: 'setLazyFontLoading',
+          id,
+          success: true,
+          data: { enabled: fontManager.lazyFontLoading }
+        } as WorkerResponse)
+        break
+      }
+
+      case 'setAwaitFontsBeforeDraw': {
+        if (!data) {
+          throw new Error('Missing data for setAwaitFontsBeforeDraw message')
+        }
+        const { enabled } = data as { enabled: boolean }
+        fontManager.awaitFontsBeforeDraw = enabled
+        self.postMessage({
+          type: 'setAwaitFontsBeforeDraw',
+          id,
+          success: true,
+          data: { enabled: fontManager.awaitFontsBeforeDraw }
+        } as WorkerResponse)
+        break
+      }
+
+      case 'setFontUrl': {
+        if (!data) throw new Error('Missing data for setFontUrl message')
+        const { url } = data as { url: string }
+        fontManager.baseUrl = url
+        self.postMessage({
+          type: 'setFontUrl',
+          id,
+          success: true,
+          data: {}
+        } as WorkerResponse)
+        break
+      }
+
+      case 'setMissedFonts': {
+        const { missedFonts } = (data ?? {}) as {
+          missedFonts?: Record<string, number>
+        }
+        fontManager.replaceMissedFonts(missedFonts ?? {})
+        self.postMessage({
+          type: 'setMissedFonts',
+          id,
+          success: true,
+          data: { missedFonts: { ...fontManager.missedFonts } }
+        } as WorkerResponse)
+        break
+      }
+
+      case 'getAvailableFonts': {
+        const fonts = await FontManager.instance.getAvailableFonts()
+
+        self.postMessage({
+          type: 'getAvailableFonts',
+          id,
+          success: true,
+          data: { fonts }
+        } as WorkerResponse)
+        break
+      }
+
+      case 'getMemoryStats': {
+        const stats: IsolateMemoryStats = collectIsolateMemoryStats(
+          fontManager,
+          {
+            id: 'worker',
+            styleManager
+          }
+        )
+        self.postMessage({
+          type: 'getMemoryStats',
+          id,
+          success: true,
+          data: stats
+        } as WorkerResponse)
+        break
+      }
+
+      default:
+        throw new Error(`Unknown message type: ${type}`)
+    }
+  } catch (error) {
+    self.postMessage({
+      type,
+      id,
+      success: false,
+      error: error instanceof Error ? error.message : String(error)
+    } as WorkerResponse)
+  }
+})
+
+/**
+ * Normalize `ColorSettings` coming from the main thread so it is safe to use
+ * inside the worker.
+ *
+ * Why this exists:
+ * - `MTextColor` is a class with getters/setters (`aci`, `rgbValue`) and methods.
+ * - When data crosses the `postMessage` boundary, class instances are
+ *   structured-cloned into plain objects.
+ * - For `MTextColor`, the clone only keeps its internal fields (`_aci`,
+ *   `_rgbValue`) and loses the prototype, accessors, and all methods.
+ *
+ * That means downstream code sees a plain object and can no longer rely on
+ * `instanceof MTextColor`, nor on the `aci` / `rgbValue` properties behaving
+ * correctly. We "revive" the object by constructing a new `MTextColor` and
+ * re-applying the preserved internal values, restoring the proper prototype and
+ * behavior. This is critical inside the worker because rendering logic expects
+ * a real `MTextColor` instance, not a plain object.
+ */
+function normalizeColorSettings(colorSettings: ColorSettings): ColorSettings {
+  const fallback: ColorSettings = {
+    byLayerColor: 0xffffff,
+    byBlockColor: 0xffffff,
+    layer: '0',
+    color: new MTextColor()
+  }
+
+  const base = colorSettings ?? fallback
+  const incomingColor = base.color as unknown
+  if (incomingColor instanceof MTextColor) {
+    return base
+  }
+
+  const revived = new MTextColor()
+  if (incomingColor && typeof incomingColor === 'object') {
+    const partial = incomingColor as { _aci?: number; _rgbValue?: number }
+    if (typeof partial._aci === 'number') {
+      revived.aci = partial._aci
+    }
+    if (typeof partial._rgbValue === 'number') {
+      revived.rgbValue = partial._rgbValue
+    }
+  }
+
+  return {
+    byLayerColor: base.byLayerColor,
+    byBlockColor: base.byBlockColor,
+    layer: base.layer,
+    color: revived
+  }
+}
+
+// Serialize MText object for transfer to main thread using JSON and transferable objects
+function serializeMText(mtext: MText): {
+  data: unknown
+  transferableObjects: ArrayBuffer[]
+} {
+  // `MText` is a wrapper Object3D; insertion/rotation live on the rendered child group
+  // created in `loadMText`. Keep large drawing coordinates on that root transform, not
+  // in Float32 geometry buffers.
+  const renderRoot = mtext.children[0] as THREE.Object3D | undefined
+  const rootForTransform = renderRoot ?? mtext
+
+  const worldMatrix = rootForTransform.matrixWorld.clone()
+  const position = new THREE.Vector3()
+  const quaternion = new THREE.Quaternion()
+  const scale = new THREE.Vector3()
+
+  worldMatrix.decompose(position, quaternion, scale)
+
+  // `mtext.box` is already accumulated in world space during `syncDraw`.
+  const transformedBox = mtext.box.clone()
+
+  const { children, transferableObjects } = serializeChildren(rootForTransform)
+
+  // Create a comprehensive JSON-serializable representation
+  const serialized = {
+    // Basic properties
+    type: 'MText',
+    position: {
+      x: position.x,
+      y: position.y,
+      z: position.z
+    },
+    rotation: {
+      x: quaternion.x,
+      y: quaternion.y,
+      z: quaternion.z,
+      w: quaternion.w
+    },
+    scale: {
+      x: scale.x,
+      y: scale.y,
+      z: scale.z
+    },
+    box: {
+      min: {
+        x: transformedBox.min.x,
+        y: transformedBox.min.y,
+        z: transformedBox.min.z
+      },
+      max: {
+        x: transformedBox.max.x,
+        y: transformedBox.max.y,
+        z: transformedBox.max.z
+      }
+    },
+    // Serialize all child objects as JSON
+    children
+  }
+
+  return { data: serialized, transferableObjects }
+}
+
+const rootWorldInverse = /*@__PURE__*/ new THREE.Matrix4()
+const childRelativeMatrix = /*@__PURE__*/ new THREE.Matrix4()
+
+// Serialize all child objects as JSON with transferable objects
+function serializeChildren(root: THREE.Object3D): {
+  children: unknown[]
+  transferableObjects: ArrayBuffer[]
+} {
+  const children: unknown[] = []
+  const allTransferableObjects: ArrayBuffer[] = []
+
+  root.updateWorldMatrix(true, true)
+  rootWorldInverse.copy(root.matrixWorld).invert()
+
+  root.traverse(child => {
+    if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) {
+      const geometry = child.geometry
+      const material = child.material
+
+      if (geometry instanceof THREE.BufferGeometry) {
+        // Keep glyph geometry local and express each child transform relative to
+        // the MText root so large insertion coordinates stay on the root group.
+        const position = new THREE.Vector3()
+        const quaternion = new THREE.Quaternion()
+        const scale = new THREE.Vector3()
+        childRelativeMatrix.multiplyMatrices(
+          rootWorldInverse,
+          child.matrixWorld
+        )
+        childRelativeMatrix.decompose(position, quaternion, scale)
+
+        // Serialize geometry attributes using transferable objects
+        const attributes: Record<string, unknown> = {}
+        const transferableObjects: ArrayBuffer[] = []
+
+        if (geometry.attributes) {
+          Object.keys(geometry.attributes).forEach(key => {
+            const attr = geometry.attributes[key]
+            // Create a copy into a new ArrayBuffer to ensure it's transferable (avoid SharedArrayBuffer)
+            const src = new Uint8Array(
+              attr.array.buffer,
+              attr.array.byteOffset,
+              attr.array.byteLength
+            )
+            const copied = src.slice() // guarantees ArrayBuffer backing
+            const arrayBuffer = copied.buffer as ArrayBuffer
+            transferableObjects.push(arrayBuffer)
+            allTransferableObjects.push(arrayBuffer)
+
+            attributes[key] = {
+              arrayBuffer: arrayBuffer,
+              byteOffset: 0, // Since we copied, offset is 0
+              length: attr.array.length,
+              itemSize: attr.itemSize,
+              normalized: attr.normalized
+            }
+          })
+        }
+
+        // Serialize index if present using transferable objects
+        let indexData: {
+          arrayBuffer: ArrayBuffer
+          byteOffset: number
+          length: number
+          componentType: 'uint16' | 'uint32'
+        } | null = null
+        if (geometry.index) {
+          const indexArray = geometry.index.array as Uint16Array | Uint32Array
+          const srcIndex = new Uint8Array(
+            indexArray.buffer,
+            indexArray.byteOffset,
+            indexArray.byteLength
+          )
+          const copiedIndex = srcIndex.slice()
+          const indexBuffer = copiedIndex.buffer as ArrayBuffer
+          transferableObjects.push(indexBuffer)
+          allTransferableObjects.push(indexBuffer)
+          indexData = {
+            arrayBuffer: indexBuffer,
+            byteOffset: 0,
+            length: indexArray.length,
+            componentType:
+              indexArray instanceof Uint32Array ? 'uint32' : 'uint16'
+          }
+        }
+
+        // Serialize material properties. Prefer the per-glyph MTextColor stashed
+        // on userData so ACI 7 (foreground) is not collapsed into literal white.
+        const materialData: Record<string, unknown> = {
+          type: material.type,
+          color: material.color ? material.color.getHex() : 0xffffff,
+          transparent: material.transparent,
+          opacity: material.opacity
+        }
+        const segmentColor = child.userData?.mtextColor
+        if (segmentColor instanceof MTextColor) {
+          materialData.mtextColor = serializeMTextColor(segmentColor)
+        } else if (segmentColor && typeof segmentColor === 'object') {
+          // Structured-clone across worker boundaries may strip the class.
+          const partial = segmentColor as {
+            _aci?: number | null
+            _rgbValue?: number | null
+            aci?: number | null
+            rgbValue?: number | null
+          }
+          const revived = new MTextColor()
+          if (typeof partial.aci === 'number') {
+            revived.aci = partial.aci
+          } else if (typeof partial._aci === 'number') {
+            revived.aci = partial._aci
+          }
+          if (typeof partial.rgbValue === 'number') {
+            revived.rgbValue = partial.rgbValue
+          } else if (typeof partial._rgbValue === 'number') {
+            revived.rgbValue = partial._rgbValue
+          }
+          materialData.mtextColor = serializeMTextColor(revived)
+        }
+
+        // Add material-specific properties - only include serializable ones
+        if ('side' in material && typeof material.side === 'number') {
+          materialData.side = material.side
+        }
+        if ('linewidth' in material && typeof material.linewidth === 'number') {
+          materialData.linewidth = material.linewidth
+        }
+
+        const childData = {
+          type: child instanceof THREE.Mesh ? 'mesh' : 'line',
+          position: {
+            x: position.x,
+            y: position.y,
+            z: position.z
+          },
+          rotation: {
+            x: quaternion.x,
+            y: quaternion.y,
+            z: quaternion.z,
+            w: quaternion.w
+          },
+          scale: {
+            x: scale.x,
+            y: scale.y,
+            z: scale.z
+          },
+          geometry: {
+            attributes,
+            index: indexData
+          },
+          material: materialData,
+          charBoxType: child.userData?.charBoxType as
+            | CharBox['type']
+            | undefined,
+          lineLayouts: Array.isArray(child.userData?.lineLayouts)
+            ? serializeLineLayouts(child.userData.lineLayouts as LineLayout[])
+            : undefined,
+          charBoxes: Array.isArray(child.userData?.layout?.chars)
+            ? serializeCharBoxes(child.userData.layout.chars as CharBox[])
+            : undefined
+        }
+
+        children.push(childData)
+      }
+    }
+  })
+
+  return { children, transferableObjects: allTransferableObjects }
+}
+
+interface SerializedWorkerCharBox {
+  type: CharBox['type']
+  char: string
+  box: {
+    min: { x: number; y: number; z: number }
+    max: { x: number; y: number; z: number }
+  }
+  children: SerializedWorkerCharBox[]
+}
+
+function serializeCharBoxes(charBoxes: CharBox[]): SerializedWorkerCharBox[] {
+  return charBoxes.map(entry => ({
+    type: entry.type,
+    char: entry.char,
+    box: {
+      min: {
+        x: entry.box.min.x,
+        y: entry.box.min.y,
+        z: entry.box.min.z
+      },
+      max: {
+        x: entry.box.max.x,
+        y: entry.box.max.y,
+        z: entry.box.max.z
+      }
+    },
+    children: serializeCharBoxes(entry.children ?? [])
+  }))
+}
+
+function serializeLineLayouts(
+  lines: LineLayout[]
+): Array<{ y: number; height: number; breakIndex?: number }> {
+  return lines.map(line => ({
+    y: line.y,
+    height: line.height,
+    breakIndex: line.breakIndex
+  }))
+}

@@ -1,0 +1,49 @@
+{
+  "name": "@mlightcad/mtext-renderer",
+  "version": "0.12.7",
+  "description": "AutoCAD MText renderer based on Three.js (vendored from mlightcad/mtext-renderer)",
+  "license": "MIT",
+  "author": "MLight Lee <mlight.lee@outlook.com>",
+  "type": "module",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlightcad/mtext-renderer"
+  },
+  "homepage": "https://github.com/mlightcad/mtext-renderer",
+  "main": "./dist/index.umd.cjs",
+  "module": "./dist/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.umd.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsc && vite build -c vite.config.main.ts && vite build -c vite.config.worker.ts",
+    "build:main": "vite build -c vite.config.main.ts",
+    "build:worker": "vite build -c vite.config.worker.ts",
+    "clean": "rimraf dist lib tsconfig.tsbuildinfo",
+    "lint": "eslint src/",
+    "lint:fix": "eslint --fix --quiet src/",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@mlightcad/mtext-parser": "^1.5.1",
+    "@mlightcad/shx-parser": "^1.4.5",
+    "iconv-lite": "^0.7.0",
+    "idb": "^8.0.3",
+    "opentype.js": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/opentype.js": "^1.3.10",
+    "@types/three": "^0.172.0",
+    "three": "^0.172.0",
+    "vitest": "^3.2.4"
+  },
+  "peerDependencies": {
+    "three": "^0.172.0"
+  }
+}
